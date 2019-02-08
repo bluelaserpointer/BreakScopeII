@@ -7,16 +7,17 @@ import bullet.*;
 import core.DynamInteractable;
 import core.GHQ;
 import effect.*;
+import unit.THHUnit;
 import weapon.Weapon;
 import weapon.WeaponInfo;
 
-public class Marisa extends UserChara{
+public class Player extends THHUnit{
 	{
 		charaSize = 20;
 	}
 	@Override
 	public final String getName() {
-		return "Marisa";
+		return "Player";
 	}
 	
 	//weapon&bullet kind name
@@ -86,8 +87,8 @@ public class Marisa extends UserChara{
 	@Override
 	public final void respawn(int charaID,int charaTeam,int x,int y){
 		super.respawn(charaID,charaTeam,x,y);
-		charaHP = super.charaBaseHP = 10000;
-		charaME = charaBaseME = 100;
+		status.setDefault(HP, 10000);
+		status.setDefault(MP, 10000);
 		for(Weapon ver : weaponController) {
 			if(ver != null)
 				ver.reset();
@@ -109,7 +110,7 @@ public class Marisa extends UserChara{
 	@Override
 	public final void setBullet(int kind,DynamInteractable user) {
 		BulletBlueprint.clear(bulletScripts[kind],user.getDynam());
-		BulletBlueprint.team = charaTeam;
+		BulletBlueprint.team = status.get(TEAM);
 		switch(kind){
 		case MILLKY_WAY:
 			BulletBlueprint.name = "MILLKY_WAY";

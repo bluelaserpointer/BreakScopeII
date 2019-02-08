@@ -2,9 +2,12 @@ package chara;
 
 import core.DynamInteractable;
 import core.GHQ;
+import unit.Unit;
+import unit.EnemyBulletLibrary;
+import unit.THHUnit;
 import weapon.Weapon;
 
-public class Fairy extends UserChara{
+public class Fairy extends THHUnit{
 	{
 		charaSize = 70;
 	}
@@ -26,16 +29,16 @@ public class Fairy extends UserChara{
 	@Override
 	public void activeCons() {
 		weaponController.defaultIdle();
-		final Chara targetEnemy = GHQ.getNearstVisibleEnemy(this);
+		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null && weaponController.trigger())
 			EnemyBulletLibrary.inputBulletInfo(this,EnemyBulletLibrary.lightBall_ROUND,bulletIID[0],targetEnemy);
 	}
 	@Override
 	public void paint(boolean doAnimation) {
-		if(charaHP <= 0)
+		if(!isAlive())
 			return;
 		super.paintMode_magicCircle(magicCircleIID);
-		GHQ.paintHPArc((int) dynam.getX(), (int) dynam.getY(), 20,charaHP, charaBaseHP);
+		GHQ.paintHPArc((int) dynam.getX(), (int) dynam.getY(), 20,status.get(HP), status.getDefault(HP));
 	}
 	@Override
 	public void setEffect(int kind,DynamInteractable source) {}

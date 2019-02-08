@@ -9,7 +9,10 @@ import action.Action;
 import action.ActionInfo;
 import action.ActionSource;
 import bullet.Bullet;
-import chara.*;
+import chara.BlackMan;
+import chara.Fairy;
+import chara.Player;
+import chara.WhiteMan;
 import core.GHQ;
 import core.MessageSource;
 import stage.ControlExpansion;
@@ -17,17 +20,17 @@ import stage.Stage;
 import stage.StageEngine;
 import stage.StageInfo;
 import structure.Structure;
+import unit.*;
 
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
-	private static final UserChara[] friendCharaClass = new UserChara[2];
-	private static final ArrayList<Chara> enemyCharaClass = new ArrayList<Chara>();
+	private static final THHUnit[] friendCharaClass = new THHUnit[1];
+	private static final ArrayList<Unit> enemyCharaClass = new ArrayList<Unit>();
 	private static final Stage[] stages = new Stage[1];
 	private int nowStage;
 	
 	public static final int FRIEND = 0,ENEMY = 100;
 	final int F_MOVE_SPD = 6;
 	
-	int formationsX[],formationsY[];
 	int formationCenterX,formationCenterY;
 	
 	//images
@@ -65,16 +68,11 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		Editor.freeShapeIID = GHQ.loadImage("gui_editor/FreeShape.png");
 	}
 	@Override
-	public final Chara[] charaSetup() {
+	public final Unit[] charaSetup() {
 		//formation
 		formationCenterX = GHQ.getScreenW()/2;formationCenterY = GHQ.getScreenH() - 100;
-		formationsX = new int[2];
-		formationsY = new int[2];
-		formationsX[0] = -15;formationsY[0] = 0;
-		formationsX[1] = +15;formationsY[1] = 0;
 		//friend
-		friendCharaClass[0] = (UserChara)new Marisa().initialSpawn(FRIEND,formationCenterX + formationsX[0],formationCenterY + formationsY[0],4000);
-		friendCharaClass[1] = (UserChara)new Reimu().initialSpawn(FRIEND,formationCenterX + formationsX[1],formationCenterY + formationsY[1],4000);
+		friendCharaClass[0] = (THHUnit)new Player().initialSpawn(FRIEND,formationCenterX,formationCenterY,4000);
 		//action
 		ActionInfo.clear();
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() - 200, GHQ.getScreenH() + 100);
@@ -89,11 +87,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		enemyCharaClass.add(new BlackMan().initialSpawn(ENEMY, 200, GHQ.random2(100, 150),10000));
 		
 		//result
-		final ArrayList<Chara> allCharaClass = new ArrayList<Chara>();
+		final ArrayList<Unit> allCharaClass = new ArrayList<Unit>();
 		allCharaClass.add(friendCharaClass[0]);
-		allCharaClass.add(friendCharaClass[1]);
 		allCharaClass.addAll(enemyCharaClass);
-		return allCharaClass.toArray(new Chara[0]);
+		return allCharaClass.toArray(new Unit[0]);
 	}
 	@Override
 	public final Stage stageSetup() {
@@ -151,12 +148,12 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 			switch(nowStage) {
 			case 0:
 				for(int i = 0;i < friendCharaClass.length;i++)
-					friendCharaClass[i].teleportTo(formationCenterX + formationsX[i], formationCenterY + formationsY[i]);
+					friendCharaClass[i].teleportTo(formationCenterX, formationCenterY);
 				//friend
 				GHQ.defaultCharaIdle(friendCharaClass);
 				//enemy
 				for(int i = 0;i < enemyCharaClass.size();i++) {
-					final Chara enemy = enemyCharaClass.get(i);
+					final Unit enemy = enemyCharaClass.get(i);
 					if(enemy.getHP() <= 0) {
 						enemyCharaClass.remove(enemy);
 						continue;
@@ -183,10 +180,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 						//formationCenterX += (double)DX/10.0;formationCenterY += (double)DY/10.0;
 					//}
 					for(int i = 0;i < friendCharaClass.length;i++)
-						friendCharaClass[i].teleportTo(formationCenterX + formationsX[i], formationCenterY + formationsY[i]);
+						friendCharaClass[i].teleportTo(formationCenterX, formationCenterY);
 				}
 				//shot
-				for(Chara chara : friendCharaClass)
+				for(Unit chara : friendCharaClass)
 					chara.attackOrder = ctrlEx.getCommandBool(CtrlEx_BS.SHOT);
 				//spell
 				{
@@ -214,7 +211,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		}else { //game GUI
 			GHQ.translateForGUI(true);
 			int pos = 1;
-			for(UserChara chara : friendCharaClass) 
+			for(THHUnit chara : friendCharaClass) 
 				GHQ.drawImageTHH(chara.faceIID, pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
 			GHQ.translateForGUI(false);
 		}
@@ -252,18 +249,18 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		
 	}
 	@Override
-	public final Chara[] callBulletEngage(Chara[] characters,Bullet bullet) {
-		final Chara[] result = new Chara[characters.length];
+	public final Unit[] callBulletEngage(Unit[] characters,Bullet bullet) {
+		final Unit[] result = new Unit[characters.length];
 		int searched = 0;
 		for(int i = 0;i < characters.length;i++) {
-			final Chara chara = characters[i];
+			final Unit chara = characters[i];
 			if(chara.bulletEngage(bullet))
 				result[searched++] = chara;
 		}
 		return Arrays.copyOf(result, searched);
 	}
 	@Override
-	public boolean deleteChara(Chara chara) {
+	public boolean deleteChara(Unit chara) {
 		return enemyCharaClass.remove(chara);
 	}
 	//information
@@ -271,7 +268,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	public final int getGameFrame() {
 		return gameFrame;
 	}
-	final static Chara[] getUserChara() {
+	final static Unit[] getUserChara() {
 		return friendCharaClass;
 	}
 	private boolean doScrollView = true;

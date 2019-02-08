@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 import bullet.BulletAgent;
 import bullet.BulletBlueprint;
 import core.GHQ;
+import unit.Unit;
 import weapon.Weapon;
 import weapon.WeaponInfo;
 
@@ -36,7 +37,7 @@ public class EnemyBulletLibrary extends BulletAgent{
 			return null;
 		}
 	}
-	public static void inputBulletInfo(Chara user,int bulletKind,int bulletIID,Chara targetChara) {
+	public static void inputBulletInfo(Unit user,int bulletKind,int bulletIID,Unit targetChara) {
 		BulletBlueprint.clear(BulletBlueprint.DEFAULT_SCRIPT,user.dynam);
 		BulletBlueprint.dynam.setAngle(targetChara);
 		BulletBlueprint.team = user.getTeam();
