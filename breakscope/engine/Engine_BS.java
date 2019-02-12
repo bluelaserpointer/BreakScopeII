@@ -147,7 +147,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 					if(enemy.getName() == "FairyA") {
 						final int FRAME = gameFrame % 240;
 						if(FRAME < 100)
-							enemyCharaClass.get(i).dynam.setSpeed(-5, 0);
+							enemy.dynam.setSpeed(-5, 0);
 						else if(FRAME < 120)
 							enemy.dynam.setSpeed(0, 0);
 						else if(FRAME < 220)
