@@ -2,7 +2,6 @@ package engine;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import action.Action;
@@ -16,22 +15,26 @@ import chara.WhiteMan;
 import core.GHQ;
 import core.MessageSource;
 import stage.ControlExpansion;
-import stage.Stage;
 import stage.StageEngine;
-import stage.StageInfo;
 import structure.Structure;
+import structure.Terrain;
 import unit.*;
 
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
-	private static final THHUnit[] friendCharaClass = new THHUnit[1];
-	private static final ArrayList<Unit> enemyCharaClass = new ArrayList<Unit>();
-	private static final Stage[] stages = new Stage[1];
+	private static final Player player = new Player();
+	private static final Stage_BS[] stages = new Stage_BS[1];
 	private int nowStage;
 	
 	public static final int FRIEND = 0,ENEMY = 100;
 	final int F_MOVE_SPD = 6;
 	
 	int formationCenterX,formationCenterY;
+	
+	private int stageW,stageH;
+	
+	public String getVersion() {
+		return "alpha1.0.0";
+	}
 	
 	//images
 	//stageObject
@@ -68,36 +71,29 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		Editor.freeShapeIID = GHQ.loadImage("gui_editor/FreeShape.png");
 	}
 	@Override
-	public final Unit[] charaSetup() {
+	public final void charaSetup() {
 		//formation
 		formationCenterX = GHQ.getScreenW()/2;formationCenterY = GHQ.getScreenH() - 100;
 		//friend
-		friendCharaClass[0] = (THHUnit)new Player().initialSpawn(FRIEND,formationCenterX,formationCenterY,4000);
+		player.initialSpawn(FRIEND,formationCenterX,formationCenterY,4000);
+		GHQ.addUnit(player);
 		//action
 		ActionInfo.clear();
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() - 200, GHQ.getScreenH() + 100);
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() + 200, GHQ.getScreenH() + 100);
 		final Action moveLeftToRight200 = new Action(this);
 		//enemy
-		enemyCharaClass.add(new Fairy().initialSpawn(ENEMY, 300, 100,2500));
-		enemyCharaClass.add(new Fairy().initialSpawn(ENEMY, 700, 20,2500));
-		enemyCharaClass.add(new Fairy().initialSpawn(ENEMY, 1200, 300,2500));
-		enemyCharaClass.add(new Fairy().initialSpawn(ENEMY, 1800, 700,2500));
-		enemyCharaClass.add(new WhiteMan().initialSpawn(ENEMY, 400, GHQ.random2(100, 150),50000));
-		enemyCharaClass.add(new BlackMan().initialSpawn(ENEMY, 200, GHQ.random2(100, 150),10000));
-		
-		//result
-		final ArrayList<Unit> allCharaClass = new ArrayList<Unit>();
-		allCharaClass.add(friendCharaClass[0]);
-		allCharaClass.addAll(enemyCharaClass);
-		return allCharaClass.toArray(new Unit[0]);
+		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 300, 100,2500));
+		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 700, 20,2500));
+		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 1200, 300,2500));
+		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 1800, 700,2500));
+		GHQ.addUnit(new WhiteMan().initialSpawn(ENEMY, 400, GHQ.random2(100, 150),50000));
+		GHQ.addUnit(new BlackMan().initialSpawn(ENEMY, 200, GHQ.random2(100, 150),10000));
 	}
 	@Override
-	public final Stage stageSetup() {
-		StageInfo.clear();
-		StageInfo.name = "stage1_1";
-		StageInfo.stageW = StageInfo.stageH = 2000;
-		return stages[0] = new Stage();
+	public final void stageSetup() {
+		stageW = stageH = 5000;
+		GHQ.addStructure(new Terrain(new int[]{0,0,300,400,500,600,700,700},new int[]{650,450,450,350,350,450,450,650}));
 	}
 	@Override
 	public final void openStage() {
@@ -108,22 +104,19 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	@Override
 	public final void idle(Graphics2D g2,int stopEventKind) {
 		gameFrame++;
+		final Stage_BS STAGE = stages[nowStage];
 		//stagePaint
 		//background
 		g2.setColor(new Color(112,173,71));
-		g2.fillRect(0,0,stages[nowStage].getStageW(),stages[nowStage].getStageH());
+		g2.fillRect(0,0,stageW,stageH);
 		//landscape
 		g2.setColor(Color.LIGHT_GRAY);
-		for(Structure ver : stages[nowStage].getPrimeStructures())
-			ver.doFill(g2);
-		for(Structure ver : stages[nowStage].getSubStructures())
-			ver.doFill(g2);
+		for(Structure structure : GHQ.getStructureList())
+			structure.doDraw(g2);
 		g2.setColor(Color.GRAY);
 		g2.setStroke(GHQ.stroke3);
-		for(Structure ver : stages[nowStage].getPrimeStructures())
-			ver.doDraw(g2);
-		for(Structure ver : stages[nowStage].getSubStructures())
-			ver.doDraw(g2);
+		for(Structure structure : GHQ.getStructureList())
+			structure.doDraw(g2);
 		//vegitation
 		GHQ.drawImageTHH_center(vegImageIID[3], 1172, 886,1.3);
 		GHQ.drawImageTHH_center(vegImageIID[0], 1200, 800,1.0);
@@ -140,65 +133,44 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		////////////////
 		final int MOUSE_X = GHQ.getMouseX(),MOUSE_Y = GHQ.getMouseY();
 		if(stopEventKind == NONE) {
-			//gravity
-			if(doGravity) {
-				//<editting>
-			}
 			//others
 			switch(nowStage) {
 			case 0:
-				for(int i = 0;i < friendCharaClass.length;i++)
-					friendCharaClass[i].teleportTo(formationCenterX, formationCenterY);
 				//friend
-				GHQ.defaultCharaIdle(friendCharaClass);
+				player.teleportTo(formationCenterX, formationCenterY);
+				GHQ.defaultCharaIdle(player);
 				//enemy
-				for(int i = 0;i < enemyCharaClass.size();i++) {
-					final Unit enemy = enemyCharaClass.get(i);
-					if(enemy.getHP() <= 0) {
-						enemyCharaClass.remove(enemy);
+				for(Unit enemy : GHQ.getCharacterList()) {
+					if(!enemy.isAlive())
 						continue;
-					}
 					GHQ.defaultCharaIdle(enemy);
 					if(enemy.getName() == "FairyA") {
 						final int FRAME = gameFrame % 240;
 						if(FRAME < 100)
 							enemyCharaClass.get(i).dynam.setSpeed(-5, 0);
 						else if(FRAME < 120)
-							enemyCharaClass.get(i).dynam.setSpeed(0, 0);
+							enemy.dynam.setSpeed(0, 0);
 						else if(FRAME < 220)
-							enemyCharaClass.get(i).dynam.setSpeed(5, 0);
+							enemy.dynam.setSpeed(5, 0);
 						else
-							enemyCharaClass.get(i).dynam.setSpeed(0, 0);
+							enemy.dynam.setSpeed(0, 0);
 					}
 				}
 				//leap
 				if(ctrlEx.getCommandBool(CtrlEx_BS.LEAP)){
-					//final int DX = MOUSE_X - formationCenterX,DY = MOUSE_Y - formationCenterY;
-					//if(DX*DX + DY*DY < 5000) {
-						formationCenterX = MOUSE_X;formationCenterY = MOUSE_Y;
-					//}else {
-						//formationCenterX += (double)DX/10.0;formationCenterY += (double)DY/10.0;
-					//}
-					for(int i = 0;i < friendCharaClass.length;i++)
-						friendCharaClass[i].teleportTo(formationCenterX, formationCenterY);
+					formationCenterX = MOUSE_X;formationCenterY = MOUSE_Y;
+					player.teleportTo(formationCenterX, formationCenterY);
 				}
 				//shot
-				for(Unit chara : friendCharaClass)
-					chara.attackOrder = ctrlEx.getCommandBool(CtrlEx_BS.SHOT);
+				player.attackOrder = ctrlEx.getCommandBool(CtrlEx_BS.SHOT);
 				//spell
-				{
-					int spellUser;
-					while((spellUser = ctrlEx.pullSpellUser()) != NONE) {
-						if(spellUser < friendCharaClass.length)
-							friendCharaClass[spellUser].spellOrder = true;
-					}
-				}
+				int spellUser;
+				while((spellUser = ctrlEx.pullSpellUser()) != NONE)
+					player.spellOrder = true;
 				break;
 			}
-		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.NO_ANM_STOP) {
-			GHQ.defaultCharaIdle(friendCharaClass);
-			GHQ.defaultCharaIdle(enemyCharaClass);
-		}
+		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.NO_ANM_STOP)
+			GHQ.defaultCharaIdle(GHQ.getCharacterList());
 		GHQ.defaultEntityIdle();
 		//focus
 		g2.setColor(new Color(200,120,10,100));
@@ -207,12 +179,11 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		GHQ.drawImageTHH_center(focusIID,MOUSE_X,MOUSE_Y);
 		//editor
 		if(editMode) {
-			Editor.doEditorPaint(g2);
+			Editor.idle(g2);
 		}else { //game GUI
 			GHQ.translateForGUI(true);
 			int pos = 1;
-			for(THHUnit chara : friendCharaClass) 
-				GHQ.drawImageTHH(chara.faceIID, pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
+			GHQ.drawImageTHH(player.faceIID, pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
 			GHQ.translateForGUI(false);
 		}
 		if(stopEventKind == NONE) { //scroll
@@ -259,26 +230,69 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		}
 		return Arrays.copyOf(result, searched);
 	}
-	@Override
-	public boolean deleteChara(Unit chara) {
-		return enemyCharaClass.remove(chara);
-	}
 	//information
 	@Override
 	public final int getGameFrame() {
 		return gameFrame;
 	}
-	final static Unit[] getUserChara() {
-		return friendCharaClass;
+	@Override
+	public final boolean inStage(int x,int y) {
+		return 0 < x && x <= stageW && 0 < y && y <= stageH;
+	}
+	@Override
+	public final int getStageW() {
+		return stageW;
+	}
+	@Override
+	public final int getStageH() {
+		return stageH;
 	}
 	private boolean doScrollView = true;
-	private boolean doGravity = false;
 	
 	private static final class Editor{
 		//gui
 		private static int freeShapeIID;
+		
+		private static int placeX,placeY;
+		
+		private static byte placeKind;
+		private static final byte 
+			TERRAIN = 0,
+			ENEMY = 1,
+			ITEM = 2;
 		//role
-		static void doEditorPaint(Graphics2D g2) {
+		static void idle(Graphics2D g2) {
+			//mouse
+			if(ctrlEx.getCommandBool(ctrlEx.LEAP)) {
+				g2.setColor(Color.RED);
+				final int N = 100;
+				int S = 4;
+				final int SX = (GHQ.getMouseX() + N/2)/N,SY = (GHQ.getMouseY() + N/2)/N;
+				for(int xi = -1;xi <= +1;xi++) {
+					for(int yi = -1;yi <= +1;yi++)
+						g2.fillOval((SX + xi)*N - S/2, (SY + yi)*N - S/2, S, S);
+				}
+				S += 6;
+				g2.drawOval(SX*N - S/2, SY*N - S/2, S, S);
+				placeX = SX;
+				placeY = SY;
+			}else {
+				placeX = GHQ.getMouseX();
+				placeY = GHQ.getMouseY();
+			}
+			//blockPointSet
+			if(ctrlEx.getCommandBool(ctrlEx.SHOT)) {
+				switch(placeKind) {
+				case TERRAIN:
+					Terrain.blueprintAddPoint(placeX,placeY);
+					break;
+				case ENEMY:
+					break;
+				case ITEM:
+					break;
+				}
+			}
+			//gui
 			GHQ.translateForGUI(true);
 			g2.setColor(Color.WHITE);
 			g2.drawString("EDIT_MODE", 20, 20);
