@@ -25,6 +25,8 @@ public class WhiteMan extends THHUnit{
 	@Override
 	public void activeCons() {
 		final Unit blackManAdress = GHQ.getChara("BlackMan");
+		if(blackManAdress == null)
+			return;
 		charaDstX = blackManAdress.dynam.getX();
 		charaDstY = blackManAdress.dynam.getY();
 		if(0 < blackManAdress.getHP() && blackManAdress.getHP() < 10000 && dynam.getDistance(charaDstX, charaDstY) < 200){

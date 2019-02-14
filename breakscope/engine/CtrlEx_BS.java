@@ -37,13 +37,14 @@ public class CtrlEx_BS extends ControlExpansion{
 	final long SPELL_TAP_DUR = 200L;
 	
 	private static final int COMMAND_MAXID = 30;
-	final int commandCode[] = {VK_A,VK_W,VK_D,VK_S,MouseEvent.BUTTON1,VK_SHIFT};
-	final int commandID[] = {LEFT,UP,RIGHT,DOWN,SHOT,LEAP};
-	final String commandName[] = {"MOVE_LEFT","MOVE_UP","MOVE_RIGHT","MOVE_DOWN","SHOT","LEAP"};
+	final int commandCode[] = {VK_A,VK_W,VK_D,VK_S,MouseEvent.BUTTON1,VK_SHIFT,VK_F6};
+	final int commandID[] = {LEFT,UP,RIGHT,DOWN,SHOT,LEAP,EDIT_MODE};
+	final String commandName[] = {"MOVE_LEFT","MOVE_UP","MOVE_RIGHT","MOVE_DOWN","SHOT","LEAP","EDOT_MODE"};
 	static final int
 		LEFT = 0,UP = 1,RIGHT = 2,DOWN = 3,
 		SHOT = 10,LEAP = 11,
-		SPELL_CHARA1 = 20,SPELL_CHARA2 = 21,SPELL_CHARA3 = 22,SPELL_CHARA4 = 23;
+		SPELL_CHARA1 = 20,SPELL_CHARA2 = 21,SPELL_CHARA3 = 22,SPELL_CHARA4 = 23,
+		EDIT_MODE = 30;
 	private final BitSet commandBools = new BitSet(COMMAND_MAXID);
 	private long key_1_time,key_2_time,key_3_time,key_4_time;
 	boolean key_editMode;
@@ -77,15 +78,6 @@ public class CtrlEx_BS extends ControlExpansion{
 					commandBools.set(SPELL_CHARA4);
 				key_4_time = GHQ.getNowTime();
 				break;
-			}
-			break;
-		case VK_F6:
-			if(Engine_BS.editMode) {
-				Engine_BS.editMode = false;
-				GHQ.clearStopEvent();
-			}else if(GHQ.isNoStopEvent()) {
-				Engine_BS.editMode = true;
-				GHQ.stopScreen_noAnm();
 			}
 			break;
 		default:
