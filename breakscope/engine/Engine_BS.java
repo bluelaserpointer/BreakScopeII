@@ -2,6 +2,7 @@ package engine;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.io.File;
 import java.util.Arrays;
 
 import action.Action;
@@ -97,7 +98,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	@Override
 	public final void stageSetup() {
 		stageW = stageH = 5000;
-		GHQ.addStructure(new Terrain(new int[]{0,0,300,400,500,600,700,700},new int[]{650,450,450,350,350,450,450,650}));
+		stages[0] = (Stage_BS)GHQ.loadData(new File("stage/saveData1.txt"));
+		for(Structure structure : stages[0].STRUCTURES) {
+			GHQ.addStructure(structure);
+		}
 	}
 	@Override
 	public final void openStage() {
@@ -326,6 +330,14 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 					super.paint();
 					if(placeKind == TERRAIN)
 						RED_FRAMING.paint(x, y, w, h);
+				}
+			});
+			GHQ.addGUIParts(new BasicButton(EDIT_MODE_GROUP,new ImageFrame("gui_editor/Save.png"),77,500,85,40) {
+				@Override
+				public void clicked() {
+					System.out.println("saving...");
+					GHQ.saveData(new Stage_BS(GHQ.getCharacters(),GHQ.getStructures()),new File("stage/saveData1.txt"));
+					System.out.println("complete!");
 				}
 			});
 		}

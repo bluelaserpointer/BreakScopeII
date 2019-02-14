@@ -17,5 +17,4 @@ public class Stage_BS extends StageSaveData{
 		this.UNITS = Arrays.copyOf(units, units.length);
 		this.STRUCTURES = Arrays.copyOf(structures, structures.length);
 	}
-
 }
