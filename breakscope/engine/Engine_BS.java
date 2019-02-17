@@ -1,5 +1,7 @@
 package engine;
 
+import static java.awt.event.KeyEvent.*;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
@@ -16,7 +18,9 @@ import chara.WhiteMan;
 import core.GHQ;
 import core.MessageSource;
 import gui.DefaultStageEditor;
-import stage.ControlExpansion;
+import input.MouseListenerEx;
+import input.SingleKeyListener;
+import input.SingleNumKeyListener;
 import stage.StageEngine;
 import stage.StageSaveData;
 import structure.Structure;
@@ -38,11 +42,31 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		return "alpha1.0.0";
 	}
 	
+	//inputEvnet
+	private final int inputKeys[] = 
+	{
+		VK_W,
+		VK_A,
+		VK_S,
+		VK_D,
+		VK_Q,
+		VK_E,
+		VK_R,
+		VK_F,
+		VK_G,
+		VK_TAB,
+		VK_SHIFT,
+		VK_SPACE,
+		VK_ESCAPE,
+		VK_F6,
+	};
+	private final MouseListenerEx sml = new MouseListenerEx();
+	private final SingleKeyListener skl = new SingleKeyListener(inputKeys);
+	private final SingleNumKeyListener snkl = new SingleNumKeyListener();
+	
 	//images
 	//stageObject
 	private int vegImageIID[] = new int[5];
-	
-	private static final CtrlEx_BS ctrlEx = new CtrlEx_BS();
 	
 	int focusIID,magicCircleIID;
 	
@@ -58,10 +82,6 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		new GHQ(new Engine_BS());
 	}
 	@Override
-	public final ControlExpansion getCtrl_ex() {
-		return ctrlEx;
-	}
-	@Override
 	public final void loadResource() {
 		focusIID = GHQ.loadImage("focus.png");
 		magicCircleIID = GHQ.loadImage("MagicCircle.png");
@@ -71,6 +91,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		vegImageIID[3] = GHQ.loadImage("veg_stone.png");
 		vegImageIID[4] = GHQ.loadImage("veg_leaf3.png");
 		DefaultStageEditor.init(new File("stage/saveData1.txt"));
+		GHQ.addListenerEx(sml);
+		GHQ.addListenerEx(skl);
+		GHQ.addListenerEx(snkl);
 	}
 	@Override
 	public final void charaSetup() {
@@ -103,6 +126,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	@Override
 	public final void openStage() {
 		GHQ.addMessage(this,"This is a prototype stage.");
+		skl.enable();
+		snkl.enable();
+		sml.enable();
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
@@ -165,16 +191,14 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 					}
 				}
 				//leap
-				if(ctrlEx.getCommandBool(CtrlEx_BS.LEAP)){
+				if(skl.hasEvent(VK_SHIFT)){
 					formationCenterX = MOUSE_X;formationCenterY = MOUSE_Y;
 					player.teleportTo(formationCenterX, formationCenterY);
 				}
 				//shot
-				player.attackOrder = ctrlEx.getCommandBool(CtrlEx_BS.SHOT);
+				player.attackOrder = sml.hasButton1Event();
 				//spell
-				int spellUser;
-				while((spellUser = ctrlEx.pullSpellUser()) != NONE)
-					player.spellOrder = true;
+				player.spellOrder = sml.pullButton2Event();
 				break;
 			}
 		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.NO_ANM_STOP)
@@ -186,7 +210,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		g2.drawLine(formationCenterX,formationCenterY,MOUSE_X,MOUSE_Y);
 		GHQ.drawImageTHH_center(focusIID,MOUSE_X,MOUSE_Y);
 		//editor
-		if(ctrlEx.pullCommandBool(CtrlEx_BS.EDIT_MODE)) {
+		if(skl.pullEvent(VK_F6)) {
 			if(editMode) {
 				editMode = false;
 				GHQ.disableGUIs(DefaultStageEditor.EDIT_MODE_GROUP);
@@ -207,20 +231,20 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		}
 		if(stopEventKind == NONE || editMode) { //scroll
 			//scroll by keys
-			if(ctrlEx.getCommandBool(CtrlEx_BS.UP)) {
+			if(skl.hasEvent(VK_W)) {
 				formationCenterY -= F_MOVE_SPD;
 				GHQ.viewTargetMove(0,-F_MOVE_SPD);
 				GHQ.pureViewMove(0,-F_MOVE_SPD);
-			}else if(ctrlEx.getCommandBool(CtrlEx_BS.DOWN)) {
+			}else if(skl.hasEvent(VK_S)) {
 				formationCenterY += F_MOVE_SPD;
 				GHQ.viewTargetMove(0,F_MOVE_SPD);
 				GHQ.pureViewMove(0,F_MOVE_SPD);
 			}
-			if(ctrlEx.getCommandBool(CtrlEx_BS.LEFT)) {
+			if(skl.hasEvent(VK_A)) {
 				formationCenterX -= F_MOVE_SPD;
 				GHQ.viewTargetMove(-F_MOVE_SPD,0);
 				GHQ.pureViewMove(-F_MOVE_SPD,0);
-			}else if(ctrlEx.getCommandBool(CtrlEx_BS.RIGHT)) {
+			}else if(skl.hasEvent(VK_D)) {
 				formationCenterX += F_MOVE_SPD;
 				GHQ.viewTargetMove(F_MOVE_SPD,0);
 				GHQ.pureViewMove(F_MOVE_SPD,0);

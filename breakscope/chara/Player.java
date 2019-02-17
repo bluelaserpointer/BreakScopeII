@@ -12,6 +12,7 @@ import weapon.Weapon;
 import weapon.WeaponInfo;
 
 public class Player extends THHUnit{
+	private static final long serialVersionUID = 8121281285749873895L;
 	{
 		charaSize = 20;
 	}
@@ -214,6 +215,7 @@ public class Player extends THHUnit{
 	{
 		bulletScripts[MILLKY_WAY] = BulletBlueprint.DEFAULT_SCRIPT;
 		bulletScripts[NARROW_SPARK] = new BulletScript() {
+			private static final long serialVersionUID = 7900689138570112752L;
 			@Override
 			public final void bulletIdle(Bullet bullet) {
 				bullet.lifeSpanCheck();
@@ -232,6 +234,8 @@ public class Player extends THHUnit{
 			}
 		};
 		bulletScripts[REUSE_BOMB] = new BulletScript() {
+			private static final long serialVersionUID = -5081776847926794662L;
+
 			@Override
 			public final void bulletIdle(Bullet bullet) {
 				bullet.defaultIdle();
@@ -242,6 +246,7 @@ public class Player extends THHUnit{
 			}
 		};
 		bulletScripts[MAGIC_MISSILE] = new BulletScript() {
+			private static final long serialVersionUID = -7592256488781770358L;
 			@Override
 			public final void bulletIdle(Bullet bullet) {
 				for(int i = 0;i < 2;i++)
@@ -258,12 +263,16 @@ public class Player extends THHUnit{
 	private final EffectScript[] effectScripts = new EffectScript[10];
 	{
 		effectScripts[MISSILE_TRACE1_EF] = new EffectScript() {
+			private static final long serialVersionUID = 2100372635933991953L;
+
 			@Override
 			public final void effectNoAnmPaint(Effect effect) {
 				effectFadePaint(effect);
 			}
 		};
 		effectScripts[MISSILE_TRACE2_EF] = new EffectScript() {
+			private static final long serialVersionUID = -5749980868018351153L;
+
 			@Override
 			public final void effectNoAnmPaint(Effect effect) {
 				GHQ.setImageAlpha((float)(1.0 - (double)GHQ.getPassedFrame(effect.INITIAL_FRAME)/effect.LIMIT_FRAME));
@@ -272,6 +281,8 @@ public class Player extends THHUnit{
 			}
 		};
 		effectScripts[MISSILE_HIT_EF] = new EffectScript() {
+			private static final long serialVersionUID = -6709638231571272900L;
+
 			@Override
 			public final void effectNoAnmPaint(Effect effect) {
 				GHQ.setImageAlpha((float)(1.0 - (double)GHQ.getPassedFrame(effect.INITIAL_FRAME)/effect.LIMIT_FRAME));
