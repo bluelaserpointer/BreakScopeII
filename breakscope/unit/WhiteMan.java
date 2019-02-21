@@ -1,4 +1,4 @@
-package chara;
+package unit;
 
 import core.DynamInteractable;
 import core.GHQ;
@@ -29,8 +29,8 @@ public class WhiteMan extends THHUnit{
 			return;
 		charaDstX = blackManAdress.dynam.getX();
 		charaDstY = blackManAdress.dynam.getY();
-		if(0 < blackManAdress.getHP() && blackManAdress.getHP() < 10000 && dynam.getDistance(charaDstX, charaDstY) < 200){
-			blackManAdress.setHP(blackManAdress.getHP() + 100);
+		if(blackManAdress.status.isBigger0(HP) && blackManAdress.status.isSmaller(HP,10000) && dynam.getDistance(charaDstX, charaDstY) < 200){
+			blackManAdress.status.add(HP, 100);
 		}
 		dynam.approach(charaDstX, charaDstY, charaSpeed);
 	}

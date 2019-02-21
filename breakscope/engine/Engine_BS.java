@@ -11,10 +11,6 @@ import action.Action;
 import action.ActionInfo;
 import action.ActionSource;
 import bullet.Bullet;
-import chara.BlackMan;
-import chara.Fairy;
-import chara.Player;
-import chara.WhiteMan;
 import core.GHQ;
 import core.MessageSource;
 import gui.DefaultStageEditor;
@@ -106,7 +102,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		ActionInfo.clear();
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() - 200, GHQ.getScreenH() + 100);
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() + 200, GHQ.getScreenH() + 100);
-		final Action moveLeftToRight200 = new Action(this);
+		//final Action moveLeftToRight200 = new Action(this);
 		//enemy
 		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 300, 100,2500));
 		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 700, 20,2500));
@@ -119,8 +115,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	public final void stageSetup() {
 		stageW = stageH = 5000;
 		stages[0] = (Stage_BS)GHQ.loadData(new File("stage/saveData1.txt"));
-		for(Structure structure : stages[0].STRUCTURES) {
-			GHQ.addStructure(structure);
+		if(stages[0] != null) {
+			for(Structure structure : stages[0].STRUCTURES) {
+				GHQ.addStructure(structure);
+			}
 		}
 	}
 	@Override
@@ -144,24 +142,19 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		g2.setColor(new Color(112,173,71));
 		g2.fillRect(0,0,stageW,stageH);
 		//landscape
-		g2.setColor(Color.LIGHT_GRAY);
-		for(Structure structure : GHQ.getStructureList())
-			structure.doDraw(g2);
-		g2.setColor(Color.GRAY);
-		g2.setStroke(GHQ.stroke3);
-		for(Structure structure : GHQ.getStructureList())
-			structure.doDraw(g2);
+		for(Structure ver : GHQ.getStructureList())
+			ver.paint();
 		//vegitation
-		GHQ.drawImageTHH_center(vegImageIID[3], 1172, 886,1.3);
-		GHQ.drawImageTHH_center(vegImageIID[0], 1200, 800,1.0);
-		GHQ.drawImageTHH_center(vegImageIID[0], 1800, 350,1.4);
-		GHQ.drawImageTHH_center(vegImageIID[0], 1160, 870,1.7);
-		GHQ.drawImageTHH_center(vegImageIID[1], 1180, 830,1.3);
-		GHQ.drawImageTHH_center(vegImageIID[2], 1102, 815,1.3);
-		GHQ.drawImageTHH_center(vegImageIID[2], 1122, 826,1.3);
-		GHQ.drawImageTHH_center(vegImageIID[4], 822, 886,1.3);
+		GHQ.drawImageGHQ_center(vegImageIID[3], 1172, 886,1.3);
+		GHQ.drawImageGHQ_center(vegImageIID[0], 1200, 800,1.0);
+		GHQ.drawImageGHQ_center(vegImageIID[0], 1800, 350,1.4);
+		GHQ.drawImageGHQ_center(vegImageIID[0], 1160, 870,1.7);
+		GHQ.drawImageGHQ_center(vegImageIID[1], 1180, 830,1.3);
+		GHQ.drawImageGHQ_center(vegImageIID[2], 1102, 815,1.3);
+		GHQ.drawImageGHQ_center(vegImageIID[2], 1122, 826,1.3);
+		GHQ.drawImageGHQ_center(vegImageIID[4], 822, 886,1.3);
 		////////////////
-		GHQ.drawImageTHH_center(magicCircleIID, formationCenterX, formationCenterY, (double)GHQ.getNowFrame()/35.0);
+		GHQ.drawImageGHQ_center(magicCircleIID, formationCenterX, formationCenterY, (double)GHQ.getNowFrame()/35.0);
 		g2.setColor(Color.RED);
 		g2.fillOval(formationCenterX - 2, formationCenterY - 2, 5, 5);
 		////////////////
@@ -208,16 +201,16 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		g2.setColor(new Color(200,120,10,100));
 		g2.setStroke(GHQ.stroke3);
 		g2.drawLine(formationCenterX,formationCenterY,MOUSE_X,MOUSE_Y);
-		GHQ.drawImageTHH_center(focusIID,MOUSE_X,MOUSE_Y);
+		GHQ.drawImageGHQ_center(focusIID,MOUSE_X,MOUSE_Y);
 		//editor
 		if(skl.pullEvent(VK_F6)) {
 			if(editMode) {
 				editMode = false;
-				GHQ.disableGUIs(DefaultStageEditor.EDIT_MODE_GROUP);
+				GHQ.disableGUIs(DefaultStageEditor.EDIT_MENU_GROUP);
 				GHQ.clearStopEvent();
 			}else if(GHQ.isNoStopEvent()) {
 				editMode = true;
-				GHQ.enableGUIs(DefaultStageEditor.EDIT_MODE_GROUP);
+				GHQ.enableGUIs(DefaultStageEditor.EDIT_MENU_GROUP);
 				GHQ.stopScreen_noAnm();
 			}
 		}

@@ -1,4 +1,4 @@
-package chara;
+package unit;
 
 import static java.lang.Math.*;
 import bullet.BulletAgent;

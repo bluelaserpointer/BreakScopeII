@@ -1,4 +1,4 @@
-package chara;
+package unit;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.random;
@@ -217,7 +217,7 @@ public class Player extends THHUnit{
 		bulletScripts[NARROW_SPARK] = new BulletScript() {
 			private static final long serialVersionUID = 7900689138570112752L;
 			@Override
-			public final void bulletIdle(Bullet bullet) {
+			public final void idle(Bullet bullet) {
 				bullet.lifeSpanCheck();
 				int count = 0;
 				while(bullet.dynam.inStage()) {
@@ -237,7 +237,7 @@ public class Player extends THHUnit{
 			private static final long serialVersionUID = -5081776847926794662L;
 
 			@Override
-			public final void bulletIdle(Bullet bullet) {
+			public final void idle(Bullet bullet) {
 				bullet.defaultIdle();
 				bullet.dynam.addSpeed(0.0,1.1);
 				bullet.defaultPaint();
@@ -248,11 +248,11 @@ public class Player extends THHUnit{
 		bulletScripts[MAGIC_MISSILE] = new BulletScript() {
 			private static final long serialVersionUID = -7592256488781770358L;
 			@Override
-			public final void bulletIdle(Bullet bullet) {
+			public final void idle(Bullet bullet) {
 				for(int i = 0;i < 2;i++)
 					setEffect(MISSILE_TRACE1_EF,bullet);
 				setEffect(MISSILE_TRACE2_EF,bullet);
-				super.bulletIdle(bullet);
+				super.idle(bullet);
 			}
 			@Override
 			public final void bulletHitObject(Bullet bullet) {
@@ -266,7 +266,7 @@ public class Player extends THHUnit{
 			private static final long serialVersionUID = 2100372635933991953L;
 
 			@Override
-			public final void effectNoAnmPaint(Effect effect) {
+			public final void noAnmPaint(Effect effect) {
 				effectFadePaint(effect);
 			}
 		};
@@ -274,9 +274,9 @@ public class Player extends THHUnit{
 			private static final long serialVersionUID = -5749980868018351153L;
 
 			@Override
-			public final void effectNoAnmPaint(Effect effect) {
+			public final void noAnmPaint(Effect effect) {
 				GHQ.setImageAlpha((float)(1.0 - (double)GHQ.getPassedFrame(effect.INITIAL_FRAME)/effect.LIMIT_FRAME));
-				super.effectNoAnmPaint(effect);
+				super.noAnmPaint(effect);
 				GHQ.setImageAlpha();
 			}
 		};
@@ -284,9 +284,9 @@ public class Player extends THHUnit{
 			private static final long serialVersionUID = -6709638231571272900L;
 
 			@Override
-			public final void effectNoAnmPaint(Effect effect) {
+			public final void noAnmPaint(Effect effect) {
 				GHQ.setImageAlpha((float)(1.0 - (double)GHQ.getPassedFrame(effect.INITIAL_FRAME)/effect.LIMIT_FRAME));
-				super.effectNoAnmPaint(effect);
+				super.noAnmPaint(effect);
 				GHQ.setImageAlpha();
 			}
 		};

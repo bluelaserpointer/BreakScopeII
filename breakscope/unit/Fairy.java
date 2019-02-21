@@ -1,4 +1,4 @@
-package chara;
+package unit;
 
 import core.DynamInteractable;
 import core.GHQ;

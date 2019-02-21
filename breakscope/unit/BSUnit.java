@@ -1,4 +1,4 @@
-package chara;
+package unit;
 
 
 import action.Action;
@@ -143,13 +143,13 @@ public abstract class BSUnit extends Unit {
 		if(isAlive())
 			return;
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		GHQ.drawImageTHH_center(charaIID, X, Y);
+		GHQ.drawImageGHQ_center(charaIID, X, Y);
 		GHQ.paintHPArc(X, Y, 20,status.get(HP), status.getDefault(HP));
 	}
 	protected final void paintMode_magicCircle(int magicCircleIID) {
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		GHQ.drawImageTHH_center(magicCircleIID, X, Y, (double)GHQ.getNowFrame()/35.0);
-		GHQ.drawImageTHH_center(charaIID, X, Y);
+		GHQ.drawImageGHQ_center(magicCircleIID, X, Y, (double)GHQ.getNowFrame()/35.0);
+		GHQ.drawImageGHQ_center(charaIID, X, Y);
 	}
 	
 	// control
@@ -210,13 +210,8 @@ public abstract class BSUnit extends Unit {
 	// judge
 	@Override
 	public final boolean bulletEngage(Bullet bullet) {
-		return status.ifOver0(HP) && dynam.squreCollision(bullet.dynam,(status.get(SIZE) + bullet.SIZE)/2)
+		return status.isBigger0(HP) && dynam.squreCollision(bullet.dynam,(status.get(SIZE) + bullet.SIZE)/2)
 				&& (bullet.team == status.get(TEAM) ^ bullet.atk >= 0);
-	}
-	// hp
-	@Override
-	public final void setHP(int hp) {
-		status.set(HP,hp);
 	}
 	private final void dodge(double targetX, double targetY) {
 		dynam.addSpeed_DA(40, dynam.getAngle(targetX,targetY));
@@ -247,28 +242,8 @@ public abstract class BSUnit extends Unit {
 		return status.get(TEAM);
 	}
 	@Override
-	public final int getHP() {
-		return status.get(HP);
-	}
-
-	@Override
-	public final double getHPRate() {
-		return status.getRate(HP);
-	}
-
-	@Override
-	public final int getMP() {
-		return status.get(MP);
-	}
-
-	@Override
-	public final double getMPRate() {
-		return status.getRate(MP);
-	}
-
-	@Override
-	public final Status getStatus() {
-		return status;
+	public final boolean isAlive() {
+		return status.get(HP) > 0;
 	}
 	@Override
 	public boolean isMovable() {
