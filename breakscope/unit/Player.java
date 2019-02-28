@@ -12,6 +12,10 @@ import weapon.Weapon;
 import weapon.WeaponInfo;
 
 public class Player extends THHUnit{
+	public Player(int initialGroup) {
+		super(initialGroup);
+	}
+
 	private static final long serialVersionUID = 8121281285749873895L;
 	{
 		charaSize = 20;
@@ -86,15 +90,15 @@ public class Player extends THHUnit{
 		slot_spell = 0;
 	}
 	@Override
-	public final void respawn(int charaID,int charaTeam,int x,int y){
-		super.respawn(charaID,charaTeam,x,y);
+	public final void respawn(int spawnX,int spawnY){
+		super.respawn(spawnX,spawnY);
 		status.setDefault(HP, 10000);
 		status.setDefault(MP, 10000);
 		for(Weapon ver : weaponController) {
 			if(ver != null)
 				ver.reset();
 		}
-	}	
+	}
 	@Override
 	public void activeCons() {
 		super.activeCons();
@@ -111,7 +115,7 @@ public class Player extends THHUnit{
 	@Override
 	public final void setBullet(int kind,DynamInteractable user) {
 		BulletBlueprint.clear(bulletScripts[kind],user.getDynam());
-		BulletBlueprint.team = status.get(TEAM);
+		BulletBlueprint.standpointGroup = standpoint.get();
 		switch(kind){
 		case MILLKY_WAY:
 			BulletBlueprint.name = "MILLKY_WAY";

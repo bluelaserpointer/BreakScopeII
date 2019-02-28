@@ -11,7 +11,7 @@ import unit.Unit;
 import weapon.Weapon;
 
 public abstract class BSUnit extends Unit {
-
+	private static final long serialVersionUID = -3074084304336765077L;
 	public double charaDstX, charaDstY, charaSpeed = 30;
 	public boolean charaOnLand;
 
@@ -29,11 +29,12 @@ public abstract class BSUnit extends Unit {
 	public int charaIID;
 	public final int bulletIID[] = new int[weapon_max], effectIID[] = new int[10];
 	
+	//special
+	public int favorDegree;
 	//status constants
 
 	public static final int PARAMETER_AMOUNT = 10;
 	public static final int HP = 0,SPD = 1,ATK = 2,AGI = 3,CRI = 4,BLO = 5,STUN = 6;
-	public static final int TEAM = 7;
 	public static final int SIZE = 8;
 	public static final int MP = 9;
 	private static final String names[] = new String[PARAMETER_AMOUNT];
@@ -45,12 +46,12 @@ public abstract class BSUnit extends Unit {
 		names[CRI] = "CRI";
 		names[BLO] = "BLO";
 		names[STUN] = "STUN";
-		names[TEAM] = "TEAM";
 		names[SIZE] = "SIZE";
 		names[MP] = "MP";
 	}
-	public BSUnit() {
+	public BSUnit(int initialGroup) {
 		super(new Status(PARAMETER_AMOUNT) {
+			private static final long serialVersionUID = -8559880661969472776L;
 			@Override
 			public void capCheck(int index) {
 				switch(index) {
@@ -60,26 +61,20 @@ public abstract class BSUnit extends Unit {
 					break;
 				}
 			}
-		});
+		},initialGroup);
 	}
 	@Override
 	public void loadImageData() {
 	}
 
 	@Override
-	public void respawn(int charaTeam, int x, int y) {
+	public void respawn(int x, int y) {
 		super.resetOrder();
 		status.reset();
-		status.set(TEAM, charaTeam);
 		super.dynam.clear();
 		super.dynam.setXY(charaDstX = x, charaDstY = y);
 		charaOnLand = false;
 		slot_spell = 0;
-	}
-	@Override
-	public void respawn(int charaTeam, int x, int y,int hp) {
-		status.setDefault(HP,hp);
-		this.respawn(charaTeam, x, y);
 	}
 	@Override
 	public void dynam() {
@@ -211,7 +206,7 @@ public abstract class BSUnit extends Unit {
 	@Override
 	public final boolean bulletEngage(Bullet bullet) {
 		return status.isBigger0(HP) && dynam.squreCollision(bullet.dynam,(status.get(SIZE) + bullet.SIZE)/2)
-				&& (bullet.team == status.get(TEAM) ^ bullet.atk >= 0);
+				&& (bullet.isFriendly(this) ^ bullet.atk >= 0);
 	}
 	private final void dodge(double targetX, double targetY) {
 		dynam.addSpeed_DA(40, dynam.getAngle(targetX,targetY));
@@ -236,10 +231,6 @@ public abstract class BSUnit extends Unit {
 	@Override
 	public String getName() {
 		return GHQ.NOT_NAMED;
-	}
-	@Override
-	public final int getTeam() {
-		return status.get(TEAM);
 	}
 	@Override
 	public final boolean isAlive() {

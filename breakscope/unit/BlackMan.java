@@ -2,13 +2,16 @@ package unit;
 
 import core.DynamInteractable;
 import core.GHQ;
-import engine.Engine_BS;
 import unit.Unit;
 import unit.EnemyBulletLibrary;
 import unit.THHUnit;
 import weapon.Weapon;
 
 public class BlackMan extends THHUnit{
+	private static final long serialVersionUID = 474244930122842766L;
+	public BlackMan(int initialGroup) {
+		super(initialGroup);
+	}
 	{
 		charaSize = 120;
 		charaSpeed = 2;
@@ -36,7 +39,7 @@ public class BlackMan extends THHUnit{
 			EnemyBulletLibrary.inputBulletInfo(this,EnemyBulletLibrary.BLACK_SLASH_BURST,bulletIID[0],targetEnemy);
 			EnemyBulletLibrary.inputBulletInfo(this,EnemyBulletLibrary.BLACK_SLASH_BURST,bulletIID[1],targetEnemy);
 		}
-		Unit chara = GHQ.getNearstEnemy(Engine_BS.FRIEND, (int)charaX, (int)charaY);
+		Unit chara = GHQ.getNearstEnemy(this, (int)charaX, (int)charaY);
 		if(chara != null) 
 			dynam.setAngle(dynam.getAngle(charaDstX = chara.dynam.getX(),charaDstY = chara.dynam.getY()));
 		dynam.approach(charaDstX, charaDstY, charaSpeed);

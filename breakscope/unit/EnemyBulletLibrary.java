@@ -40,7 +40,7 @@ public class EnemyBulletLibrary extends BulletAgent{
 	public static void inputBulletInfo(Unit user,int bulletKind,int bulletIID,Unit targetChara) {
 		BulletBlueprint.clear(BulletBlueprint.DEFAULT_SCRIPT,user.dynam);
 		BulletBlueprint.dynam.setAngle(targetChara);
-		BulletBlueprint.team = user.getTeam();
+		BulletBlueprint.standpointGroup = user.standpoint.get();
 		switch(bulletKind) {
 		case lightBall_S:
 			BulletBlueprint.name = "lightBall_S";

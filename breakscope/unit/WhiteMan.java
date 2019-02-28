@@ -6,6 +6,10 @@ import unit.Unit;
 import unit.THHUnit;
 
 public class WhiteMan extends THHUnit{
+	private static final long serialVersionUID = -3224085275647002850L;
+	public WhiteMan(int initialGroup) {
+		super(initialGroup);
+	}
 	{
 		charaSize = 120;
 		charaSpeed = 1;

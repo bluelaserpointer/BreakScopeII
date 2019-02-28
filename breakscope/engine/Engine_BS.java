@@ -1,13 +1,13 @@
 package engine;
 
 import static java.awt.event.KeyEvent.*;
+import static unit.THHUnit.HP;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.util.Arrays;
 
-import action.Action;
 import action.ActionInfo;
 import action.ActionSource;
 import bullet.Bullet;
@@ -23,11 +23,12 @@ import structure.Structure;
 import unit.*;
 
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
-	private static final Player player = new Player();
+	public static final int FRIEND = 0,ENEMY = 100;
+	
+	private static final Player player = new Player(FRIEND);
 	private static final Stage_BS[] stages = new Stage_BS[1];
 	private int nowStage;
 	
-	public static final int FRIEND = 0,ENEMY = 100;
 	final int F_MOVE_SPD = 6;
 	
 	int formationCenterX,formationCenterY;
@@ -81,6 +82,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	public final void loadResource() {
 		focusIID = GHQ.loadImage("focus.png");
 		magicCircleIID = GHQ.loadImage("MagicCircle.png");
+		GHQ.loadImageFolder(new File("picture"));
 		vegImageIID[0] = GHQ.loadImage("veg_leaf.png");
 		vegImageIID[1] = GHQ.loadImage("veg_flower.png");
 		vegImageIID[2] = GHQ.loadImage("veg_leaf2.png");
@@ -96,7 +98,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		//formation
 		formationCenterX = GHQ.getScreenW()/2;formationCenterY = GHQ.getScreenH() - 100;
 		//friend
-		player.initialSpawn(FRIEND,formationCenterX,formationCenterY,4000);
+		player.initialSpawn(formationCenterX,formationCenterY).status.setDefault(HP, 4000);
 		GHQ.addUnit(player);
 		//action
 		ActionInfo.clear();
@@ -104,12 +106,12 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() + 200, GHQ.getScreenH() + 100);
 		//final Action moveLeftToRight200 = new Action(this);
 		//enemy
-		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 300, 100,2500));
-		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 700, 20,2500));
-		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 1200, 300,2500));
-		GHQ.addUnit(new Fairy().initialSpawn(ENEMY, 1800, 700,2500));
-		GHQ.addUnit(new WhiteMan().initialSpawn(ENEMY, 400, GHQ.random2(100, 150),50000));
-		GHQ.addUnit(new BlackMan().initialSpawn(ENEMY, 200, GHQ.random2(100, 150),10000));
+		GHQ.addUnit(new Fairy(ENEMY).initialSpawn(300, 100)).status.setDefault(HP, 2500);
+		GHQ.addUnit(new Fairy(ENEMY).initialSpawn(700, 20)).status.setDefault(HP, 2500);
+		GHQ.addUnit(new Fairy(ENEMY).initialSpawn(1200, 300)).status.setDefault(HP, 2500);
+		GHQ.addUnit(new Fairy(ENEMY).initialSpawn(1800, 700)).status.setDefault(HP, 2500);
+		GHQ.addUnit(new WhiteMan(ENEMY).initialSpawn(400, GHQ.random2(100, 150))).status.setDefault(HP, 50000);
+		GHQ.addUnit(new BlackMan(ENEMY).initialSpawn(200, GHQ.random2(100, 150))).status.setDefault(HP, 10000);
 	}
 	@Override
 	public final void stageSetup() {

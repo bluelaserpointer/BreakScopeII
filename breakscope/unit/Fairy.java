@@ -8,6 +8,10 @@ import unit.THHUnit;
 import weapon.Weapon;
 
 public class Fairy extends THHUnit{
+	private static final long serialVersionUID = -8167654165444569286L;
+	public Fairy(int initialGroup) {
+		super(initialGroup);
+	}
 	{
 		charaSize = 70;
 	}
