@@ -1,24 +1,28 @@
 package item;
 
 import core.GHQ;
+import paint.RectPaint;
 import unit.Item;
 
 public abstract class InventoryItem extends Item{
-	final int IMAGE_IID;
 	final String BASE_NAME;
 	@Override
 	public final String getName() {
 		return BASE_NAME;
 	}
-	public InventoryItem(String baseName,int imageIID) {
+	public InventoryItem(String baseName,int stackCap, RectPaint paint) {
+		super(stackCap, paint);
 		BASE_NAME = baseName;
-		IMAGE_IID = imageIID;
+	}
+	public InventoryItem(String baseName, RectPaint paint) {
+		super(GHQ.MAX, paint);
+		BASE_NAME = baseName;
 	}
 	//main role
 	public void paintInInventory(int x,int y,int w,int h) {
-		GHQ.drawImageGHQ(IMAGE_IID, x, y, w, h);
+		super.paintScript.paint(x, y, w, h);
 	}
 	public void paintInStage(int x,int y,int w,int h) {
-		GHQ.drawImageGHQ(IMAGE_IID, x, y, w, h);
+		super.paintScript.paint(x, y, w, h);
 	}
 }

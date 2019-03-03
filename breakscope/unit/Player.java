@@ -7,11 +7,11 @@ import bullet.*;
 import core.DynamInteractable;
 import core.GHQ;
 import effect.*;
-import unit.THHUnit;
+import paint.ImageFrame;
 import weapon.Weapon;
 import weapon.WeaponInfo;
 
-public class Player extends THHUnit{
+public class Player extends BSUnit{
 	public Player(int initialGroup) {
 		super(initialGroup);
 	}
@@ -33,23 +33,22 @@ public class Player extends THHUnit{
 			MISSILE_HIT_EF = 4;
 	
 	//GUI
-		
 	//Sounds
 	
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaIID = GHQ.loadImage("Marisa.png");
-		faceIID = GHQ.loadImage("MarisaIcon.png");
-		bulletIID[MILLKY_WAY] = GHQ.loadImage("MillkyWay.png");
-		bulletIID[NARROW_SPARK] = GHQ.loadImage("NarrowSpark_2.png");
-		bulletIID[REUSE_BOMB] = GHQ.loadImage("ReuseBomb.png");
-		bulletIID[MAGIC_MISSILE] = GHQ.loadImage("MagicMissile.png");
-		effectIID[LIGHTNING] = GHQ.loadImage("ReuseBomb_Effect.png");
-		effectIID[SPARK_HIT_EF] = GHQ.loadImage("NarrowSpark_HitEffect.png");
-		effectIID[MISSILE_TRACE1_EF] = GHQ.loadImage("StarEffect2.png");
-		effectIID[MISSILE_TRACE2_EF] = GHQ.loadImage("MagicMissile.png");
-		effectIID[MISSILE_HIT_EF] = GHQ.loadImage("MissileHitEffect.png");
+		charaPaint = new ImageFrame("Marisa.png");
+		iconPaint = new ImageFrame("MarisaIcon.png");
+		bulletPaint[MILLKY_WAY] = new ImageFrame("MillkyWay.png");
+		bulletPaint[NARROW_SPARK] = new ImageFrame("NarrowSpark_2.png");
+		bulletPaint[REUSE_BOMB] = new ImageFrame("ReuseBomb.png");
+		bulletPaint[MAGIC_MISSILE] = new ImageFrame("MagicMissile.png");
+		effectPaint[LIGHTNING] = new ImageFrame("ReuseBomb_Effect.png");
+		effectPaint[SPARK_HIT_EF] = new ImageFrame("NarrowSpark_HitEffect.png");
+		effectPaint[MISSILE_TRACE1_EF] = new ImageFrame("StarEffect2.png");
+		effectPaint[MISSILE_TRACE2_EF] = new ImageFrame("MagicMissile.png");
+		effectPaint[MISSILE_HIT_EF] = new ImageFrame("MissileHitEffect.png");
 	}
 	
 	@Override
@@ -124,7 +123,7 @@ public class Player extends THHUnit{
 			BulletBlueprint.atk = 40;
 			BulletBlueprint.offSet = 20;
 			BulletBlueprint.limitFrame = 200;
-			BulletBlueprint.imageID = bulletIID[MILLKY_WAY];
+			BulletBlueprint.paintScript = bulletPaint[MILLKY_WAY];
 			GHQ.createBullet(user).split_Round(50, 8);
 			break;
 		case NARROW_SPARK:
@@ -134,14 +133,14 @@ public class Player extends THHUnit{
 			//	THH.addMessage(this,charaID,"TEST MESSAGE 2");
 			//}
 			BulletBlueprint.name = "NARROW_SPARK";
-			BulletBlueprint.dynam.setSpeed(GHQ.getImageByID(bulletIID[NARROW_SPARK]).getWidth(null));
+			BulletBlueprint.dynam.setSpeed(bulletPaint[NARROW_SPARK].getDefaultW());
 			BulletBlueprint.size = 15;
 			BulletBlueprint.atk = 8;
 			BulletBlueprint.offSet = 20;
 			BulletBlueprint.penetration = MAX;
 			BulletBlueprint.reflection = 3;
 			BulletBlueprint.limitFrame = 40;
-			BulletBlueprint.imageID = bulletIID[NARROW_SPARK];
+			BulletBlueprint.paintScript = bulletPaint[NARROW_SPARK];
 			BulletBlueprint.isLaser = true;
 			GHQ.createBullet(user);
 			break;
@@ -153,7 +152,7 @@ public class Player extends THHUnit{
 			BulletBlueprint.atk = 40;
 			BulletBlueprint.offSet = 20;
 			BulletBlueprint.limitFrame = 200;
-			BulletBlueprint.imageID = bulletIID[REUSE_BOMB];
+			BulletBlueprint.paintScript = bulletPaint[REUSE_BOMB];
 			GHQ.createBullet(user).split_Round(50, 3);
 			break;
 		case MAGIC_MISSILE:
@@ -163,7 +162,7 @@ public class Player extends THHUnit{
 			BulletBlueprint.atk = 500;
 			BulletBlueprint.offSet = 100;
 			BulletBlueprint.limitFrame = 2000;
-			BulletBlueprint.imageID = bulletIID[MAGIC_MISSILE];
+			BulletBlueprint.paintScript = bulletPaint[MAGIC_MISSILE];
 			BulletBlueprint.dynam.fastParaAdd_DASpd(10,GHQ.random2(PI/36),10.0);
 			GHQ.createBullet(user);
 			break;
@@ -177,13 +176,13 @@ public class Player extends THHUnit{
 			EffectBlueprint.name = "LIGHTNING";
 			EffectBlueprint.dynam.fastParaAdd_DASpd(10,2*PI*random(),20);
 			EffectBlueprint.limitFrame = 2;
-			EffectBlueprint.imageID = effectIID[LIGHTNING];
+			EffectBlueprint.paintScript = effectPaint[LIGHTNING];
 			GHQ.createEffect(this);
 			break;
 		case SPARK_HIT_EF:
 			EffectBlueprint.name = "SPARK_HIT_EF";
 			EffectBlueprint.limitFrame = 3;
-			EffectBlueprint.imageID = effectIID[SPARK_HIT_EF];
+			EffectBlueprint.paintScript = effectPaint[SPARK_HIT_EF];
 			EffectBlueprint.dynam.fastParaAdd_DASpd(10,2*PI*random(),GHQ.random2(0,12));
 			GHQ.createEffect(this);
 			break;
@@ -191,7 +190,7 @@ public class Player extends THHUnit{
 			EffectBlueprint.name = "MISSILE_TRACE1_EF";
 			EffectBlueprint.accel = -0.2;
 			EffectBlueprint.limitFrame = 7;
-			EffectBlueprint.imageID = effectIID[kind];
+			EffectBlueprint.paintScript = effectPaint[kind];
 			for(int i = 0;i < 4;i++) {
 				EffectBlueprint.dynam.fastParaAdd_DASpd(10,2*PI*random(),GHQ.random2(0,12));
 				GHQ.createEffect(this);
@@ -201,13 +200,13 @@ public class Player extends THHUnit{
 			EffectBlueprint.name = "MISSILE_TRACE2_EF";
 			EffectBlueprint.limitFrame = 7;
 			EffectBlueprint.dynam.stop();
-			EffectBlueprint.imageID = effectIID[kind];
+			EffectBlueprint.paintScript = effectPaint[kind];
 			GHQ.createEffect(this);
 			break;
 		case MISSILE_HIT_EF:
 			EffectBlueprint.name = "MISSILE_HIT_EF";
 			EffectBlueprint.accel = -0.1;
-			EffectBlueprint.imageID = effectIID[kind];
+			EffectBlueprint.paintScript = effectPaint[kind];
 			for(int i = 0;i < 30;i++) {
 				EffectBlueprint.limitFrame = GHQ.random2(10,40);
 				GHQ.createEffect(this).dynam.fastParaAdd_DASpd(30,2*PI*random(),GHQ.random2(2,5));

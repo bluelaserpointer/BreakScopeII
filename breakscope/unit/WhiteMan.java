@@ -2,8 +2,9 @@ package unit;
 
 import core.DynamInteractable;
 import core.GHQ;
+import paint.ImageFrame;
+import thhunit.THHUnit;
 import unit.Unit;
-import unit.THHUnit;
 
 public class WhiteMan extends THHUnit{
 	private static final long serialVersionUID = -3224085275647002850L;
@@ -14,7 +15,6 @@ public class WhiteMan extends THHUnit{
 		charaSize = 120;
 		charaSpeed = 1;
 	}
-	private final int bulletIID[] = new int[10];
 	@Override
 	public final String getName() {
 		return "WhiteMan";
@@ -23,8 +23,8 @@ public class WhiteMan extends THHUnit{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaIID = GHQ.loadImage("WhiteBall.png");
-		bulletIID[0] = GHQ.loadImage("LightBallA.png");
+		charaPaint = new ImageFrame("WhiteBall.png");
+		bulletPaint[0] = new ImageFrame("LightBallA.png");
 	}
 	@Override
 	public void activeCons() {

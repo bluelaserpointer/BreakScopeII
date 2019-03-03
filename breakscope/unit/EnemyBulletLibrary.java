@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 import bullet.BulletAgent;
 import bullet.BulletBlueprint;
 import core.GHQ;
+import paint.DotPaint;
 import unit.Unit;
 import weapon.Weapon;
 import weapon.WeaponInfo;
@@ -37,7 +38,7 @@ public class EnemyBulletLibrary extends BulletAgent{
 			return null;
 		}
 	}
-	public static void inputBulletInfo(Unit user,int bulletKind,int bulletIID,Unit targetChara) {
+	public static void inputBulletInfo(Unit user,int bulletKind,DotPaint bulletPaint,Unit targetChara) {
 		BulletBlueprint.clear(BulletBlueprint.DEFAULT_SCRIPT,user.dynam);
 		BulletBlueprint.dynam.setAngle(targetChara);
 		BulletBlueprint.standpointGroup = user.standpoint.get();
@@ -46,20 +47,20 @@ public class EnemyBulletLibrary extends BulletAgent{
 			BulletBlueprint.name = "lightBall_S";
 			BulletBlueprint.dynam.fastParaAdd_DSpd(10,3);
 			BulletBlueprint.atk = 20;
-			BulletBlueprint.imageID = bulletIID;
+			BulletBlueprint.paintScript = bulletPaint;
 			GHQ.createBullet(user);
 			break;
 		case lightBall_ROUND:
 			BulletBlueprint.name = "lightBall_ROUND";
 			BulletBlueprint.atk = 20;
-			BulletBlueprint.imageID = bulletIID;
+			BulletBlueprint.paintScript = bulletPaint;
 			GHQ.createBullet(user).split_Burst(5, 10, 12.0);
 			break;
 		case HEAL_SHOTGUN:
 			BulletBlueprint.name = "HEAL_SHOTGUN";
 			BulletBlueprint.atk = -20;
 			BulletBlueprint.limitRange = 150;
-			BulletBlueprint.imageID = bulletIID;
+			BulletBlueprint.paintScript = bulletPaint;
 			GHQ.createBullet(user).split_Burst(10, 16, 15.0);
 			break;
 		case BLACK_SLASH_BURST:
@@ -69,7 +70,7 @@ public class EnemyBulletLibrary extends BulletAgent{
 			BulletBlueprint.offSet = 3;
 			BulletBlueprint.reflection = 1;
 			BulletBlueprint.limitFrame = 200;
-			BulletBlueprint.imageID = bulletIID;
+			BulletBlueprint.paintScript = bulletPaint;
 			final double DEG10 = PI/18;
 			GHQ.createBullet(user).split_NWay(10,new double[] {-DEG10, 0, +DEG10},20);
 			break;

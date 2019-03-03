@@ -6,12 +6,15 @@ import action.ActionInfo;
 import bullet.Bullet;
 import core.DynamInteractable;
 import core.GHQ;
+import paint.DotPaint;
+import paint.RectPaint;
 import unit.Status;
 import unit.Unit;
 import weapon.Weapon;
 
 public abstract class BSUnit extends Unit {
 	private static final long serialVersionUID = -3074084304336765077L;
+	public int charaSize;
 	public double charaDstX, charaDstY, charaSpeed = 30;
 	public boolean charaOnLand;
 
@@ -22,12 +25,12 @@ public abstract class BSUnit extends Unit {
 	protected final Weapon weaponController[] = new Weapon[10];
 
 	// GUI
-	public int faceIID;
+	public RectPaint iconPaint;
 
 	// Resource
 	// Images
-	public int charaIID;
-	public final int bulletIID[] = new int[weapon_max], effectIID[] = new int[10];
+	public DotPaint charaPaint;
+	public final DotPaint bulletPaint[] = new DotPaint[weapon_max], effectPaint[] = new DotPaint[10];
 	
 	//special
 	public int favorDegree;
@@ -35,7 +38,6 @@ public abstract class BSUnit extends Unit {
 
 	public static final int PARAMETER_AMOUNT = 10;
 	public static final int HP = 0,SPD = 1,ATK = 2,AGI = 3,CRI = 4,BLO = 5,STUN = 6;
-	public static final int SIZE = 8;
 	public static final int MP = 9;
 	private static final String names[] = new String[PARAMETER_AMOUNT];
 	static {
@@ -46,7 +48,6 @@ public abstract class BSUnit extends Unit {
 		names[CRI] = "CRI";
 		names[BLO] = "BLO";
 		names[STUN] = "STUN";
-		names[SIZE] = "SIZE";
 		names[MP] = "MP";
 	}
 	public BSUnit(int initialGroup) {
@@ -86,7 +87,7 @@ public abstract class BSUnit extends Unit {
 	@Override
 	public void activeCons() {
 		// death
-		if (isAlive()) {
+		if (!isAlive()) {
 			return;
 		}
 		final int mouseX = GHQ.getMouseX(), mouseY = GHQ.getMouseY();
@@ -135,16 +136,16 @@ public abstract class BSUnit extends Unit {
 	}
 	@Override
 	public void paint(boolean doAnimation) {
-		if(isAlive())
+		if(status.get(HP) <= 0)
 			return;
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		GHQ.drawImageGHQ_center(charaIID, X, Y);
+		charaPaint.paint(X, Y);
 		GHQ.paintHPArc(X, Y, 20,status.get(HP), status.getDefault(HP));
 	}
-	protected final void paintMode_magicCircle(int magicCircleIID) {
+	protected final void paintMode_magicCircle(DotPaint paintScript) {
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		GHQ.drawImageGHQ_center(magicCircleIID, X, Y, (double)GHQ.getNowFrame()/35.0);
-		GHQ.drawImageGHQ_center(charaIID, X, Y);
+		paintScript.paint(X, Y, (double)GHQ.getNowFrame()/35.0);
+		charaPaint.paint(X, Y);
 	}
 	
 	// control
@@ -205,7 +206,7 @@ public abstract class BSUnit extends Unit {
 	// judge
 	@Override
 	public final boolean bulletEngage(Bullet bullet) {
-		return status.isBigger0(HP) && dynam.squreCollision(bullet.dynam,(status.get(SIZE) + bullet.SIZE)/2)
+		return status.isBigger0(HP) && dynam.squreCollision(bullet.dynam,(charaSize + bullet.SIZE)/2)
 				&& (bullet.isFriendly(this) ^ bullet.atk >= 0);
 	}
 	private final void dodge(double targetX, double targetY) {
@@ -220,7 +221,16 @@ public abstract class BSUnit extends Unit {
 		return true;
 	}
 
-	// decrease
+	// decreases
+	@Override
+	public final int damage_amount(int amount) {
+		return status.add(HP, -amount);
+	}
+
+	@Override
+	public final int damage_rate(double rate) {
+		return status.reduce_rate(HP, rate);
+	}
 	@Override
 	public final boolean kill(boolean force) {
 		status.set0(HP);

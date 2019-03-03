@@ -1,7 +1,7 @@
 package engine;
 
 import static java.awt.event.KeyEvent.*;
-import static unit.THHUnit.HP;
+import static thhunit.THHUnit.HP;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -12,15 +12,19 @@ import action.ActionInfo;
 import action.ActionSource;
 import bullet.Bullet;
 import core.GHQ;
-import core.MessageSource;
 import gui.DefaultStageEditor;
+import gui.MessageSource;
 import input.MouseListenerEx;
 import input.SingleKeyListener;
 import input.SingleNumKeyListener;
 import stage.StageEngine;
 import stage.StageSaveData;
 import structure.Structure;
-import unit.*;
+import unit.BlackMan;
+import unit.Fairy;
+import unit.Player;
+import unit.Unit;
+import unit.WhiteMan;
 
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
 	public static final int FRIEND = 0,ENEMY = 100;
@@ -221,7 +225,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		}else { //game GUI
 			GHQ.translateForGUI(true);
 			int pos = 1;
-			GHQ.drawImageGHQ(player.faceIID, pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
+			player.iconPaint.paint(pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
 			GHQ.translateForGUI(false);
 		}
 		if(stopEventKind == NONE || editMode) { //scroll
