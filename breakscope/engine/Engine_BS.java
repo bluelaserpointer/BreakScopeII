@@ -17,6 +17,8 @@ import gui.MessageSource;
 import input.MouseListenerEx;
 import input.SingleKeyListener;
 import input.SingleNumKeyListener;
+import item.Ammo;
+import paint.ImageFrame;
 import stage.StageEngine;
 import stage.StageSaveData;
 import structure.Structure;
@@ -25,6 +27,7 @@ import unit.Fairy;
 import unit.Player;
 import unit.Unit;
 import unit.WhiteMan;
+import vegetation.Vegetation;
 
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
 	public static final int FRIEND = 0,ENEMY = 100;
@@ -66,8 +69,6 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	private final SingleNumKeyListener snkl = new SingleNumKeyListener();
 	
 	//images
-	//stageObject
-	private int vegImageIID[] = new int[5];
 	
 	int focusIID,magicCircleIID;
 	
@@ -84,15 +85,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	}
 	@Override
 	public final void loadResource() {
-		focusIID = GHQ.loadImage("focus.png");
-		magicCircleIID = GHQ.loadImage("MagicCircle.png");
-		GHQ.loadImageFolder(new File("picture"));
-		vegImageIID[0] = GHQ.loadImage("veg_leaf.png");
-		vegImageIID[1] = GHQ.loadImage("veg_flower.png");
-		vegImageIID[2] = GHQ.loadImage("veg_leaf2.png");
-		vegImageIID[3] = GHQ.loadImage("veg_stone.png");
-		vegImageIID[4] = GHQ.loadImage("veg_leaf3.png");
+		focusIID = GHQ.loadImage("thhimage/focus.png");
+		magicCircleIID = GHQ.loadImage("thhimage/MagicCircle.png");
 		DefaultStageEditor.init(new File("stage/saveData1.txt"));
+		Ammo.loadResource();
 		GHQ.addListenerEx(sml);
 		GHQ.addListenerEx(skl);
 		GHQ.addListenerEx(snkl);
@@ -116,6 +112,15 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		GHQ.addUnit(new Fairy(ENEMY).initialSpawn(1800, 700)).status.setDefault(HP, 2500);
 		GHQ.addUnit(new WhiteMan(ENEMY).initialSpawn(400, GHQ.random2(100, 150))).status.setDefault(HP, 50000);
 		GHQ.addUnit(new BlackMan(ENEMY).initialSpawn(200, GHQ.random2(100, 150))).status.setDefault(HP, 10000);
+		//vegetation
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf.png"),1172,886));
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_flower.png"),1200,800));
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf2.png"),1800,350));
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_stone.png"),1160,870));
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),1102,830));
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),1122,815));
+		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),822,886));
+		GHQ.addVegetation(new Ammo(Ammo.AMMO_9MM).drop(822,886));
 	}
 	@Override
 	public final void stageSetup() {
@@ -147,18 +152,12 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		//background
 		g2.setColor(new Color(112,173,71));
 		g2.fillRect(0,0,stageW,stageH);
+		//vegetation
+		for(Vegetation ver : GHQ.getVegetationList())
+			ver.paint();
 		//landscape
 		for(Structure ver : GHQ.getStructureList())
 			ver.paint();
-		//vegitation
-		GHQ.drawImageGHQ_center(vegImageIID[3], 1172, 886,1.3);
-		GHQ.drawImageGHQ_center(vegImageIID[0], 1200, 800,1.0);
-		GHQ.drawImageGHQ_center(vegImageIID[0], 1800, 350,1.4);
-		GHQ.drawImageGHQ_center(vegImageIID[0], 1160, 870,1.7);
-		GHQ.drawImageGHQ_center(vegImageIID[1], 1180, 830,1.3);
-		GHQ.drawImageGHQ_center(vegImageIID[2], 1102, 815,1.3);
-		GHQ.drawImageGHQ_center(vegImageIID[2], 1122, 826,1.3);
-		GHQ.drawImageGHQ_center(vegImageIID[4], 822, 886,1.3);
 		////////////////
 		GHQ.drawImageGHQ_center(magicCircleIID, formationCenterX, formationCenterY, (double)GHQ.getNowFrame()/35.0);
 		g2.setColor(Color.RED);

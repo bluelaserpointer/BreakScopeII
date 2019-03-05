@@ -4,17 +4,17 @@ import core.GHQ;
 import paint.RectPaint;
 import unit.Item;
 
-public abstract class InventoryItem extends Item{
+public abstract class BSItem extends Item{
 	final String BASE_NAME;
 	@Override
 	public final String getName() {
 		return BASE_NAME;
 	}
-	public InventoryItem(String baseName,int stackCap, RectPaint paint) {
+	public BSItem(String baseName,int stackCap, RectPaint paint) {
 		super(stackCap, paint);
 		BASE_NAME = baseName;
 	}
-	public InventoryItem(String baseName, RectPaint paint) {
+	public BSItem(String baseName, RectPaint paint) {
 		super(GHQ.MAX, paint);
 		BASE_NAME = baseName;
 	}

@@ -38,17 +38,17 @@ public class Player extends BSUnit{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("Marisa.png");
-		iconPaint = new ImageFrame("MarisaIcon.png");
-		bulletPaint[MILLKY_WAY] = new ImageFrame("MillkyWay.png");
-		bulletPaint[NARROW_SPARK] = new ImageFrame("NarrowSpark_2.png");
-		bulletPaint[REUSE_BOMB] = new ImageFrame("ReuseBomb.png");
-		bulletPaint[MAGIC_MISSILE] = new ImageFrame("MagicMissile.png");
-		effectPaint[LIGHTNING] = new ImageFrame("ReuseBomb_Effect.png");
-		effectPaint[SPARK_HIT_EF] = new ImageFrame("NarrowSpark_HitEffect.png");
-		effectPaint[MISSILE_TRACE1_EF] = new ImageFrame("StarEffect2.png");
-		effectPaint[MISSILE_TRACE2_EF] = new ImageFrame("MagicMissile.png");
-		effectPaint[MISSILE_HIT_EF] = new ImageFrame("MissileHitEffect.png");
+		charaPaint = new ImageFrame("thhimage/Marisa.png");
+		iconPaint = new ImageFrame("thhimage/MarisaIcon.png");
+		bulletPaint[MILLKY_WAY] = new ImageFrame("thhimage/MillkyWay.png");
+		bulletPaint[NARROW_SPARK] = new ImageFrame("thhimage/NarrowSpark_2.png");
+		bulletPaint[REUSE_BOMB] = new ImageFrame("thhimage/ReuseBomb.png");
+		bulletPaint[MAGIC_MISSILE] = new ImageFrame("thhimage/MagicMissile.png");
+		effectPaint[LIGHTNING] = new ImageFrame("thhimage/ReuseBomb_Effect.png");
+		effectPaint[SPARK_HIT_EF] = new ImageFrame("thhimage/NarrowSpark_HitEffect.png");
+		effectPaint[MISSILE_TRACE1_EF] = new ImageFrame("thhimage/StarEffect2.png");
+		effectPaint[MISSILE_TRACE2_EF] = new ImageFrame("thhimage/MagicMissile.png");
+		effectPaint[MISSILE_HIT_EF] = new ImageFrame("thhimage/MissileHitEffect.png");
 	}
 	
 	@Override

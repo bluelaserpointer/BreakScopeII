@@ -4,19 +4,17 @@ import paint.ImageFrame;
 import paint.RectPaint;
 import unit.Item;
 
-public class Ammo extends InventoryItem{
+public class Ammo extends BSItem{
 	
 	public static final int
 		AMMO_9MM = 0,
 		AMMO_45 = 1;
 	public int kind;
-	public static final String ammoNames[];
-	private static RectPaint ammoPaints[];
-	private static final int ammoStackCaps[];
-	static {
-		final int AMOUNT = 2;
-		ammoNames = new String[AMOUNT];
-		ammoStackCaps = new int[AMOUNT];
+	private static final int AMOUNT = 2;
+	public static final String ammoNames[] = new String[AMOUNT];
+	private static RectPaint ammoPaints[] = new RectPaint[AMOUNT];
+	private static final int ammoStackCaps[] = new int[AMOUNT];
+	public static void loadResource(){
 		//9mm
 		ammoNames[AMMO_9MM] = "AMMO_9MM";
 		ammoPaints[AMMO_9MM] = new ImageFrame("picture/DoubleM9.png");

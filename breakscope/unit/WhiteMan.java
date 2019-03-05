@@ -23,8 +23,8 @@ public class WhiteMan extends THHUnit{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("WhiteBall.png");
-		bulletPaint[0] = new ImageFrame("LightBallA.png");
+		charaPaint = new ImageFrame("thhimage/WhiteBall.png");
+		bulletPaint[0] = new ImageFrame("thhimage/LightBallA.png");
 	}
 	@Override
 	public void activeCons() {

@@ -26,9 +26,9 @@ public class BlackMan extends THHUnit{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("BlackBall.png");
-		bulletPaint[0] = new ImageFrame("DarkNiddle3.png");
-		bulletPaint[1] = new ImageFrame("DodgeMarker.png");
+		charaPaint = new ImageFrame("thhimage/BlackBall.png");
+		bulletPaint[0] = new ImageFrame("thhimage/DarkNiddle3.png");
+		bulletPaint[1] = new ImageFrame("thhimage/DodgeMarker.png");
 	}
 	@Override
 	public void activeCons() {
