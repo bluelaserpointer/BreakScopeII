@@ -101,6 +101,7 @@ public class Player extends BSUnit{
 	@Override
 	public void activeCons() {
 		super.activeCons();
+		super.inventory.add(GHQ.getCoveredDropItem_pickup(this, charaSize));
 		for(Weapon ver : weaponController) {
 			if(ver != null)
 				ver.defaultIdle();

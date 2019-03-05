@@ -17,7 +17,7 @@ public class Ammo extends BSItem{
 	public static void loadResource(){
 		//9mm
 		ammoNames[AMMO_9MM] = "AMMO_9MM";
-		ammoPaints[AMMO_9MM] = new ImageFrame("picture/DoubleM9.png");
+		ammoPaints[AMMO_9MM] = new ImageFrame("picture/AssaultRifleBullet.png");
 		ammoStackCaps[AMMO_9MM] = 64;
 		//45acp
 		ammoNames[AMMO_45] = "AMMO_45";
