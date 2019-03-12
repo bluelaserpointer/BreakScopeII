@@ -10,10 +10,10 @@ public class Ammo extends BSItem{
 		AMMO_9MM = 0,
 		AMMO_45 = 1;
 	public int kind;
-	private static final int AMOUNT = 2;
-	public static final String ammoNames[] = new String[AMOUNT];
-	private static RectPaint ammoPaints[] = new RectPaint[AMOUNT];
-	private static final int ammoStackCaps[] = new int[AMOUNT];
+	private static final int KIND_AMOUNT = 2;
+	public static final String ammoNames[] = new String[KIND_AMOUNT];
+	private static RectPaint ammoPaints[] = new RectPaint[KIND_AMOUNT];
+	private static final int ammoStackCaps[] = new int[KIND_AMOUNT];
 	public static void loadResource(){
 		//9mm
 		ammoNames[AMMO_9MM] = "AMMO_9MM";
@@ -24,9 +24,10 @@ public class Ammo extends BSItem{
 		ammoPaints[AMMO_45] = new ImageFrame("picture/HandgunBullet.png");
 		ammoStackCaps[AMMO_45] = 64;
 	}
-	public Ammo(int ammoID) {
+	public Ammo(int ammoID, int amount) {
 		super(ammoNames[ammoID], ammoStackCaps[ammoID], ammoPaints[ammoID]);
 		kind = ammoID;
+		this.amount = amount;
 	}
 	@Override
 	public boolean isStackable(Item item) {

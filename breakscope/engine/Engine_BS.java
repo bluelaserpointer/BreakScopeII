@@ -12,6 +12,7 @@ import action.ActionInfo;
 import action.ActionSource;
 import bullet.Bullet;
 import core.GHQ;
+import gui.Container_Item;
 import gui.DefaultStageEditor;
 import gui.MessageSource;
 import input.MouseListenerEx;
@@ -19,6 +20,7 @@ import input.SingleKeyListener;
 import input.SingleNumKeyListener;
 import item.Ammo;
 import paint.ImageFrame;
+import paint.RectPaint;
 import stage.StageEngine;
 import stage.StageSaveData;
 import structure.Structure;
@@ -72,8 +74,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	
 	int focusIID,magicCircleIID;
 	
-	//editMode
-	static boolean editMode;
+	//GUIParts
+	private static DefaultStageEditor editor;
+	private static Container_Item menu;
 	
 	//initialization
 	@Override
@@ -87,7 +90,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	public final void loadResource() {
 		focusIID = GHQ.loadImage("thhimage/focus.png");
 		magicCircleIID = GHQ.loadImage("thhimage/MagicCircle.png");
-		DefaultStageEditor.init(new File("stage/saveData1.txt"));
+		//GUI
+		GHQ.addGUIParts(menu = new Container_Item("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,70,5,3,player.inventory.getItemList()));
+		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
 		Ammo.loadResource();
 		GHQ.addListenerEx(sml);
 		GHQ.addListenerEx(skl);
@@ -120,7 +125,8 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),1102,830));
 		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),1122,815));
 		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),822,886));
-		GHQ.addVegetation(new Ammo(Ammo.AMMO_9MM).drop(822,886));
+		GHQ.addVegetation(new Ammo(Ammo.AMMO_9MM,10).drop(822,886));
+		GHQ.addVegetation(new Ammo(Ammo.AMMO_45,10).drop(862,896));
 	}
 	@Override
 	public final void stageSetup() {
@@ -209,25 +215,20 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		GHQ.drawImageGHQ_center(focusIID,MOUSE_X,MOUSE_Y);
 		//editor
 		if(skl.pullEvent(VK_F6)) {
-			if(editMode) {
-				editMode = false;
-				GHQ.disableGUIs(DefaultStageEditor.EDIT_MENU_GROUP);
-				GHQ.clearStopEvent();
-			}else if(GHQ.isNoStopEvent()) {
-				editMode = true;
-				GHQ.enableGUIs(DefaultStageEditor.EDIT_MENU_GROUP);
-				GHQ.stopScreen_noAnm();
-			}
+			editor.flit();
+			if(editor.isEnabled())
+				menu.disable();
 		}
-		if(editMode) {
-			DefaultStageEditor.idle(g2);
-		}else { //game GUI
+		if(!editor.isEnabled()){ //game GUI
 			GHQ.translateForGUI(true);
 			int pos = 1;
 			player.iconPaint.paint(pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
 			GHQ.translateForGUI(false);
+			if(skl.pullEvent(VK_ESCAPE)) {
+				menu.flit();
+			}
 		}
-		if(stopEventKind == NONE || editMode) { //scroll
+		if(stopEventKind == NONE || editor.isEnabled()) { //scroll
 			//scroll by keys
 			if(skl.hasEvent(VK_W)) {
 				formationCenterY -= F_MOVE_SPD;
