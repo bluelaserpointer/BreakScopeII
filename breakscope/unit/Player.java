@@ -4,10 +4,10 @@ import static java.lang.Math.PI;
 import static java.lang.Math.random;
 
 import bullet.*;
-import core.DynamInteractable;
 import core.GHQ;
 import effect.*;
 import paint.ImageFrame;
+import physicis.DynamInteractable;
 import weapon.Weapon;
 import weapon.WeaponInfo;
 

@@ -1,7 +1,7 @@
 package item;
 
 import core.GHQ;
-import paint.RectPaint;
+import paint.DotPaint;
 import unit.Item;
 
 public abstract class BSItem extends Item{
@@ -10,11 +10,11 @@ public abstract class BSItem extends Item{
 	public final String getName() {
 		return BASE_NAME;
 	}
-	public BSItem(String baseName,int stackCap, RectPaint paint) {
+	public BSItem(String baseName,int stackCap, DotPaint paint) {
 		super(stackCap, paint);
 		BASE_NAME = baseName;
 	}
-	public BSItem(String baseName, RectPaint paint) {
+	public BSItem(String baseName, DotPaint paint) {
 		super(GHQ.MAX, paint);
 		BASE_NAME = baseName;
 	}

@@ -15,6 +15,7 @@ import core.GHQ;
 import gui.Container_Item;
 import gui.DefaultStageEditor;
 import gui.MessageSource;
+import gui.MouseHook;
 import input.MouseListenerEx;
 import input.SingleKeyListener;
 import input.SingleNumKeyListener;
@@ -26,6 +27,7 @@ import stage.StageSaveData;
 import structure.Structure;
 import unit.BlackMan;
 import unit.Fairy;
+import unit.Item;
 import unit.Player;
 import unit.Unit;
 import unit.WhiteMan;
@@ -69,6 +71,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	private final MouseListenerEx sml = new MouseListenerEx();
 	private final SingleKeyListener skl = new SingleKeyListener(inputKeys);
 	private final SingleNumKeyListener snkl = new SingleNumKeyListener();
+	private final MouseHook<Item> itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null);
 	
 	//images
 	
@@ -91,7 +94,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		focusIID = GHQ.loadImage("thhimage/focus.png");
 		magicCircleIID = GHQ.loadImage("thhimage/MagicCircle.png");
 		//GUI
-		GHQ.addGUIParts(menu = new Container_Item("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,70,5,3,player.inventory.getItemList()));
+		GHQ.addGUIParts(menu = new Container_Item("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,5,3,player.inventory.getItemList()));
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
 		Ammo.loadResource();
 		GHQ.addListenerEx(sml);

@@ -1,9 +1,9 @@
 package unit;
 
-import core.DynamInteractable;
 import core.GHQ;
 import paint.DotPaint;
 import paint.ImageFrame;
+import physicis.DynamInteractable;
 import thhunit.EnemyBulletLibrary;
 import thhunit.THHUnit;
 import unit.Unit;

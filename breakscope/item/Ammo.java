@@ -1,7 +1,7 @@
 package item;
 
+import paint.DotPaint;
 import paint.ImageFrame;
-import paint.RectPaint;
 import unit.Item;
 
 public class Ammo extends BSItem{
@@ -12,7 +12,7 @@ public class Ammo extends BSItem{
 	public int kind;
 	private static final int KIND_AMOUNT = 2;
 	public static final String ammoNames[] = new String[KIND_AMOUNT];
-	private static RectPaint ammoPaints[] = new RectPaint[KIND_AMOUNT];
+	private static DotPaint ammoPaints[] = new DotPaint[KIND_AMOUNT];
 	private static final int ammoStackCaps[] = new int[KIND_AMOUNT];
 	public static void loadResource(){
 		//9mm
