@@ -6,6 +6,7 @@ import static java.lang.Math.random;
 import bullet.*;
 import core.GHQ;
 import effect.*;
+import item.Item;
 import paint.ImageFrame;
 import physicis.DynamInteractable;
 import weapon.Weapon;
@@ -101,7 +102,9 @@ public class Player extends BSUnit{
 	@Override
 	public void activeCons() {
 		super.activeCons();
-		super.inventory.add(GHQ.getCoveredDropItem_pickup(this, charaSize));
+		final Item PICKED_ITEM = GHQ.getCoveredDropItem_pickup(this, charaSize);
+		if(PICKED_ITEM != null)
+			super.inventory.items.add(PICKED_ITEM);
 		for(Weapon ver : weaponController) {
 			if(ver != null)
 				ver.defaultIdle();

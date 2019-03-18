@@ -12,7 +12,7 @@ import action.ActionInfo;
 import action.ActionSource;
 import bullet.Bullet;
 import core.GHQ;
-import gui.Container_Item;
+import gui.ItemStorageViewer;
 import gui.DefaultStageEditor;
 import gui.MessageSource;
 import gui.MouseHook;
@@ -20,14 +20,15 @@ import input.MouseListenerEx;
 import input.SingleKeyListener;
 import input.SingleNumKeyListener;
 import item.Ammo;
+import item.Item;
 import paint.ImageFrame;
 import paint.RectPaint;
 import stage.StageEngine;
 import stage.StageSaveData;
+import storage.TableStorage;
 import structure.Structure;
 import unit.BlackMan;
 import unit.Fairy;
-import unit.Item;
 import unit.Player;
 import unit.Unit;
 import unit.WhiteMan;
@@ -68,10 +69,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		VK_ESCAPE,
 		VK_F6,
 	};
-	private final MouseListenerEx sml = new MouseListenerEx();
-	private final SingleKeyListener skl = new SingleKeyListener(inputKeys);
-	private final SingleNumKeyListener snkl = new SingleNumKeyListener();
-	private final MouseHook<Item> itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null);
+	private final MouseListenerEx s_mouseL = new MouseListenerEx();
+	private final SingleKeyListener s_keyL = new SingleKeyListener(inputKeys);
+	private final SingleNumKeyListener s_numKeyL = new SingleNumKeyListener();
+	private MouseHook<Item> itemMouseHook;
 	
 	//images
 	
@@ -79,7 +80,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	
 	//GUIParts
 	private static DefaultStageEditor editor;
-	private static Container_Item menu;
+	private static ItemStorageViewer itemContainer;
 	
 	//initialization
 	@Override
@@ -94,12 +95,36 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		focusIID = GHQ.loadImage("thhimage/focus.png");
 		magicCircleIID = GHQ.loadImage("thhimage/MagicCircle.png");
 		//GUI
-		GHQ.addGUIParts(menu = new Container_Item("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,5,3,player.inventory.getItemList()));
+		GHQ.addGUIParts(itemContainer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<Item>)player.inventory.items){
+			@Override
+			public void clicked() {
+				final int HOVERED_ID = getMouseHoveredID();
+				if(itemMouseHook.hasObject()) {
+					itemMouseHook.hook(storage.set(HOVERED_ID, itemMouseHook.get()));
+				}else {
+					itemMouseHook.hook(storage.remove(HOVERED_ID));
+				}
+			}
+		});
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
+		GHQ.addGUIParts(itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null, 70) {
+				@Override
+				public void idle() {
+					super.idle();
+					if(hookingObject instanceof Item && hookingObject != Item.BLANK_ITEM) {
+						final int AMOUNT = ((Item)hookingObject).getAmount();
+						final Graphics2D G2 = GHQ.getGraphics2D();
+						G2.setColor(Color.GRAY);
+						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 23, GHQ.getMouseScreenY() + SIZE/2 - 9);
+						G2.setColor(Color.BLACK);
+						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 24, GHQ.getMouseScreenY() + SIZE/2 - 10);
+					}
+				}
+		}).enable();
 		Ammo.loadResource();
-		GHQ.addListenerEx(sml);
-		GHQ.addListenerEx(skl);
-		GHQ.addListenerEx(snkl);
+		GHQ.addListenerEx(s_mouseL);
+		GHQ.addListenerEx(s_keyL);
+		GHQ.addListenerEx(s_numKeyL);
 	}
 	@Override
 	public final void charaSetup() {
@@ -144,9 +169,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	@Override
 	public final void openStage() {
 		GHQ.addMessage(this,"This is a prototype stage.");
-		skl.enable();
-		snkl.enable();
-		sml.enable();
+		s_keyL.enable();
+		s_numKeyL.enable();
+		s_mouseL.enable();
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
@@ -198,14 +223,14 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 					}
 				}
 				//leap
-				if(skl.hasEvent(VK_SHIFT)){
+				if(s_keyL.hasEvent(VK_SHIFT)){
 					formationCenterX = MOUSE_X;formationCenterY = MOUSE_Y;
 					player.teleportTo(formationCenterX, formationCenterY);
 				}
 				//shot
-				player.attackOrder = sml.hasButton1Event();
+				player.attackOrder = s_mouseL.hasButton1Event();
 				//spell
-				player.spellOrder = sml.pullButton2Event();
+				player.spellOrder = s_mouseL.pullButton2Event();
 				break;
 			}
 		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.NO_ANM_STOP)
@@ -217,36 +242,36 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		g2.drawLine(formationCenterX,formationCenterY,MOUSE_X,MOUSE_Y);
 		GHQ.drawImageGHQ_center(focusIID,MOUSE_X,MOUSE_Y);
 		//editor
-		if(skl.pullEvent(VK_F6)) {
+		if(s_keyL.pullEvent(VK_F6)) {
 			editor.flit();
 			if(editor.isEnabled())
-				menu.disable();
+				itemContainer.disable();
 		}
 		if(!editor.isEnabled()){ //game GUI
 			GHQ.translateForGUI(true);
 			int pos = 1;
-			player.iconPaint.paint(pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
+			player.iconPaint.rectPaint(pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
 			GHQ.translateForGUI(false);
-			if(skl.pullEvent(VK_ESCAPE)) {
-				menu.flit();
+			if(s_keyL.pullEvent(VK_ESCAPE)) {
+				itemContainer.flit();
 			}
 		}
 		if(stopEventKind == NONE || editor.isEnabled()) { //scroll
 			//scroll by keys
-			if(skl.hasEvent(VK_W)) {
+			if(s_keyL.hasEvent(VK_W)) {
 				formationCenterY -= F_MOVE_SPD;
 				GHQ.viewTargetMove(0,-F_MOVE_SPD);
 				GHQ.pureViewMove(0,-F_MOVE_SPD);
-			}else if(skl.hasEvent(VK_S)) {
+			}else if(s_keyL.hasEvent(VK_S)) {
 				formationCenterY += F_MOVE_SPD;
 				GHQ.viewTargetMove(0,F_MOVE_SPD);
 				GHQ.pureViewMove(0,F_MOVE_SPD);
 			}
-			if(skl.hasEvent(VK_A)) {
+			if(s_keyL.hasEvent(VK_A)) {
 				formationCenterX -= F_MOVE_SPD;
 				GHQ.viewTargetMove(-F_MOVE_SPD,0);
 				GHQ.pureViewMove(-F_MOVE_SPD,0);
-			}else if(skl.hasEvent(VK_D)) {
+			}else if(s_keyL.hasEvent(VK_D)) {
 				formationCenterX += F_MOVE_SPD;
 				GHQ.viewTargetMove(F_MOVE_SPD,0);
 				GHQ.pureViewMove(F_MOVE_SPD,0);

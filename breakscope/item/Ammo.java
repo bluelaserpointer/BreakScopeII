@@ -2,10 +2,9 @@ package item;
 
 import paint.DotPaint;
 import paint.ImageFrame;
-import unit.Item;
 
 public class Ammo extends BSItem{
-	
+	private static final long serialVersionUID = -4135430612764459044L;
 	public static final int
 		AMMO_9MM = 0,
 		AMMO_45 = 1;

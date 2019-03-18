@@ -5,9 +5,13 @@ import action.Action;
 import action.ActionInfo;
 import bullet.Bullet;
 import core.GHQ;
+import core.Standpoint;
+import item.Item;
 import paint.DotPaint;
 import paint.RectPaint;
 import physicis.DynamInteractable;
+import storage.ItemInventory;
+import storage.TableStorage;
 import unit.Status;
 import unit.Unit;
 import weapon.Weapon;
@@ -51,18 +55,22 @@ public abstract class BSUnit extends Unit {
 		names[MP] = "MP";
 	}
 	public BSUnit(int initialGroup) {
-		super(new Status(PARAMETER_AMOUNT) {
-			private static final long serialVersionUID = -8559880661969472776L;
-			@Override
-			public void capCheck(int index) {
-				switch(index) {
-				case HP:
-				case MP:
-					resetIfOverDefault(index);
-					break;
+		super(new ActionPlan(),
+			new Status(PARAMETER_AMOUNT) {
+				private static final long serialVersionUID = -8559880661969472776L;
+				@Override
+				public void capCheck(int index) {
+					switch(index) {
+					case HP:
+					case MP:
+						resetIfOverDefault(index);
+						break;
+					}
 				}
-			}
-		},initialGroup);
+			},
+			new ItemInventory(new TableStorage<Item>(5,3,Item.BLANK_ITEM)),
+			new Standpoint(initialGroup)
+			);
 	}
 	@Override
 	public void loadImageData() {
@@ -137,13 +145,13 @@ public abstract class BSUnit extends Unit {
 		if(status.get(HP) <= 0)
 			return;
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		charaPaint.paint(X, Y);
+		charaPaint.dotPaint(X, Y);
 		GHQ.paintHPArc(X, Y, 20,status.get(HP), status.getDefault(HP));
 	}
 	protected final void paintMode_magicCircle(DotPaint paintScript) {
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		paintScript.paint(X, Y, (double)GHQ.getNowFrame()/35.0);
-		charaPaint.paint(X, Y);
+		paintScript.dotPaint(X, Y, (double)GHQ.getNowFrame()/35.0);
+		charaPaint.dotPaint(X, Y);
 	}
 	
 	// control

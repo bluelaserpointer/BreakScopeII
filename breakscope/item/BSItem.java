@@ -2,9 +2,9 @@ package item;
 
 import core.GHQ;
 import paint.DotPaint;
-import unit.Item;
 
 public abstract class BSItem extends Item{
+	private static final long serialVersionUID = -9128122250005568441L;
 	final String BASE_NAME;
 	@Override
 	public final String getName() {
@@ -20,9 +20,9 @@ public abstract class BSItem extends Item{
 	}
 	//main role
 	public void paintInInventory(int x,int y,int w,int h) {
-		super.paintScript.paint(x, y, w, h);
+		super.paintScript.dotPaint(x, y, w, h);
 	}
 	public void paintInStage(int x,int y,int w,int h) {
-		super.paintScript.paint(x, y, w, h);
+		super.paintScript.dotPaint(x, y, w, h);
 	}
 }
