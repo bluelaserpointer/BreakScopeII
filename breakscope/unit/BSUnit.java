@@ -150,7 +150,7 @@ public abstract class BSUnit extends Unit {
 	}
 	protected final void paintMode_magicCircle(DotPaint paintScript) {
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		paintScript.dotPaint(X, Y, (double)GHQ.getNowFrame()/35.0);
+		paintScript.dotPaint_turn(X, Y, (double)GHQ.getNowFrame()/35.0);
 		charaPaint.dotPaint(X, Y);
 	}
 	

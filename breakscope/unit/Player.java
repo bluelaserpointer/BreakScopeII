@@ -7,6 +7,7 @@ import bullet.*;
 import core.GHQ;
 import effect.*;
 import item.Item;
+import paint.DotPaintMultiple;
 import paint.ImageFrame;
 import physicis.DynamInteractable;
 import weapon.Weapon;
@@ -39,7 +40,7 @@ public class Player extends BSUnit{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("thhimage/Marisa.png");
+		charaPaint = new DotPaintMultiple(new ImageFrame("thhimage/ReuseBomb.png"), new ImageFrame("thhimage/Marisa.png"));
 		iconPaint = new ImageFrame("thhimage/MarisaIcon.png");
 		bulletPaint[MILLKY_WAY] = new ImageFrame("thhimage/MillkyWay.png");
 		bulletPaint[NARROW_SPARK] = new ImageFrame("thhimage/NarrowSpark_2.png");

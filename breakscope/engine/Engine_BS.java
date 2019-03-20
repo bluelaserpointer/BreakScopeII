@@ -34,6 +34,13 @@ import unit.Unit;
 import unit.WhiteMan;
 import vegetation.Vegetation;
 
+/**
+ * 
+ * @author bluelaserpointer
+ * @version alpha1.0
+ *
+ */
+
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
 	public static final int FRIEND = 0,ENEMY = 100;
 	
@@ -72,7 +79,6 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	private final MouseListenerEx s_mouseL = new MouseListenerEx();
 	private final SingleKeyListener s_keyL = new SingleKeyListener(inputKeys);
 	private final SingleNumKeyListener s_numKeyL = new SingleNumKeyListener();
-	private MouseHook<Item> itemMouseHook;
 	
 	//images
 	
@@ -81,6 +87,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	//GUIParts
 	private static DefaultStageEditor editor;
 	private static ItemStorageViewer itemContainer;
+	private static MouseHook<Item> itemMouseHook;
 	
 	//initialization
 	@Override
