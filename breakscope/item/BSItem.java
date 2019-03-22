@@ -20,9 +20,9 @@ public abstract class BSItem extends Item{
 	}
 	//main role
 	public void paintInInventory(int x,int y,int w,int h) {
-		super.paintScript.dotPaint(x, y, w, h);
+		super.paintScript.dotPaint_turnAndCapSize(x, y, w, h);
 	}
 	public void paintInStage(int x,int y,int w,int h) {
-		super.paintScript.dotPaint(x, y, w, h);
+		super.paintScript.dotPaint_turnAndCapSize(x, y, w, h);
 	}
 }
