@@ -35,10 +35,9 @@ import unit.WhiteMan;
 import vegetation.Vegetation;
 
 /**
- * 
+ * The core class for game "BreakScope II"
  * @author bluelaserpointer
  * @version alpha1.0
- *
  */
 
 public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
@@ -309,7 +308,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	}
 	//information
 	@Override
-	public final int getGameFrame() {
+	public final int getEngineGameFrame() {
 		return gameFrame;
 	}
 	@Override
