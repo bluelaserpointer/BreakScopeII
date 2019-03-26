@@ -1,16 +1,14 @@
 package engine;
 
 import static java.awt.event.KeyEvent.*;
-import static thhunit.THHUnit.HP;
+import static unit.BSUnit.HP;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
-import java.util.Arrays;
 
 import action.ActionInfo;
 import action.ActionSource;
-import bullet.Bullet;
 import core.GHQ;
 import gui.ItemStorageViewer;
 import gui.DefaultStageEditor;
@@ -294,17 +292,6 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	@Override
 	public final void resetStage() {
 		
-	}
-	@Override
-	public final Unit[] callBulletEngage(Unit[] characters,Bullet bullet) {
-		final Unit[] result = new Unit[characters.length];
-		int searched = 0;
-		for(int i = 0;i < characters.length;i++) {
-			final Unit chara = characters[i];
-			if(chara.bulletEngage(bullet))
-				result[searched++] = chara;
-		}
-		return Arrays.copyOf(result, searched);
 	}
 	//information
 	@Override

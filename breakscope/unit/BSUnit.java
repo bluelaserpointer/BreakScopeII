@@ -3,13 +3,13 @@ package unit;
 
 import action.Action;
 import action.ActionInfo;
-import bullet.Bullet;
 import core.GHQ;
 import core.Standpoint;
+import geom.Square;
 import item.Item;
 import paint.DotPaint;
 import paint.RectPaint;
-import physicis.DynamInteractable;
+import physicis.HasDynam;
 import storage.ItemInventory;
 import storage.TableStorage;
 import unit.Status;
@@ -54,20 +54,9 @@ public abstract class BSUnit extends Unit {
 		names[STUN] = "STUN";
 		names[MP] = "MP";
 	}
-	public BSUnit(int initialGroup) {
-		super(new ActionPlan(),
-			new Status(PARAMETER_AMOUNT) {
-				private static final long serialVersionUID = -8559880661969472776L;
-				@Override
-				public void capCheck(int index) {
-					switch(index) {
-					case HP:
-					case MP:
-						resetIfOverDefault(index);
-						break;
-					}
-				}
-			},
+	public BSUnit(int charaSize, int initialGroup) {
+		super(new Square(charaSize),
+			new Status(PARAMETER_AMOUNT),
 			new ItemInventory(new TableStorage<Item>(5,3,Item.BLANK_ITEM)),
 			new Standpoint(initialGroup)
 			);
@@ -209,12 +198,6 @@ public abstract class BSUnit extends Unit {
 			
 		}
 	}
-	// judge
-	@Override
-	public final boolean bulletEngage(Bullet bullet) {
-		return status.isBigger0(HP) && dynam.squreCollision(bullet.dynam,(charaSize + bullet.SIZE)/2)
-				&& (bullet.isFriendly(this) ^ bullet.atk >= 0);
-	}
 	private final void dodge(double targetX, double targetY) {
 		dynam.addSpeed_DA(40, dynam.getAngle(targetX,targetY));
 		charaOnLand = false;
@@ -255,6 +238,6 @@ public abstract class BSUnit extends Unit {
 	public boolean useWeapon(int kind) {
 		return true;
 	}
-	public abstract void setBullet(int kind,DynamInteractable source);
-	public abstract void setEffect(int kind,DynamInteractable source);
+	public abstract void setBullet(int kind,HasDynam source);
+	public abstract void setEffect(int kind,HasDynam source);
 }

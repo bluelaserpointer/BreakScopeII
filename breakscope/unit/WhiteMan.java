@@ -2,17 +2,15 @@ package unit;
 
 import core.GHQ;
 import paint.ImageFrame;
-import physicis.DynamInteractable;
-import thhunit.THHUnit;
+import physicis.HasDynam;
 import unit.Unit;
 
-public class WhiteMan extends THHUnit{
+public class WhiteMan extends BSUnit{
 	private static final long serialVersionUID = -3224085275647002850L;
 	public WhiteMan(int initialGroup) {
-		super(initialGroup);
+		super(120, initialGroup);
 	}
 	{
-		charaSize = 120;
 		charaSpeed = 1;
 	}
 	@Override
@@ -39,7 +37,7 @@ public class WhiteMan extends THHUnit{
 		dynam.approach(charaDstX, charaDstY, charaSpeed);
 	}
 	@Override
-	public void setEffect(int kind,DynamInteractable source) {}
+	public void setEffect(int kind,HasDynam source) {}
 	@Override
-	public void setBullet(int kind,DynamInteractable source) {}
+	public void setBullet(int kind,HasDynam source) {}
 }

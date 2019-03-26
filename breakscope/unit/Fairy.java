@@ -3,19 +3,15 @@ package unit;
 import core.GHQ;
 import paint.DotPaint;
 import paint.ImageFrame;
-import physicis.DynamInteractable;
+import physicis.HasDynam;
 import thhunit.EnemyBulletLibrary;
-import thhunit.THHUnit;
 import unit.Unit;
 import weapon.Weapon;
 
-public class Fairy extends THHUnit{
+public class Fairy extends BSUnit{
 	private static final long serialVersionUID = -8167654165444569286L;
 	public Fairy(int initialGroup) {
-		super(initialGroup);
-	}
-	{
-		charaSize = 70;
+		super(70, initialGroup);
 	}
 	private final Weapon weaponController = EnemyBulletLibrary.getWeaponController(EnemyBulletLibrary.lightBall_S);
 	private DotPaint magicCirclePaint;
@@ -46,7 +42,7 @@ public class Fairy extends THHUnit{
 		GHQ.paintHPArc((int) dynam.getX(), (int) dynam.getY(), 20,status.get(HP), status.getDefault(HP));
 	}
 	@Override
-	public void setEffect(int kind,DynamInteractable source) {}
+	public void setEffect(int kind,HasDynam source) {}
 	@Override
-	public void setBullet(int kind,DynamInteractable source) {}
+	public void setBullet(int kind,HasDynam source) {}
 }

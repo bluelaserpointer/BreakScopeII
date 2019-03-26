@@ -9,19 +9,17 @@ import effect.*;
 import item.Item;
 import paint.DotPaintMultiple;
 import paint.ImageFrame;
-import physicis.DynamInteractable;
+import physicis.HasDynam;
 import weapon.Weapon;
 import weapon.WeaponInfo;
 
 public class Player extends BSUnit{
+	private static final long serialVersionUID = 8121281285749873895L;
+	
 	public Player(int initialGroup) {
-		super(initialGroup);
+		super(20, initialGroup);
 	}
 
-	private static final long serialVersionUID = 8121281285749873895L;
-	{
-		charaSize = 20;
-	}
 	@Override
 	public final String getName() {
 		return "Player";
@@ -117,7 +115,7 @@ public class Player extends BSUnit{
 		return weaponController[kind].trigger();
 	}
 	@Override
-	public final void setBullet(int kind,DynamInteractable user) {
+	public final void setBullet(int kind,HasDynam user) {
 		BulletBlueprint.clear(bulletScripts[kind],user.getDynam());
 		BulletBlueprint.standpointGroup = standpoint.get();
 		switch(kind){
@@ -174,7 +172,7 @@ public class Player extends BSUnit{
 		}
 	}
 	@Override
-	public final void setEffect(int kind,DynamInteractable user) {
+	public final void setEffect(int kind,HasDynam user) {
 		EffectBlueprint.clear(effectScripts[kind],user.getDynam());
 		switch(kind){
 		case LIGHTNING:
@@ -232,7 +230,7 @@ public class Player extends BSUnit{
 					bullet.dynam(++count % 5 == 0);
 					bullet.defaultPaint();
 				}
-				final DynamInteractable BULLET_SOURCE = bullet.source;
+				final HasDynam BULLET_SOURCE = bullet.source;
 				bullet.dynam.setXY(BULLET_SOURCE);
 				bullet.dynam.setAngle(BULLET_SOURCE.getDynam().getAngle());
 			}
@@ -250,7 +248,7 @@ public class Player extends BSUnit{
 				bullet.dynam.addSpeed(0.0,1.1);
 				bullet.defaultPaint();
 				if(random() < 0.2)
-					setEffect(LIGHTNING,(DynamInteractable)bullet);
+					setEffect(LIGHTNING,(HasDynam)bullet);
 			}
 		};
 		bulletScripts[MAGIC_MISSILE] = new BulletScript() {
