@@ -4,14 +4,15 @@ package unit;
 import action.Action;
 import action.ActionInfo;
 import core.GHQ;
-import core.Standpoint;
+import geom.Circle;
 import geom.Square;
 import item.Item;
 import paint.DotPaint;
 import paint.RectPaint;
+import physicis.Dynam;
 import physicis.HasDynam;
-import storage.ItemInventory;
-import storage.TableStorage;
+import storage.ItemStorage;
+import storage.Storage;
 import unit.Status;
 import unit.Unit;
 import weapon.Weapon;
@@ -54,12 +55,17 @@ public abstract class BSUnit extends Unit {
 		names[STUN] = "STUN";
 		names[MP] = "MP";
 	}
+	public final Status status = new Status(PARAMETER_AMOUNT);
+	//inventory
+	public final ItemStorage inventory;
+	
 	public BSUnit(int charaSize, int initialGroup) {
-		super(new Square(charaSize),
-			new Status(PARAMETER_AMOUNT),
-			new ItemInventory(new TableStorage<Item>(5,3,Item.BLANK_ITEM)),
-			new Standpoint(initialGroup)
-			);
+		super(new Circle(charaSize), initialGroup);
+		inventory = new ItemStorage(new Storage<Item>());
+	}
+	public BSUnit(int charaSize, int initialGroup, Storage<Item> itemStorageKind) {
+		super(new Square(charaSize), initialGroup);
+		inventory = new ItemStorage(itemStorageKind);
 	}
 	@Override
 	public void loadImageData() {
@@ -69,15 +75,17 @@ public abstract class BSUnit extends Unit {
 	public void respawn(int x, int y) {
 		super.resetOrder();
 		status.reset();
-		super.dynam.clear();
-		super.dynam.setXY(charaDstX = x, charaDstY = y);
+		final Dynam DYNAM = getDynam();
+		DYNAM.clear();
+		DYNAM.setXY(charaDstX = x, charaDstY = y);
 		charaOnLand = false;
 		slot_spell = 0;
 	}
 	@Override
 	public void dynam() {
-		dynam.move();
-		dynam.accelerate_MUL(0.9);
+		final Dynam DYNAM = getDynam();
+		DYNAM.move();
+		DYNAM.accelerate_MUL(0.9);
 	}
 	@Override
 	public void activeCons() {
@@ -86,7 +94,8 @@ public abstract class BSUnit extends Unit {
 			return;
 		}
 		final int mouseX = GHQ.getMouseX(), mouseY = GHQ.getMouseY();
-		dynam.setAngle(dynam.getMouseAngle());
+		Dynam DYNAM = getDynam();
+		DYNAM.setAngle(DYNAM.getMouseAngle());
 		// dodge
 		if (super.dodgeOrder)
 			dodge(mouseX, mouseY);
@@ -106,7 +115,7 @@ public abstract class BSUnit extends Unit {
 		if (super.moveOrder) {
 			//under edit
 		}
-		dynam.approach(charaDstX, charaDstY, charaSpeed);
+		DYNAM.approach(charaDstX, charaDstY, charaSpeed);
 		// weaponChange
 		int roll = super.weaponChangeOrder;
 		if (roll != 0) {
@@ -133,12 +142,14 @@ public abstract class BSUnit extends Unit {
 	public void paint(boolean doAnimation) {
 		if(status.get(HP) <= 0)
 			return;
-		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
+		final Dynam DYNAM = getDynam();
+		final int X = (int) DYNAM.getX(),Y = (int) DYNAM.getY();
 		charaPaint.dotPaint(X, Y);
 		GHQ.paintHPArc(X, Y, 20,status.get(HP), status.getDefault(HP));
 	}
 	protected final void paintMode_magicCircle(DotPaint paintScript) {
-		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
+		final Dynam DYNAM = getDynam();
+		final int X = (int) DYNAM.getX(),Y = (int) DYNAM.getY();
 		paintScript.dotPaint_turn(X, Y, (double)GHQ.getNowFrame()/35.0);
 		charaPaint.dotPaint(X, Y);
 	}
@@ -157,13 +168,13 @@ public abstract class BSUnit extends Unit {
 	}
 	@Override
 	public void teleportRel(int x,int y) {
-		dynam.addXY(x, y);
+		getDynam().addXY(x, y);
 		charaDstX += x;
 		charaDstY += y;
 	}
 	@Override
 	public void teleportTo(int x,int y) {
-		dynam.setXY(charaDstX = x, charaDstY = y);
+		getDynam().setXY(charaDstX = x, charaDstY = y);
 	}
 	private Action actionPlan;
 	private int initialFrame;
@@ -173,6 +184,7 @@ public abstract class BSUnit extends Unit {
 	}
 	protected void doActionPlan() {
 		int countedFrame = 0;
+		final Dynam DYNAM = getDynam();
 		for(int i = 0;i < actionPlan.frame.length;i++) {
 			final int FRAME = actionPlan.frame[i];
 			if((countedFrame += FRAME) == initialFrame) { //reach planned timing
@@ -184,14 +196,14 @@ public abstract class BSUnit extends Unit {
 					charaDstY = Y;
 					break;
 				case ActionInfo.MOVE:
-					charaDstX = dynam.getX() + X;
-					charaDstY = dynam.getY() + Y;
+					charaDstX = DYNAM.getX() + X;
+					charaDstY = DYNAM.getY() + Y;
 					break;
 				case ActionInfo.ATTACK:
 					setBullet(weaponSlot[slot_weapon],this);
 					break;
 				case ActionInfo.SPEED:
-					dynam.addXY(X,Y);
+					DYNAM.addXY(X,Y);
 					break;
 				}
 			}
@@ -199,7 +211,8 @@ public abstract class BSUnit extends Unit {
 		}
 	}
 	private final void dodge(double targetX, double targetY) {
-		dynam.addSpeed_DA(40, dynam.getAngle(targetX,targetY));
+		final Dynam DYNAM = getDynam();
+		DYNAM.addSpeed_DA(40, DYNAM.getAngle(targetX,targetY));
 		charaOnLand = false;
 	}
 	//stun

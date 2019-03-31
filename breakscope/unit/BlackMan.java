@@ -2,6 +2,7 @@ package unit;
 
 import core.GHQ;
 import paint.ImageFrame;
+import physicis.Dynam;
 import physicis.HasDynam;
 import thhunit.EnemyBulletLibrary;
 import unit.Unit;
@@ -14,6 +15,12 @@ public class BlackMan extends BSUnit{
 	}
 	{
 		charaSpeed = 2;
+	}
+	//Dynam
+	private final Dynam dynam = new Dynam();
+	@Override
+	public final Dynam getDynam() {
+		return dynam;
 	}
 	private final Weapon weaponController = EnemyBulletLibrary.getWeaponController(EnemyBulletLibrary.lightBall_S);
 	@Override
@@ -37,9 +44,9 @@ public class BlackMan extends BSUnit{
 			EnemyBulletLibrary.inputBulletInfo(this,EnemyBulletLibrary.BLACK_SLASH_BURST,bulletPaint[0],targetEnemy);
 			EnemyBulletLibrary.inputBulletInfo(this,EnemyBulletLibrary.BLACK_SLASH_BURST,bulletPaint[1],targetEnemy);
 		}
-		Unit chara = GHQ.getNearstEnemy(this, (int)charaX, (int)charaY);
-		if(chara != null) 
-			dynam.setAngle(dynam.getAngle(charaDstX = chara.dynam.getX(),charaDstY = chara.dynam.getY()));
+		Unit unit = GHQ.getNearstEnemy(this, (int)charaX, (int)charaY);
+		if(unit != null) 
+			dynam.setAngle(dynam.getAngle(charaDstX = unit.getDynam().getX(),charaDstY = unit.getDynam().getY()));
 		dynam.approach(charaDstX, charaDstY, charaSpeed);
 	}
 	@Override

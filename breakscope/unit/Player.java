@@ -9,7 +9,9 @@ import effect.*;
 import item.Item;
 import paint.DotPaintMultiple;
 import paint.ImageFrame;
+import physicis.Dynam;
 import physicis.HasDynam;
+import storage.TableStorage;
 import weapon.Weapon;
 import weapon.WeaponInfo;
 
@@ -17,12 +19,19 @@ public class Player extends BSUnit{
 	private static final long serialVersionUID = 8121281285749873895L;
 	
 	public Player(int initialGroup) {
-		super(20, initialGroup);
+		super(20, initialGroup, new TableStorage<Item>(5,3));
 	}
 
 	@Override
 	public final String getName() {
 		return "Player";
+	}
+	
+	//Dynam
+	private final Dynam dynam = new Dynam();
+	@Override
+	public final Dynam getDynam() {
+		return dynam;
 	}
 	
 	//weapon&bullet kind name
@@ -37,6 +46,7 @@ public class Player extends BSUnit{
 	
 	@Override
 	public final void loadImageData(){
+		System.out.println("loadImageData(Player)");
 		super.loadImageData();
 		charaPaint = new DotPaintMultiple(new ImageFrame("thhimage/ReuseBomb.png"), new ImageFrame("thhimage/Marisa.png"));
 		iconPaint = new ImageFrame("thhimage/MarisaIcon.png");
@@ -212,7 +222,7 @@ public class Player extends BSUnit{
 			EffectBlueprint.paintScript = effectPaint[kind];
 			for(int i = 0;i < 30;i++) {
 				EffectBlueprint.limitFrame = GHQ.random2(10,40);
-				GHQ.createEffect(this).dynam.fastParaAdd_DASpd(30,2*PI*random(),GHQ.random2(2,5));
+				GHQ.createEffect(this).getDynam().fastParaAdd_DASpd(30,2*PI*random(),GHQ.random2(2,5));
 			}
 			break;
 		}
@@ -226,13 +236,13 @@ public class Player extends BSUnit{
 			public final void idle(Bullet bullet) {
 				bullet.lifeSpanCheck();
 				int count = 0;
-				while(bullet.dynam.inStage()) {
+				while(bullet.getDynam().inStage()) {
 					bullet.dynam(++count % 5 == 0);
 					bullet.defaultPaint();
 				}
 				final HasDynam BULLET_SOURCE = bullet.source;
-				bullet.dynam.setXY(BULLET_SOURCE);
-				bullet.dynam.setAngle(BULLET_SOURCE.getDynam().getAngle());
+				bullet.getDynam().setXY(BULLET_SOURCE);
+				bullet.getDynam().setAngle(BULLET_SOURCE.getDynam().getAngle());
 			}
 			@Override
 			public final void bulletHitObject(Bullet bullet) {
@@ -245,7 +255,7 @@ public class Player extends BSUnit{
 			@Override
 			public final void idle(Bullet bullet) {
 				bullet.defaultIdle();
-				bullet.dynam.addSpeed(0.0,1.1);
+				bullet.getDynam().addSpeed(0.0,1.1);
 				bullet.defaultPaint();
 				if(random() < 0.2)
 					setEffect(LIGHTNING,(HasDynam)bullet);

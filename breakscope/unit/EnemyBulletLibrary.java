@@ -39,7 +39,7 @@ public class EnemyBulletLibrary extends BulletAgent{
 		}
 	}
 	public static void inputBulletInfo(Unit user,int bulletKind,DotPaint bulletPaint,Unit targetChara) {
-		BulletBlueprint.clear(BulletBlueprint.DEFAULT_SCRIPT,user.dynam);
+		BulletBlueprint.clear(BulletBlueprint.DEFAULT_SCRIPT,user.getDynam());
 		BulletBlueprint.dynam.setAngle(targetChara);
 		BulletBlueprint.standpointGroup = user.standpoint.get();
 		switch(bulletKind) {
