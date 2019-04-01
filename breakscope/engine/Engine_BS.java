@@ -102,40 +102,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		focusIID = GHQ.loadImage("thhimage/focus.png");
 		magicCircleIID = GHQ.loadImage("thhimage/MagicCircle.png");
 		/////////////////////////////////
-		//GUI
+		//stage
 		/////////////////////////////////
-		GHQ.addGUIParts(itemContainer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<Item>)player.inventory.items){
-			@Override
-			public void clicked() {
-				final int HOVERED_ID = getMouseHoveredID();
-				if(itemMouseHook.hasObject()) {
-					itemMouseHook.hook(storage.set(HOVERED_ID, itemMouseHook.get()));
-				}else {
-					itemMouseHook.hook(storage.remove(HOVERED_ID));
-				}
-			}
-		});
-		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
-		GHQ.addGUIParts(itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null, 70) {
-				@Override
-				public void idle() {
-					super.idle();
-					if(hookingObject instanceof Item && hookingObject != Item.BLANK_ITEM) {
-						final int AMOUNT = ((Item)hookingObject).getAmount();
-						final Graphics2D G2 = GHQ.getGraphics2D();
-						G2.setColor(Color.GRAY);
-						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 23, GHQ.getMouseScreenY() + SIZE/2 - 9);
-						G2.setColor(Color.BLACK);
-						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 24, GHQ.getMouseScreenY() + SIZE/2 - 10);
-					}
-				}
-		}).enable();
-		/////////////////////////////////
-		//input
-		/////////////////////////////////
-		GHQ.addListenerEx(s_mouseL);
-		GHQ.addListenerEx(s_keyL);
-		GHQ.addListenerEx(s_numKeyL);
+		stageW = stageH = 5000;
 		/////////////////////////////////
 		//item
 		/////////////////////////////////
@@ -172,9 +141,40 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		GHQ.addVegetation(new Ammo(Ammo.AMMO_9MM,10).drop(822,886));
 		GHQ.addVegetation(new Ammo(Ammo.AMMO_45,10).drop(862,896));
 		/////////////////////////////////
-		//stage
+		//GUI
 		/////////////////////////////////
-		stageW = stageH = 5000;
+		GHQ.addGUIParts(itemContainer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<Item>)player.inventory.items){
+			@Override
+			public void clicked() {
+				final int HOVERED_ID = getMouseHoveredID();
+				if(itemMouseHook.hasObject()) {
+					itemMouseHook.hook(storage.set(HOVERED_ID, itemMouseHook.get()));
+				}else {
+					itemMouseHook.hook(storage.remove(HOVERED_ID));
+				}
+			}
+		});
+		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
+		GHQ.addGUIParts(itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null, 70) {
+				@Override
+				public void idle() {
+					super.idle();
+					if(hookingObject instanceof Item && hookingObject != Item.BLANK_ITEM) {
+						final int AMOUNT = ((Item)hookingObject).getAmount();
+						final Graphics2D G2 = GHQ.getGraphics2D();
+						G2.setColor(Color.GRAY);
+						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 23, GHQ.getMouseScreenY() + SIZE/2 - 9);
+						G2.setColor(Color.BLACK);
+						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 24, GHQ.getMouseScreenY() + SIZE/2 - 10);
+					}
+				}
+		}).enable();
+		/////////////////////////////////
+		//input
+		/////////////////////////////////
+		GHQ.addListenerEx(s_mouseL);
+		GHQ.addListenerEx(s_keyL);
+		GHQ.addListenerEx(s_numKeyL);
 	}
 	@Override
 	public final void openStage() {

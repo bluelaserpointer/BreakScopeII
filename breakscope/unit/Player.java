@@ -9,7 +9,6 @@ import effect.*;
 import item.Item;
 import paint.DotPaintMultiple;
 import paint.ImageFrame;
-import physicis.Dynam;
 import physicis.HasDynam;
 import storage.TableStorage;
 import weapon.Weapon;
@@ -25,13 +24,6 @@ public class Player extends BSUnit{
 	@Override
 	public final String getName() {
 		return "Player";
-	}
-	
-	//Dynam
-	private final Dynam dynam = new Dynam();
-	@Override
-	public final Dynam getDynam() {
-		return dynam;
 	}
 	
 	//weapon&bullet kind name

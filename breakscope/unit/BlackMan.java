@@ -2,7 +2,6 @@ package unit;
 
 import core.GHQ;
 import paint.ImageFrame;
-import physicis.Dynam;
 import physicis.HasDynam;
 import thhunit.EnemyBulletLibrary;
 import unit.Unit;
@@ -16,12 +15,7 @@ public class BlackMan extends BSUnit{
 	{
 		charaSpeed = 2;
 	}
-	//Dynam
-	private final Dynam dynam = new Dynam();
-	@Override
-	public final Dynam getDynam() {
-		return dynam;
-	}
+	
 	private final Weapon weaponController = EnemyBulletLibrary.getWeaponController(EnemyBulletLibrary.lightBall_S);
 	@Override
 	public final String getName() {
