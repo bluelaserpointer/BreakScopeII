@@ -14,6 +14,7 @@ import gui.ItemStorageViewer;
 import gui.DefaultStageEditor;
 import gui.MessageSource;
 import gui.MouseHook;
+import gui.UnitEditor;
 import input.MouseListenerEx;
 import input.SingleKeyListener;
 import input.SingleNumKeyListener;
@@ -85,6 +86,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	private static DefaultStageEditor editor;
 	private static ItemStorageViewer itemContainer;
 	private static MouseHook<Item> itemMouseHook;
+	private static UnitEditor unitEditor;
 	
 	//initialization
 	@Override
@@ -169,6 +171,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 					}
 				}
 		}).enable();
+		editor.addPartsToTop(unitEditor = new UnitEditor());
 		/////////////////////////////////
 		//input
 		/////////////////////////////////
@@ -263,7 +266,11 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 			if(editor.isEnabled())
 				itemContainer.disable();
 		}
-		if(!editor.isEnabled()){ //game GUI
+		if(editor.isEnabled()){ //editor GUI
+			if(s_mouseL.pullButton3Event()) {
+				unitEditor.setWithEnable(GHQ.getMouseOverChara());
+			}
+		}else { //game GUI
 			GHQ.translateForGUI(true);
 			int pos = 1;
 			if(player.iconPaint != null)

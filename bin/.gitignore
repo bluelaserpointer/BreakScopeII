@@ -32,8 +32,9 @@ hs_err_pid*
 /log/
 /media/
 /picture/
-/engine/
-/item/
 /stage/
+/engine/
+/gui/
+/item/
 /structure/
 /unit/
