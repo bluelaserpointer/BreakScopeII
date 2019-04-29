@@ -1,7 +1,6 @@
 package engine;
 
 import static java.awt.event.KeyEvent.*;
-import static unit.BSUnit.HP;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -11,22 +10,30 @@ import action.ActionInfo;
 import action.ActionSource;
 import core.GHQ;
 import gui.ItemStorageViewer;
+import gui.BasicButton;
 import gui.DefaultStageEditor;
+import gui.GUIGroup;
 import gui.MessageSource;
 import gui.MouseHook;
+import gui.TitledLabel;
 import gui.UnitEditor;
 import input.MouseListenerEx;
 import input.SingleKeyListener;
 import input.SingleNumKeyListener;
 import item.Ammo;
+import item.Equipment;
 import item.Item;
+import paint.ColorFilling;
 import paint.ImageFrame;
 import paint.RectPaint;
 import stage.StageEngine;
 import stage.StageSaveData;
 import storage.TableStorage;
 import structure.Structure;
+import unit.BasicUnit;
 import unit.BlackMan;
+import unit.BulletLibrary;
+import unit.EffectLibrary;
 import unit.Fairy;
 import unit.Player;
 import unit.Unit;
@@ -57,7 +64,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	}
 	
 	//inputEvnet
-	private final int inputKeys[] = 
+	private static final int inputKeys[] = 
 	{
 		VK_W,
 		VK_A,
@@ -74,9 +81,9 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		VK_ESCAPE,
 		VK_F6,
 	};
-	private final MouseListenerEx s_mouseL = new MouseListenerEx();
-	private final SingleKeyListener s_keyL = new SingleKeyListener(inputKeys);
-	private final SingleNumKeyListener s_numKeyL = new SingleNumKeyListener();
+	public static final MouseListenerEx s_mouseL = new MouseListenerEx();
+	public static final SingleKeyListener s_keyL = new SingleKeyListener(inputKeys);
+	public static final SingleNumKeyListener s_numKeyL = new SingleNumKeyListener();
 	
 	//images
 	
@@ -84,7 +91,11 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	
 	//GUIParts
 	private static DefaultStageEditor editor;
-	private static ItemStorageViewer itemContainer;
+	private static GUIGroup stageFieldGUI;
+	private static GUIGroup escMenu;
+	private static ItemStorageViewer inventoryViewer;
+	private static TitledLabel mainWeaponLabel,subWeaponLabel,meleeWeaponLabel;
+	private static BasicButton useItemButton;
 	private static MouseHook<Item> itemMouseHook;
 	private static UnitEditor unitEditor;
 	
@@ -108,28 +119,34 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		/////////////////////////////////
 		stageW = stageH = 5000;
 		/////////////////////////////////
-		//item
+		//items
 		/////////////////////////////////
 		Ammo.loadResource();
+		Equipment.loadResource();
 		/////////////////////////////////
-		//unit
+		//bullets && effects
+		/////////////////////////////////
+		BulletLibrary.loadResource();
+		EffectLibrary.loadResource();
+		/////////////////////////////////
+		//units
 		/////////////////////////////////
 		//formation
 		formationCenterX = GHQ.getScreenW()/2;formationCenterY = GHQ.getScreenH() - 100;
 		//friend
-		GHQ.addUnit(Unit.initialSpawn(player = new Player(FRIEND),formationCenterX,formationCenterY)).status.setDefault(HP, 4000);
+		GHQ.addUnit(Unit.initialSpawn(player = new Player(FRIEND),formationCenterX,formationCenterY));
 		//action
 		ActionInfo.clear();
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() - 200, GHQ.getScreenH() + 100);
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() + 200, GHQ.getScreenH() + 100);
 		//final Action moveLeftToRight200 = new Action(this);
 		//enemy
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 300, 100)).status.setDefault(HP, 2500);
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 700, 20)).status.setDefault(HP, 2500);
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 1200, 300)).status.setDefault(HP, 2500);
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 1800, 700)).status.setDefault(HP, 2500);
-		GHQ.addUnit(Unit.initialSpawn(new WhiteMan(ENEMY), 400, GHQ.random2(100, 150))).status.setDefault(HP, 50000);
-		GHQ.addUnit(Unit.initialSpawn(new BlackMan(ENEMY), 200, GHQ.random2(100, 150))).status.setDefault(HP, 10000);
+		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 300, 100));
+		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 700, 20));
+		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 1200, 300));
+		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 1800, 700));
+		GHQ.addUnit(Unit.initialSpawn(new WhiteMan(ENEMY), 400, GHQ.random2(100, 150)));
+		GHQ.addUnit(Unit.initialSpawn(new BlackMan(ENEMY), 200, GHQ.random2(100, 150)));
 		/////////////////////////////////
 		//vegetation
 		/////////////////////////////////
@@ -142,10 +159,13 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		GHQ.addVegetation(new Vegetation(new ImageFrame("thhimage/veg_leaf3.png"),822,886));
 		GHQ.addVegetation(new Ammo(Ammo.AMMO_9MM,10).drop(822,886));
 		GHQ.addVegetation(new Ammo(Ammo.AMMO_45,10).drop(862,896));
+		GHQ.addVegetation(new Equipment(Equipment.ACCAR).drop(702,796));
+		GHQ.addVegetation(new Equipment(Equipment.ELECTRON_SHIELD).drop(702,856));
 		/////////////////////////////////
 		//GUI
 		/////////////////////////////////
-		GHQ.addGUIParts(itemContainer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<Item>)player.inventory.items){
+		//ESC menu
+		GHQ.addGUIParts(escMenu = new GUIGroup("ESC_MENU", null, 0, 0, GHQ.getScreenW(), GHQ.getScreenH())).addParts(inventoryViewer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<Item>)player.inventory.items){
 			@Override
 			public void clicked() {
 				final int HOVERED_ID = getMouseHoveredID();
@@ -154,6 +174,43 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 				}else {
 					itemMouseHook.hook(storage.remove(HOVERED_ID));
 				}
+			}
+			@Override
+			public void released() {
+				clicked();
+			}
+			@Override
+			public void outsideReleased() {
+				final Item hookingObject = itemMouseHook.get();
+				if(hookingObject instanceof Equipment) {
+					final Equipment EQUIPMENT = (Equipment)hookingObject;
+					if(mainWeaponLabel.isMouseEntered()) {
+						player.mainWeapon = player.getWeapon(EQUIPMENT);
+						itemMouseHook.hook(Item.BLANK_ITEM);
+						return;
+					}else if(subWeaponLabel.isMouseEntered()) {
+						player.subWeapon = player.getWeapon(EQUIPMENT);
+						itemMouseHook.hook(Item.BLANK_ITEM);
+						return;
+					}else if(meleeWeaponLabel.isMouseEntered()) {
+						player.meleeWeapon = player.getWeapon(EQUIPMENT);
+						itemMouseHook.hook(Item.BLANK_ITEM);
+						return;
+					}
+				}
+				final double ANGLE = player.dynam.getMouseAngle();
+				if(hookingObject != null)
+					GHQ.addVegetation(hookingObject.drop((int)(player.dynam.getX() + 50*Math.cos(ANGLE)), (int)(player.dynam.getY() + 50*Math.sin(ANGLE))));
+				itemMouseHook.hook(Item.BLANK_ITEM);
+			}
+		});
+		escMenu.addParts(mainWeaponLabel = new TitledLabel("mainWeaponLabel", new ColorFilling(Color.WHITE), 500, 70, 400, 40)).setTitle("mainWeapon");
+		escMenu.addParts(subWeaponLabel = new TitledLabel("subWeaponLabel", new ColorFilling(Color.WHITE), 500, 140, 400, 40)).setTitle("subWeapon");
+		escMenu.addParts(meleeWeaponLabel = new TitledLabel("meleeWeaponLabel", new ColorFilling(Color.WHITE), 500, 210, 400, 40)).setTitle("meleeWeapon");
+		escMenu.addParts(useItemButton = new BasicButton("useItemButton", new ImageFrame("picture/gui/slot.png"), 60, 500, 100, 40) {
+			@Override
+			public void clicked() { //useItem or equipWeapon
+				
 			}
 		});
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
@@ -172,6 +229,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 				}
 		}).enable();
 		editor.addPartsToTop(unitEditor = new UnitEditor());
+		GHQ.addGUIParts(stageFieldGUI = new GUIGroup("stageFieldGUI", null, 0, 0, GHQ.getScreenW(), GHQ.getScreenH())).enable();
 		/////////////////////////////////
 		//input
 		/////////////////////////////////
@@ -187,14 +245,14 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 				GHQ.addStructure(structure);
 			}
 		}
-		GHQ.addMessage(this,"This is a prototype stage.");
+		GHQ.addMessage(this,"Press enter key to start.");
 		s_keyL.enable();
 		s_numKeyL.enable();
 		s_mouseL.enable();
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
-		return new Stage_BS(GHQ.getCharacters(),GHQ.getStructures());
+		return new Stage_BS(GHQ.getUnits(),GHQ.getStructures());
 	}
 	//idle
 	private int gameFrame;
@@ -223,12 +281,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 			case 0:
 				//friend
 				player.teleportTo(formationCenterX, formationCenterY);
-				GHQ.defaultCharaIdle(player);
+				GHQ.defaultUnitIdle(player);
 				//enemy
-				for(Unit enemy : GHQ.getCharacterList()) {
-					if(!enemy.isAlive())
-						continue;
-					GHQ.defaultCharaIdle(enemy);
+				for(Unit enemy : GHQ.getUnitList()) {
+					GHQ.defaultUnitIdle(enemy);
 					if(enemy.getName() == "FairyA") {
 						final int FRAME = gameFrame % 240;
 						if(FRAME < 100)
@@ -246,29 +302,45 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 					formationCenterX = MOUSE_X;formationCenterY = MOUSE_Y;
 					player.teleportTo(formationCenterX, formationCenterY);
 				}
-				//shot
-				player.attackOrder = s_mouseL.hasButton1Event();
-				//spell
-				player.spellOrder = s_mouseL.pullButton2Event();
+				if(stageFieldGUI.isClicking()) {
+					//shot
+					player.attackOrder = s_mouseL.hasButton1Event();
+					//spell
+					player.spellOrder = s_mouseL.pullButton2Event();
+				}else {
+					player.attackOrder = player.spellOrder = false;
+				}
 				break;
 			}
-		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.NO_ANM_STOP)
-			GHQ.defaultCharaIdle(GHQ.getCharacterList());
+		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.STOP)
+			GHQ.defaultCharaIdle(GHQ.getUnitList());
 		GHQ.defaultEntityIdle();
+		////////////
 		//focus
+		////////////
 		g2.setColor(new Color(200,120,10,100));
 		g2.setStroke(GHQ.stroke3);
 		g2.drawLine(formationCenterX,formationCenterY,MOUSE_X,MOUSE_Y);
 		GHQ.drawImageGHQ_center(focusIID,MOUSE_X,MOUSE_Y);
+		g2.setColor(player.mainWeapon.canFire() ? Color.WHITE : Color.RED);
+		final int UNFIRED = player.mainWeapon.getMagazineFilledSpace(), LEFT_AMMO = player.mainWeapon.getLeftAmmo();
+		g2.drawString(UNFIRED != GHQ.MAX ? String.valueOf(UNFIRED) : "-", MOUSE_X - 25, MOUSE_Y);
+		g2.drawString(LEFT_AMMO != GHQ.MAX ? String.valueOf(LEFT_AMMO) : "-", MOUSE_X, MOUSE_Y);
+		g2.setColor(player.mainWeapon.isCoolFinished() ? Color.WHITE : Color.RED);
+		g2.drawString(player.mainWeapon.getCoolProgress() + "/" + 50, MOUSE_X - 25, MOUSE_Y + 25);
+		g2.setColor(player.mainWeapon.isReloadFinished() ? Color.WHITE : Color.RED);
+		g2.drawString(player.mainWeapon.getReloadProgress() + "/" + 150, MOUSE_X + 35, MOUSE_Y + 25);
+		////////////
 		//editor
+		////////////
 		if(s_keyL.pullEvent(VK_F6)) {
 			editor.flit();
 			if(editor.isEnabled())
-				itemContainer.disable();
+				inventoryViewer.disable();
 		}
 		if(editor.isEnabled()){ //editor GUI
 			if(s_mouseL.pullButton3Event()) {
-				unitEditor.setWithEnable(GHQ.getMouseOverChara());
+				unitEditor.setWithEnable(GHQ.getMouseOverUnit());
 			}
 		}else { //game GUI
 			GHQ.translateForGUI(true);
@@ -277,10 +349,37 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 				player.iconPaint.rectPaint(pos++*90 + 10, GHQ.getScreenH() - 40, 80, 30);
 			GHQ.translateForGUI(false);
 			if(s_keyL.pullEvent(VK_ESCAPE)) {
-				itemContainer.flit();
+				if(escMenu.isEnabled()) {
+					escMenu.disable();
+					GHQ.clearStopEvent();
+				}else {
+					escMenu.enable();
+					GHQ.stopScreen();
+				}
 			}
 		}
-		if(stopEventKind == NONE || editor.isEnabled()) { //scroll
+		///////////////
+		//GUI idle
+		///////////////
+		final Graphics2D G2 = GHQ.getGraphics2D();
+		//HP bars
+		G2.setStroke(GHQ.stroke5);
+		GHQ.translateForGUI(true);
+		G2.setColor(Color.RED);
+		G2.drawLine(15, 15, 15 + Math.max(0, (int)(400*player.status.getRate(BasicUnit.RED_BAR))), 15);
+		G2.setColor(Color.BLUE);
+		G2.drawLine(15, 30, 15 + Math.max(0, (int)(400*player.status.getRate(BasicUnit.BLUE_BAR))), 30);
+		G2.setColor(Color.GREEN);
+		G2.drawLine(15, 45, 15 + Math.max(0, (int)(400*player.status.getRate(BasicUnit.GREEN_BAR))), 45);
+		GHQ.translateForGUI(false);
+		//weaponName update
+		mainWeaponLabel.setText(player.mainWeapon.NAME);
+		subWeaponLabel.setText(player.subWeapon.NAME);
+		meleeWeaponLabel.setText(player.meleeWeapon.NAME);
+		///////////////
+		//scroll
+		///////////////
+		if(stopEventKind == NONE || editor.isEnabled()) {
 			//scroll by keys
 			if(s_keyL.hasEvent(VK_W)) {
 				formationCenterY -= F_MOVE_SPD;

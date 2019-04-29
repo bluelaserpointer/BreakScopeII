@@ -1,23 +1,25 @@
 package unit;
 
 import core.GHQ;
+import item.Equipment;
 import paint.DotPaint;
 import paint.ImageFrame;
-import physicis.HasDynam;
-import thhunit.EnemyBulletLibrary;
 import unit.Unit;
-import weapon.Weapon;
 
-public class Fairy extends BSUnit{
+public class Fairy extends BasicEnemy{
 	private static final long serialVersionUID = -8167654165444569286L;
 	public Fairy(int initialGroup) {
 		super(70, initialGroup);
 	}
-	private final Weapon weaponController = EnemyBulletLibrary.getWeaponController(EnemyBulletLibrary.lightBall_S);
 	private DotPaint magicCirclePaint;
 	@Override
 	public final String getName() {
 		return "FairyA";
+	}
+	@Override
+	public final void respawn(int x, int y) {
+		super.respawn(x, y);
+		mainWeapon = super.getWeapon(new Equipment(Equipment.ACCAR));
 	}
 	
 	@Override
@@ -25,24 +27,28 @@ public class Fairy extends BSUnit{
 		super.loadImageData();
 		charaPaint = new ImageFrame("thhimage/YouseiA.png");
 		magicCirclePaint = new ImageFrame("thhimage/MagicCircleBlue.png");
-		bulletPaint[0] = new ImageFrame("thhimage/LightBallA.png");
 	}
 	@Override
 	public void activeCons() {
-		weaponController.defaultIdle();
+		if(!isAlive())
+			return;
+		mainWeapon.startReloadIfNotDoing();
+		subWeapon.startReloadIfNotDoing();
+		meleeWeapon.startReloadIfNotDoing();
+		mainWeapon.idle();
+		subWeapon.idle();
+		meleeWeapon.idle();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
-		if(targetEnemy != null && weaponController.trigger())
-			EnemyBulletLibrary.inputBulletInfo(this,EnemyBulletLibrary.lightBall_ROUND,bulletPaint[0],targetEnemy);
+		if(targetEnemy != null) {
+			this.dynam.setAngleToTarget(targetEnemy);
+			mainWeapon.trigger(this);
+		}
 	}
 	@Override
 	public void paint(boolean doAnimation) {
 		if(!isAlive())
 			return;
+		super.paint(doAnimation);
 		super.paintMode_magicCircle(magicCirclePaint);
-		GHQ.paintHPArc((int) dynam.getX(), (int) dynam.getY(), 20,status.get(HP), status.getDefault(HP));
 	}
-	@Override
-	public void setEffect(int kind,HasDynam source) {}
-	@Override
-	public void setBullet(int kind,HasDynam source) {}
 }
