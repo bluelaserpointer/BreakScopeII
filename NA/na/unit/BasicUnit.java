@@ -184,7 +184,7 @@ public abstract class BasicUnit extends Unit {
 	@Override
 	public void dynam() {
 		final Dynam DYNAM = getDynam();
-		DYNAM.move();
+		DYNAM.moveIfNoObstacles(this);
 		DYNAM.accelerate_MUL(0.9);
 	}
 	public int weaponChangeOrder;
@@ -222,7 +222,7 @@ public abstract class BasicUnit extends Unit {
 		if (moveOrder) {
 			//under edit
 		}
-		DYNAM.approach(charaDstX, charaDstY, charaSpeed);
+		DYNAM.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
 		// weaponIdle
 		mainWeapon.idle();
 		subWeapon.idle();

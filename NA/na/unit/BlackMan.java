@@ -38,6 +38,5 @@ public class BlackMan extends BasicEnemy{
 			dynam.setAngle(dynam.getAngle(charaDstX = targetEnemy.getDynam().getX(),charaDstY = targetEnemy.getDynam().getY()));
 			mainWeapon.trigger(this);
 		}
-		dynam.approach(charaDstX, charaDstY, charaSpeed);
 	}
 }

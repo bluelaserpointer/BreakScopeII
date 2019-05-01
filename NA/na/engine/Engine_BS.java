@@ -381,20 +381,20 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 		///////////////
 		if(stopEventKind == NONE || editor.isEnabled()) {
 			//scroll by keys
-			if(s_keyL.hasEvent(VK_W)) {
+			if(s_keyL.hasEvent(VK_W) && !GHQ.hitObstacle_DXDY(player, 0, -F_MOVE_SPD)) {
 				formationCenterY -= F_MOVE_SPD;
 				GHQ.viewTargetMove(0,-F_MOVE_SPD);
 				GHQ.pureViewMove(0,-F_MOVE_SPD);
-			}else if(s_keyL.hasEvent(VK_S)) {
+			}else if(s_keyL.hasEvent(VK_S) && !GHQ.hitObstacle_DXDY(player, 0, +F_MOVE_SPD)) {
 				formationCenterY += F_MOVE_SPD;
 				GHQ.viewTargetMove(0,F_MOVE_SPD);
 				GHQ.pureViewMove(0,F_MOVE_SPD);
 			}
-			if(s_keyL.hasEvent(VK_A)) {
+			if(s_keyL.hasEvent(VK_A) && !GHQ.hitObstacle_DXDY(player, -F_MOVE_SPD, 0)) {
 				formationCenterX -= F_MOVE_SPD;
 				GHQ.viewTargetMove(-F_MOVE_SPD,0);
 				GHQ.pureViewMove(-F_MOVE_SPD,0);
-			}else if(s_keyL.hasEvent(VK_D)) {
+			}else if(s_keyL.hasEvent(VK_D) && !GHQ.hitObstacle_DXDY(player, +F_MOVE_SPD, 0)) {
 				formationCenterX += F_MOVE_SPD;
 				GHQ.viewTargetMove(F_MOVE_SPD,0);
 				GHQ.pureViewMove(F_MOVE_SPD,0);

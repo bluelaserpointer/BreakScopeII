@@ -26,6 +26,9 @@ public class WhiteMan extends BasicNPC{
 	}
 	@Override
 	public void activeCons() {
+		super.activeCons();
+		if(!isAlive())
+			return;
 		final Unit blackManAdress = GHQ.getUnit("BlackMan");
 		if(blackManAdress == null)
 			return;
@@ -36,7 +39,6 @@ public class WhiteMan extends BasicNPC{
 		if(TARGET_STATUS.isBigger0(RED_BAR) && TARGET_STATUS.isSmaller(RED_BAR,10000) && dynam.getDistance(charaDstX, charaDstY) < 200){
 			TARGET_STATUS.add(RED_BAR, 100);
 		}
-		dynam.approach(charaDstX, charaDstY, charaSpeed);
 	}
 	@Override
 	public void startTalk() {
