@@ -11,8 +11,6 @@ public abstract class BasicEnemy extends BasicUnit{
 	
 	@Override
 	public void paint(boolean doAnimation) {
-		if(!isAlive())
-			return;
 		super.paint(doAnimation);
 		GHQ.paintHPArc((int) dynam.getX(), (int) dynam.getY(), 20,status.get(RED_BAR), status.getDefault(RED_BAR));
 	}

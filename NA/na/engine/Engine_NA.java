@@ -41,16 +41,16 @@ import unit.WhiteMan;
 import vegetation.Vegetation;
 
 /**
- * The core class for game "BreakScope II"
+ * The core class for game "NA"
  * @author bluelaserpointer
  * @version alpha1.0
  */
 
-public class Engine_BS extends StageEngine implements MessageSource,ActionSource{
+public class Engine_NA extends StageEngine implements MessageSource,ActionSource{
 	public static final int FRIEND = 0,ENEMY = 100;
 	
 	private static Player player;
-	private static final Stage_BS[] stages = new Stage_BS[1];
+	private static final Stage_NA[] stages = new Stage_NA[1];
 	private int nowStage;
 	
 	final int F_MOVE_SPD = 6;
@@ -102,10 +102,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	//initialization
 	@Override
 	public String getTitleName() {
-		return "BreakScope";
+		return "NA";
 	}
 	public static void main(String args[]){
-		new GHQ(new Engine_BS());
+		new GHQ(new Engine_NA());
 	}
 	@Override
 	public final void loadResource() {
@@ -239,7 +239,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	}
 	@Override
 	public final void openStage() {
-		stages[0] = (Stage_BS)GHQ.loadData(new File("stage/saveData1.txt"));
+		stages[0] = (Stage_NA)GHQ.loadData(new File("stage/saveData1.txt"));
 		if(stages[0] != null) {
 			for(Structure structure : stages[0].STRUCTURES) {
 				GHQ.addStructure(structure);
@@ -252,7 +252,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
-		return new Stage_BS(GHQ.getUnits(),GHQ.getStructures());
+		return new Stage_NA(GHQ.getUnits(),GHQ.getStructures());
 	}
 	//idle
 	private int gameFrame;
@@ -281,10 +281,10 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 			case 0:
 				//friend
 				player.teleportTo(formationCenterX, formationCenterY);
-				GHQ.defaultUnitIdle(player);
+				player.idle();
 				//enemy
 				for(Unit enemy : GHQ.getUnitList()) {
-					GHQ.defaultUnitIdle(enemy);
+					enemy.idle();
 					if(enemy.getName() == "FairyA") {
 						final int FRAME = gameFrame % 240;
 						if(FRAME < 100)
@@ -312,7 +312,7 @@ public class Engine_BS extends StageEngine implements MessageSource,ActionSource
 				}
 				break;
 			}
-		}else if(stopEventKind == GHQ.STOP || stopEventKind == GHQ.STOP)
+		}else if(stopEventKind == GHQ.STOP)
 			GHQ.defaultCharaIdle(GHQ.getUnitList());
 		GHQ.defaultEntityIdle();
 		////////////

@@ -7,7 +7,5 @@ public abstract class BasicNPC extends BasicUnit{
 		super(charaSize, initialGroup);
 	}
 	
-	public void startTalk() {
-		
-	}
+	public void startTalk() {}
 }

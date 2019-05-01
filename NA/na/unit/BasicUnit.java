@@ -175,72 +175,43 @@ public abstract class BasicUnit extends Unit {
 	}
 	public void resetOrder() {
 		weaponChangeOrder = 0;
-		attackOrder = moveOrder = dodgeOrder = spellOrder = false;
+		attackOrder = dodgeOrder = spellOrder = false;
 	}
 	public void resetSingleOrder() {
 		weaponChangeOrder = 0;
 		spellOrder = dodgeOrder = false;
 	}
 	@Override
-	public void dynam() {
-		final Dynam DYNAM = getDynam();
-		DYNAM.moveIfNoObstacles(this);
-		DYNAM.accelerate_MUL(0.9);
-	}
-	public int weaponChangeOrder;
-	public boolean attackOrder,moveOrder,dodgeOrder,spellOrder;
-	@Override
-	public void passiveCons() {
-		resetSingleOrder();
-	}
-	@Override
-	public void activeCons() {
-		// death
-		if (!isAlive()) {
-			for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
-				GHQ.addVegetation(inventory.items.remove(i).drop((int)(dynam.getX() + GHQ.random2(-50,50)), (int)(dynam.getY() + GHQ.random2(-50,50))));
-			return;
-		}
-		final int mouseX = GHQ.getMouseX(), mouseY = GHQ.getMouseY();
-		Dynam DYNAM = getDynam();
-		DYNAM.setAngle(DYNAM.getMouseAngle());
-		// dodge
-		if (dodgeOrder)
-			dodge(mouseX, mouseY);
-		// attack
-		if (attackOrder) {
-			mainWeapon.trigger(this);
-		}
-		// spell
-		if (spellOrder) {
-			spellWeapon.trigger(this);
-		}
-		// reload
-		subWeapon.startReloadIfNotDoing();
-		meleeWeapon.startReloadIfNotDoing();
-		// move
-		if (moveOrder) {
-			//under edit
-		}
-		DYNAM.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
-		// weaponIdle
+	public void baseIdle() {
+		////////////
+		// weapon
+		////////////
 		mainWeapon.idle();
 		subWeapon.idle();
 		meleeWeapon.idle();
+		subWeapon.startReloadIfNotDoing();
+		meleeWeapon.startReloadIfNotDoing();
+		////////////
+		//dynam
+		////////////
+		dynam.moveIfNoObstacles(this);
+		dynam.accelerate_MUL(0.9);
 	}
+	public int weaponChangeOrder;
+	public boolean attackOrder,dodgeOrder,spellOrder;
 	@Override
 	public void paint(boolean doAnimation) {
-		if(status.get(RED_BAR) <= 0)
-			return;
-		final Dynam DYNAM = getDynam();
-		final int X = (int) DYNAM.getX(),Y = (int) DYNAM.getY();
+		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
 		charaPaint.dotPaint(X, Y);
 	}
 	protected final void paintMode_magicCircle(DotPaint paintScript) {
-		final Dynam DYNAM = getDynam();
-		final int X = (int) DYNAM.getX(),Y = (int) DYNAM.getY();
+		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
 		paintScript.dotPaint_turn(X, Y, (double)GHQ.getNowFrame()/35.0);
 		charaPaint.dotPaint(X, Y);
+	}
+	public void killed() {
+		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
+			GHQ.addVegetation(inventory.items.remove(i).drop((int)(dynam.getX() + GHQ.random2(-50,50)), (int)(dynam.getY() + GHQ.random2(-50,50))));
 	}
 	
 	// control
@@ -265,7 +236,7 @@ public abstract class BasicUnit extends Unit {
 	public void teleportTo(int x,int y) {
 		getDynam().setXY(charaDstX = x, charaDstY = y);
 	}
-	private final void dodge(double targetX, double targetY) {
+	protected final void dodge(double targetX, double targetY) {
 		final Dynam DYNAM = getDynam();
 		DYNAM.addSpeed_DA(40, DYNAM.getAngle(targetX,targetY));
 		charaOnLand = false;
@@ -286,11 +257,14 @@ public abstract class BasicUnit extends Unit {
 		}
 		final int DMG = status.add(RED_BAR, -amount);
 		GHQ.addEffect(new EffectLibrary.DamageNumberEF(this, DMG));
+		if(!isAlive())
+			killed();
 		return DMG;
 	}
 	@Override
 	public final boolean kill(boolean force) {
 		status.set(RED_BAR, 0);
+		killed();
 		return true;
 	}
 

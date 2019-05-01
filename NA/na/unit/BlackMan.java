@@ -28,10 +28,7 @@ public class BlackMan extends BasicEnemy{
 		charaPaint = new ImageFrame("thhimage/BlackBall.png");
 	}
 	@Override
-	public void activeCons() {
-		super.activeCons();
-		if(!isAlive())
-			return;
+	public void extendIdle() {
 		mainWeapon.startReloadIfNotDoing();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {

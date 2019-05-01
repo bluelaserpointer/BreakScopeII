@@ -25,10 +25,7 @@ public class WhiteMan extends BasicNPC{
 		charaPaint = new ImageFrame("thhimage/WhiteBall.png");
 	}
 	@Override
-	public void activeCons() {
-		super.activeCons();
-		if(!isAlive())
-			return;
+	public void extendIdle() {
 		final Unit blackManAdress = GHQ.getUnit("BlackMan");
 		if(blackManAdress == null)
 			return;

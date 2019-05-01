@@ -29,15 +29,8 @@ public class Fairy extends BasicEnemy{
 		magicCirclePaint = new ImageFrame("thhimage/MagicCircleBlue.png");
 	}
 	@Override
-	public void activeCons() {
-		if(!isAlive())
-			return;
+	public void extendIdle() {
 		mainWeapon.startReloadIfNotDoing();
-		subWeapon.startReloadIfNotDoing();
-		meleeWeapon.startReloadIfNotDoing();
-		mainWeapon.idle();
-		subWeapon.idle();
-		meleeWeapon.idle();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
 			this.dynam.setAngleToTarget(targetEnemy);
@@ -46,9 +39,7 @@ public class Fairy extends BasicEnemy{
 	}
 	@Override
 	public void paint(boolean doAnimation) {
-		if(!isAlive())
-			return;
-		super.paint(doAnimation);
 		super.paintMode_magicCircle(magicCirclePaint);
+		super.paint(doAnimation);
 	}
 }

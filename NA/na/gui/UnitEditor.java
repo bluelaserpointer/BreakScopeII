@@ -3,7 +3,7 @@ package gui;
 import java.awt.Color;
 
 import core.GHQ;
-import engine.Engine_BS;
+import engine.Engine_NA;
 import paint.ColorFilling;
 import paint.ColorFraming;
 import unit.BlackMan;
@@ -24,13 +24,13 @@ public class UnitEditor extends ClickMenu<Unit>{
 				final Unit GENERATED_UNIT;
 				switch(text){
 				case "WHITE_MAN":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new WhiteMan(Engine_BS.ENEMY), (int)targetObject.dynam.getX(), (int)targetObject.dynam.getY()));
+					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new WhiteMan(Engine_NA.ENEMY), (int)targetObject.dynam.getX(), (int)targetObject.dynam.getY()));
 					break;
 				case "BLACK_MAN":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new BlackMan(Engine_BS.ENEMY), (int)targetObject.dynam.getX(), (int)targetObject.dynam.getY()));
+					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new BlackMan(Engine_NA.ENEMY), (int)targetObject.dynam.getX(), (int)targetObject.dynam.getY()));
 					break;
 				case "FAIRY":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new Fairy(Engine_BS.ENEMY), (int)targetObject.dynam.getX(), (int)targetObject.dynam.getY()));
+					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new Fairy(Engine_NA.ENEMY), (int)targetObject.dynam.getX(), (int)targetObject.dynam.getY()));
 					break;
 				default:
 					GENERATED_UNIT = null;
