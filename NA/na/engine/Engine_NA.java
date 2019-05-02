@@ -10,7 +10,6 @@ import action.ActionInfo;
 import action.ActionSource;
 import core.GHQ;
 import gui.ItemStorageViewer;
-import gui.BasicButton;
 import gui.DefaultStageEditor;
 import gui.GUIGroup;
 import gui.MessageSource;
@@ -95,7 +94,6 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 	private static GUIGroup escMenu;
 	private static ItemStorageViewer inventoryViewer;
 	private static TitledLabel mainWeaponLabel,subWeaponLabel,meleeWeaponLabel;
-	private static BasicButton useItemButton;
 	private static MouseHook<Item> itemMouseHook;
 	private static UnitEditor unitEditor;
 	
@@ -207,12 +205,6 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		escMenu.addParts(mainWeaponLabel = new TitledLabel("mainWeaponLabel", new ColorFilling(Color.WHITE), 500, 70, 400, 40)).setTitle("mainWeapon");
 		escMenu.addParts(subWeaponLabel = new TitledLabel("subWeaponLabel", new ColorFilling(Color.WHITE), 500, 140, 400, 40)).setTitle("subWeapon");
 		escMenu.addParts(meleeWeaponLabel = new TitledLabel("meleeWeaponLabel", new ColorFilling(Color.WHITE), 500, 210, 400, 40)).setTitle("meleeWeapon");
-		escMenu.addParts(useItemButton = new BasicButton("useItemButton", new ImageFrame("picture/gui/slot.png"), 60, 500, 100, 40) {
-			@Override
-			public void clicked() { //useItem or equipWeapon
-				
-			}
-		});
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
 		GHQ.addGUIParts(itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null, 70) {
 				@Override
