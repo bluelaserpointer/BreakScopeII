@@ -36,6 +36,7 @@ public class WhiteMan extends BasicNPC{
 		if(TARGET_STATUS.isBigger0(RED_BAR) && TARGET_STATUS.isSmaller(RED_BAR,10000) && dynam.getDistance(charaDstX, charaDstY) < 200){
 			TARGET_STATUS.add(RED_BAR, 100);
 		}
+		dynam.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
 	}
 	@Override
 	public void startTalk() {
