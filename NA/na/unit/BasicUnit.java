@@ -9,8 +9,8 @@ import item.Equipment;
 import item.Item;
 import paint.DotPaint;
 import paint.RectPaint;
-import physicis.Dynam;
-import physicis.HasDynam;
+import physics.Dynam;
+import physics.IsTurningPoint;
 import status.StatusWithDefaultValue;
 import storage.ItemStorage;
 import storage.Storage;
@@ -114,7 +114,7 @@ public abstract class BasicUnit extends Unit {
 			return new Weapon() {
 				private static final long serialVersionUID = -1692674505068462831L;
 				@Override
-				public void setBullets(HasDynam shooter, Standpoint standpoint) {
+				public void setBullets(IsTurningPoint shooter, Standpoint standpoint) {
 					final Dynam BULLET_DYNAM = GHQ.addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam;
 					BULLET_DYNAM.setSpeed(10);
 					BULLET_DYNAM.addXY_allowsAngle(0, 18);
@@ -169,6 +169,7 @@ public abstract class BasicUnit extends Unit {
 		meleeWeapon.reset();
 		dynam.clear();
 		dynam.setXY(charaDstX = x,charaDstY = y);
+		baseAngle.set(0.0);
 		charaOnLand = false;
 		inventory.items.clear();
 		inventory.add_stack(new Ammo(Ammo.AMMO_9MM, 32));
@@ -201,13 +202,11 @@ public abstract class BasicUnit extends Unit {
 	public boolean attackOrder,dodgeOrder,spellOrder;
 	@Override
 	public void paint(boolean doAnimation) {
-		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		charaPaint.dotPaint(X, Y);
+		charaPaint.dotPaint_turn(this);
 	}
-	protected final void paintMode_magicCircle(DotPaint paintScript) {
+	protected final void paintMagicCircle(DotPaint paintScript) {
 		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
 		paintScript.dotPaint_turn(X, Y, (double)GHQ.getNowFrame()/35.0);
-		charaPaint.dotPaint(X, Y);
 	}
 	public void killed() {
 		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))

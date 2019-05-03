@@ -6,9 +6,9 @@ import paint.DotPaint;
 import paint.ImageFrame;
 import unit.Unit;
 
-public class Fairy extends BasicEnemy{
+public class HumanGuard2 extends BasicEnemy{
 	private static final long serialVersionUID = -8167654165444569286L;
-	public Fairy(int initialGroup) {
+	public HumanGuard2(int initialGroup) {
 		super(70, initialGroup);
 	}
 	private DotPaint magicCirclePaint;
@@ -25,21 +25,26 @@ public class Fairy extends BasicEnemy{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("thhimage/YouseiA.png");
-		magicCirclePaint = new ImageFrame("thhimage/MagicCircleBlue.png");
+		charaPaint = new ImageFrame("picture/grayman.png");
+		magicCirclePaint = new ImageFrame("picture/focus.png");
 	}
 	@Override
 	public void extendIdle() {
 		mainWeapon.startReloadIfNotDoing();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
-			this.dynam.setAngleToTarget(targetEnemy);
-			mainWeapon.trigger(this);
-		}
+			final double TARGET_ANGLE = dynam.getAngleToTarget(targetEnemy);
+			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
+				if(baseAngle.spinToTargetSuddenly(TARGET_ANGLE, 10) < 0.10)
+					mainWeapon.trigger(this);
+			}else
+				baseAngle.spinToTargetSuddenly(dynam.getAngle(), 10);
+		}else
+			baseAngle.spinToTargetSuddenly(dynam.getAngle(), 10);
 	}
 	@Override
 	public void paint(boolean doAnimation) {
-		super.paintMode_magicCircle(magicCirclePaint);
-		super.paint(doAnimation);
+		super.paintMagicCircle(magicCirclePaint);
+		super.paint(true);
 	}
 }

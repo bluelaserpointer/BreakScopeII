@@ -30,13 +30,12 @@ import stage.StageSaveData;
 import storage.TableStorage;
 import structure.Structure;
 import unit.BasicUnit;
-import unit.BlackMan;
 import unit.BulletLibrary;
 import unit.EffectLibrary;
-import unit.Fairy;
+import unit.HumanGuard2;
+import unit.HumanGuard;
 import unit.Player;
 import unit.Unit;
-import unit.WhiteMan;
 import vegetation.Vegetation;
 
 /**
@@ -139,12 +138,11 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() + 200, GHQ.getScreenH() + 100);
 		//final Action moveLeftToRight200 = new Action(this);
 		//enemy
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 300, 100));
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 700, 20));
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 1200, 300));
-		GHQ.addUnit(Unit.initialSpawn(new Fairy(ENEMY), 1800, 700));
-		GHQ.addUnit(Unit.initialSpawn(new WhiteMan(ENEMY), 400, GHQ.random2(100, 150)));
-		GHQ.addUnit(Unit.initialSpawn(new BlackMan(ENEMY), 200, GHQ.random2(100, 150)));
+		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 300, 100));
+		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 700, 20));
+		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 1200, 300));
+		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 1800, 700));
+		GHQ.addUnit(Unit.initialSpawn(new HumanGuard(ENEMY), 400, GHQ.random2(100, 150)));
 		/////////////////////////////////
 		//vegetation
 		/////////////////////////////////

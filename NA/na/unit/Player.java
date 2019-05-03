@@ -24,7 +24,7 @@ public class Player extends BasicPlayer{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new DotPaintMultiple(new ImageFrame("thhimage/Marisa.png"));
+		charaPaint = new DotPaintMultiple(new ImageFrame("picture/human2-1.png"));
 		iconPaint = new ImageFrame("thhimage/MarisaIcon.png");
 	}
 	
@@ -38,7 +38,7 @@ public class Player extends BasicPlayer{
 		////////////
 		//aim
 		////////////
-		dynam.setAngle(dynam.getMouseAngle());
+		baseAngle.set(dynam.getMouseAngle());
 		////////////
 		//reload
 		////////////

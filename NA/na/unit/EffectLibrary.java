@@ -9,7 +9,7 @@ import effect.Effect;
 import paint.DotPaint;
 import paint.ImageFrame;
 import paint.StringViewer;
-import physicis.HasDynam;
+import physics.HasDynam;
 
 public abstract class EffectLibrary extends Effect{
 	public static void loadResource() {
