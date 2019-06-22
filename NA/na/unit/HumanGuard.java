@@ -35,12 +35,12 @@ public class HumanGuard extends BasicEnemy{
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
 				charaDstX = targetEnemy.getDynam().doubleX();
 				charaDstY = targetEnemy.getDynam().doubleY();
-				if(baseAngle.spinToTargetSuddenly(TARGET_ANGLE, 10) < 0.10)
+				if(baseAngle.spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
 					mainWeapon.trigger(this);
 			}else
-				baseAngle.spinToTargetSuddenly(dynam.moveAngle(), 10);
+				baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
 		}else
-			baseAngle.spinToTargetSuddenly(dynam.moveAngle(), 10);
+			baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
 		dynam.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
 	}
 }

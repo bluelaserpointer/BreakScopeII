@@ -259,7 +259,6 @@ public abstract class BasicUnit extends Unit {
 			killed();
 		return DMG;
 	}
-	@Override
 	public final boolean kill(boolean force) {
 		status.set(RED_BAR, 0);
 		killed();
