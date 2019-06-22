@@ -31,16 +31,16 @@ public class HumanGuard extends BasicEnemy{
 		mainWeapon.startReloadIfNotDoing();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
-			final double TARGET_ANGLE = dynam.getAngleToTarget(targetEnemy);
+			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
-				charaDstX = targetEnemy.getDynam().getX();
-				charaDstY = targetEnemy.getDynam().getY();
+				charaDstX = targetEnemy.getDynam().doubleX();
+				charaDstY = targetEnemy.getDynam().doubleY();
 				if(baseAngle.spinToTargetSuddenly(TARGET_ANGLE, 10) < 0.10)
 					mainWeapon.trigger(this);
 			}else
-				baseAngle.spinToTargetSuddenly(dynam.getAngle(), 10);
+				baseAngle.spinToTargetSuddenly(dynam.moveAngle(), 10);
 		}else
-			baseAngle.spinToTargetSuddenly(dynam.getAngle(), 10);
+			baseAngle.spinToTargetSuddenly(dynam.moveAngle(), 10);
 		dynam.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
 	}
 }

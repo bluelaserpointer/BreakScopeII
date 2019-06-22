@@ -6,11 +6,11 @@ import geom.Circle;
 import geom.Square;
 import item.Ammo;
 import item.Equipment;
-import item.Item;
+import item.ItemData;
 import paint.DotPaint;
 import paint.RectPaint;
 import physics.Dynam;
-import physics.IsTurningPoint;
+import physics.HasAnglePoint;
 import status.StatusWithDefaultValue;
 import storage.ItemStorage;
 import storage.Storage;
@@ -114,7 +114,7 @@ public abstract class BasicUnit extends Unit {
 			return new Weapon() {
 				private static final long serialVersionUID = -1692674505068462831L;
 				@Override
-				public void setBullets(IsTurningPoint shooter, Standpoint standpoint) {
+				public void setBullets(HasAnglePoint shooter, Standpoint standpoint) {
 					final Dynam BULLET_DYNAM = GHQ.addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam;
 					BULLET_DYNAM.setSpeed(10);
 					BULLET_DYNAM.addXY_allowsAngle(0, 18);
@@ -125,7 +125,7 @@ public abstract class BasicUnit extends Unit {
 				}
 				@Override
 				public void consumeAmmo(int value) {
-					Item.removeInInventory(inventory.items, new Ammo(Ammo.AMMO_9MM, value));
+					ItemData.removeInInventory(inventory.items, new Ammo(Ammo.AMMO_9MM, value));
 				}
 			};
 		case Equipment.ELECTRON_SHIELD:
@@ -154,9 +154,9 @@ public abstract class BasicUnit extends Unit {
 	
 	public BasicUnit(int charaSize, int initialGroup) {
 		super(new Circle(charaSize), initialGroup);
-		inventory = new ItemStorage(new Storage<Item>());
+		inventory = new ItemStorage(new Storage<ItemData>());
 	}
-	public BasicUnit(int charaSize, int initialGroup, Storage<Item> itemStorageKind) {
+	public BasicUnit(int charaSize, int initialGroup, Storage<ItemData> itemStorageKind) {
 		super(new Square(charaSize), initialGroup);
 		inventory = new ItemStorage(itemStorageKind);
 	}
@@ -205,12 +205,11 @@ public abstract class BasicUnit extends Unit {
 		charaPaint.dotPaint_turn(this);
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
-		final int X = (int) dynam.getX(),Y = (int) dynam.getY();
-		paintScript.dotPaint_turn(X, Y, (double)GHQ.getNowFrame()/35.0);
+		paintScript.dotPaint_turn(dynam, (double)GHQ.getNowFrame()/35.0);
 	}
 	public void killed() {
 		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
-			GHQ.addVegetation(inventory.items.remove(i).drop((int)(dynam.getX() + GHQ.random2(-50,50)), (int)(dynam.getY() + GHQ.random2(-50,50))));
+			GHQ.addVegetation(inventory.items.remove(i).drop((int)(dynam.doubleX() + GHQ.random2(-50,50)), (int)(dynam.doubleY() + GHQ.random2(-50,50))));
 	}
 	
 	// control
@@ -237,7 +236,7 @@ public abstract class BasicUnit extends Unit {
 	}
 	protected final void dodge(double targetX, double targetY) {
 		final Dynam DYNAM = getDynam();
-		DYNAM.addSpeed_DA(40, DYNAM.getAngle(targetX,targetY));
+		DYNAM.addSpeed_DA(40, DYNAM.angleTo(targetX,targetY));
 		charaOnLand = false;
 	}
 	//stun

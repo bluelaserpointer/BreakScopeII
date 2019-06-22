@@ -6,7 +6,7 @@ import core.Standpoint;
 import geom.Circle;
 import paint.DotPaint;
 import paint.ImageFrame;
-import physics.IsTurningPoint;
+import physics.HasAnglePoint;
 import weapon.Weapon;
 
 public abstract class BulletLibrary extends Bullet{
@@ -15,7 +15,7 @@ public abstract class BulletLibrary extends Bullet{
 		ACCAR.paint = ImageFrame.createNew("picture/Bullet_7p62.png");
 	}
 	
-	public BulletLibrary(Weapon sourceWeapon, IsTurningPoint shooter, Standpoint standpoint) {
+	public BulletLibrary(Weapon sourceWeapon, HasAnglePoint shooter, Standpoint standpoint) {
 		super(sourceWeapon, shooter, standpoint);
 	}
 	/////////////////
@@ -37,7 +37,7 @@ public abstract class BulletLibrary extends Bullet{
 	/////////////////
 	public static class ACCAR extends BulletLibrary{
 		private static DotPaint paint;
-		public ACCAR(Weapon sourceWeapon, IsTurningPoint shooter, Standpoint standpoint) {
+		public ACCAR(Weapon sourceWeapon, HasAnglePoint shooter, Standpoint standpoint) {
 			super(sourceWeapon, shooter, standpoint);
 			name = "ACCAR";
 			hitShape = new Circle(3);
@@ -62,7 +62,7 @@ public abstract class BulletLibrary extends Bullet{
 					return false;
 			}
 			dynam.setXY(SHOOTER);
-			dynam.setAngle(SHOOTER.getAngle().get());
+			dynam.setAngle(SHOOTER.getAngle().angle());
 			return true;
 		}
 		@Override

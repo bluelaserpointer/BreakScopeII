@@ -21,7 +21,7 @@ import input.SingleKeyListener;
 import input.SingleNumKeyListener;
 import item.Ammo;
 import item.Equipment;
-import item.Item;
+import item.ItemData;
 import paint.ColorFilling;
 import paint.ImageFrame;
 import paint.RectPaint;
@@ -93,7 +93,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 	private static GUIGroup escMenu;
 	private static ItemStorageViewer inventoryViewer;
 	private static TitledLabel mainWeaponLabel,subWeaponLabel,meleeWeaponLabel;
-	private static MouseHook<Item> itemMouseHook;
+	private static MouseHook<ItemData> itemMouseHook;
 	private static UnitEditor unitEditor;
 	
 	//initialization
@@ -161,7 +161,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		//GUI
 		/////////////////////////////////
 		//ESC menu
-		GHQ.addGUIParts(escMenu = new GUIGroup("ESC_MENU", null, 0, 0, GHQ.getScreenW(), GHQ.getScreenH())).addParts(inventoryViewer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<Item>)player.inventory.items){
+		GHQ.addGUIParts(escMenu = new GUIGroup("ESC_MENU", null, 0, 0, GHQ.getScreenW(), GHQ.getScreenH())).addParts(inventoryViewer = new ItemStorageViewer("MENU_GROUP",RectPaint.BLANK_SCRIPT,new ImageFrame("picture/gui/slot.png"),50,70,70,(TableStorage<ItemData>)player.inventory.items){
 			@Override
 			public void clicked() {
 				final int HOVERED_ID = getMouseHoveredID();
@@ -177,39 +177,39 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 			}
 			@Override
 			public void outsideReleased() {
-				final Item hookingObject = itemMouseHook.get();
+				final ItemData hookingObject = itemMouseHook.get();
 				if(hookingObject instanceof Equipment) {
 					final Equipment EQUIPMENT = (Equipment)hookingObject;
 					if(mainWeaponLabel.isMouseEntered()) {
 						player.mainWeapon = player.getWeapon(EQUIPMENT);
-						itemMouseHook.hook(Item.BLANK_ITEM);
+						itemMouseHook.hook(ItemData.BLANK_ITEM);
 						return;
 					}else if(subWeaponLabel.isMouseEntered()) {
 						player.subWeapon = player.getWeapon(EQUIPMENT);
-						itemMouseHook.hook(Item.BLANK_ITEM);
+						itemMouseHook.hook(ItemData.BLANK_ITEM);
 						return;
 					}else if(meleeWeaponLabel.isMouseEntered()) {
 						player.meleeWeapon = player.getWeapon(EQUIPMENT);
-						itemMouseHook.hook(Item.BLANK_ITEM);
+						itemMouseHook.hook(ItemData.BLANK_ITEM);
 						return;
 					}
 				}
 				final double ANGLE = player.dynam.getMouseAngle();
 				if(hookingObject != null)
-					GHQ.addVegetation(hookingObject.drop((int)(player.dynam.getX() + 50*Math.cos(ANGLE)), (int)(player.dynam.getY() + 50*Math.sin(ANGLE))));
-				itemMouseHook.hook(Item.BLANK_ITEM);
+					GHQ.addVegetation(hookingObject.drop((int)(player.dynam.doubleX() + 50*Math.cos(ANGLE)), (int)(player.dynam.doubleY() + 50*Math.sin(ANGLE))));
+				itemMouseHook.hook(ItemData.BLANK_ITEM);
 			}
 		});
 		escMenu.addParts(mainWeaponLabel = new TitledLabel("mainWeaponLabel", new ColorFilling(Color.WHITE), 500, 70, 400, 40)).setTitle("mainWeapon");
 		escMenu.addParts(subWeaponLabel = new TitledLabel("subWeaponLabel", new ColorFilling(Color.WHITE), 500, 140, 400, 40)).setTitle("subWeapon");
 		escMenu.addParts(meleeWeaponLabel = new TitledLabel("meleeWeaponLabel", new ColorFilling(Color.WHITE), 500, 210, 400, 40)).setTitle("meleeWeapon");
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP", new File("stage/saveData1.txt")));
-		GHQ.addGUIParts(itemMouseHook = new MouseHook<Item>("MOUSE_HOOK", null, 70) {
+		GHQ.addGUIParts(itemMouseHook = new MouseHook<ItemData>("MOUSE_HOOK", null, 70) {
 				@Override
 				public void idle() {
 					super.idle();
-					if(hookingObject instanceof Item && hookingObject != Item.BLANK_ITEM) {
-						final int AMOUNT = ((Item)hookingObject).getAmount();
+					if(hookingObject instanceof ItemData && hookingObject != ItemData.BLANK_ITEM) {
+						final int AMOUNT = ((ItemData)hookingObject).getAmount();
 						final Graphics2D G2 = GHQ.getGraphics2D();
 						G2.setColor(Color.GRAY);
 						G2.drawString(String.valueOf(AMOUNT), GHQ.getMouseScreenX() + SIZE/2 - 23, GHQ.getMouseScreenY() + SIZE/2 - 9);

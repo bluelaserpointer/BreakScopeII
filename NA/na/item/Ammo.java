@@ -36,7 +36,7 @@ public class Ammo extends BSItem{
 		this.amount = amount;
 	}
 	@Override
-	public boolean isStackable(Item item) {
+	public boolean isStackable(ItemData item) {
 		return item instanceof Ammo && ((Ammo)item).kind == kind;
 	}
 	@Override

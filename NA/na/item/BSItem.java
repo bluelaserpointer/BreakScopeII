@@ -3,7 +3,7 @@ package item;
 import core.GHQ;
 import paint.DotPaint;
 
-public abstract class BSItem extends Item{
+public abstract class BSItem extends ItemData{
 	private static final long serialVersionUID = -9128122250005568441L;
 	final String BASE_NAME;
 	@Override
