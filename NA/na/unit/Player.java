@@ -39,7 +39,7 @@ public class Player extends BasicPlayer{
 		////////////
 		//aim
 		////////////
-		baseAngle.set(dynam.getMouseAngle());
+		baseAngle.set(dynam.angleToMouse());
 		////////////
 		//reload
 		////////////

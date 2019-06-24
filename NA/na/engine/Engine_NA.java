@@ -194,7 +194,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 						return;
 					}
 				}
-				final double ANGLE = player.dynam.getMouseAngle();
+				final double ANGLE = player.dynam.angleToMouse();
 				if(hookingObject != null)
 					GHQ.addVegetation(hookingObject.drop((int)(player.dynam.doubleX() + 50*Math.cos(ANGLE)), (int)(player.dynam.doubleY() + 50*Math.sin(ANGLE))));
 				itemMouseHook.hook(ItemData.BLANK_ITEM);

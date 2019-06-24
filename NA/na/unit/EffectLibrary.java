@@ -39,7 +39,7 @@ public abstract class EffectLibrary extends Effect{
 			limitFrame = 3;
 			paintScript = paint;
 			dynam.stop();
-			dynam.setAngle(GHQ.random2(0, 2*PI));
+			dynam.setMoveAngle(GHQ.random2(0, 2*PI));
 		}
 		@Override
 		public SparkHitEF getOriginal() {
@@ -56,7 +56,7 @@ public abstract class EffectLibrary extends Effect{
 			limitFrame = 15;
 			paintScript = new StringViewer(String.valueOf(damage), Color.RED);
 			dynam.stop();
-			dynam.setAngle(0);
+			dynam.setMoveAngle(0);
 		}
 		@Override
 		public DamageNumberEF getOriginal() {

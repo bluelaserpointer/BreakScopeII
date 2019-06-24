@@ -117,7 +117,7 @@ public abstract class BasicUnit extends Unit {
 				public void setBullets(HasAnglePoint shooter, Standpoint standpoint) {
 					final Dynam BULLET_DYNAM = GHQ.addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam;
 					BULLET_DYNAM.setSpeed(10);
-					BULLET_DYNAM.addXY_allowsAngle(0, 18);
+					BULLET_DYNAM.addXY_allowsMoveAngle(0, 18);
 				}
 				@Override
 				public int getLeftAmmo() {

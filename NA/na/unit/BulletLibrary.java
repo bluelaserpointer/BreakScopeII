@@ -62,7 +62,7 @@ public abstract class BulletLibrary extends Bullet{
 					return false;
 			}
 			dynam.setXY(SHOOTER);
-			dynam.setAngle(SHOOTER.getAngle().angle());
+			dynam.setMoveAngle(SHOOTER.getAngle().angle());
 			return true;
 		}
 		@Override
