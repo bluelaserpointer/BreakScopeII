@@ -3,7 +3,6 @@ package unit;
 import static java.awt.event.KeyEvent.*;
 
 import core.GHQ;
-import effect.debugEffect.DebugEffect;
 import engine.Engine_NA;
 import item.ItemData;
 import paint.DotPaintMultiple;
@@ -45,7 +44,6 @@ public class Player extends BasicPlayer{
 		////////////
 		if(Engine_NA.s_keyL.pullEvent(VK_R)) {
 			mainWeapon.startReloadIfNotDoing();
-			DebugEffect.setLine(dynam.intX(), dynam.intY(), 5, 5);
 		}
 		////////////
 		//itemPick

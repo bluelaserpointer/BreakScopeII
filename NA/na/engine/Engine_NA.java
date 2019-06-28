@@ -8,7 +8,9 @@ import java.io.File;
 
 import action.ActionInfo;
 import action.ActionSource;
+import core.CornerNavigation;
 import core.GHQ;
+import effect.debugEffect.DebugEffect;
 import gui.ItemStorageViewer;
 import gui.DefaultStageEditor;
 import gui.GUIGroup;
@@ -49,6 +51,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 	
 	private static Player player;
 	private static final Stage_NA[] stages = new Stage_NA[1];
+	private static final CornerNavigation cornerNavi = new CornerNavigation(100);
 	private int nowStage;
 	
 	final int F_MOVE_SPD = 6;
@@ -239,6 +242,11 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		s_keyL.enable();
 		s_numKeyL.enable();
 		s_mouseL.enable();
+		/////////////////////////////////
+		//test
+		/////////////////////////////////
+		cornerNavi.defaultCornerCollect();
+		cornerNavi.startCornerLink();
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
@@ -395,6 +403,10 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 				GHQ.viewApproach_rate(10);
 			}
 		}
+		//////////////////////////
+		//test
+		//////////////////////////
+		cornerNavi.debugPreview();
 	}
 	
 	//control
