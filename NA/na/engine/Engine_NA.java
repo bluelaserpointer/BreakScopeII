@@ -5,6 +5,7 @@ import static java.awt.event.KeyEvent.*;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
+import java.util.Stack;
 
 import action.ActionInfo;
 import action.ActionSource;
@@ -27,6 +28,8 @@ import item.ItemData;
 import paint.ColorFilling;
 import paint.ImageFrame;
 import paint.RectPaint;
+import physics.Direction4;
+import physics.Point;
 import stage.StageEngine;
 import stage.StageSaveData;
 import storage.TableStorage;
@@ -107,6 +110,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 	public static void main(String args[]){
 		new GHQ(new Engine_NA());
 	}
+	static Unit testUnit = null;
 	@Override
 	public final void loadResource() {
 		/////////////////////////////////
@@ -141,6 +145,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		ActionInfo.addDstPlan(1000, GHQ.getScreenW() + 200, GHQ.getScreenH() + 100);
 		//final Action moveLeftToRight200 = new Action(this);
 		//enemy
+		testUnit = 
 		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 300, 100));
 		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 700, 20));
 		GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(ENEMY), 1200, 300));
@@ -247,6 +252,17 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		/////////////////////////////////
 		cornerNavi.defaultCornerCollect();
 		cornerNavi.startCornerLink();
+		cornerNavi.setGoalPoint(player);
+		Stack<Point> roots = cornerNavi.getRoot(testUnit);
+		DebugEffect.setLine(Color.RED, GHQ.stroke5, testUnit.getPoint(), new Point.IntPoint(testUnit.getPoint()).shift(Direction4.W, 10));
+		if(roots != null) {
+			Point prevPoint = null, nextPoint = testUnit.getPoint();
+			while(!roots.isEmpty()) {
+				prevPoint = nextPoint;
+				nextPoint = roots.pop();
+				DebugEffect.setLine(Color.RED, GHQ.stroke5, prevPoint, nextPoint);
+			}
+		}
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
