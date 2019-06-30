@@ -5,7 +5,6 @@ import static java.awt.event.KeyEvent.*;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
-import java.util.Stack;
 
 import action.ActionInfo;
 import action.ActionSource;
@@ -30,6 +29,7 @@ import paint.ImageFrame;
 import paint.RectPaint;
 import physics.Direction4;
 import physics.Point;
+import physics.Route;
 import stage.StageEngine;
 import stage.StageSaveData;
 import storage.TableStorage;
@@ -253,16 +253,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		cornerNavi.defaultCornerCollect();
 		cornerNavi.startCornerLink();
 		cornerNavi.setGoalPoint(player);
-		Stack<Point> roots = cornerNavi.getRoot(testUnit);
-		DebugEffect.setLine(Color.RED, GHQ.stroke5, testUnit.getPoint(), new Point.IntPoint(testUnit.getPoint()).shift(Direction4.W, 10));
-		if(roots != null) {
-			Point prevPoint = null, nextPoint = testUnit.getPoint();
-			while(!roots.isEmpty()) {
-				prevPoint = nextPoint;
-				nextPoint = roots.pop();
-				DebugEffect.setLine(Color.RED, GHQ.stroke5, prevPoint, nextPoint);
-			}
-		}
+		cornerNavi.getRoot(testUnit).setDebugEffect(Color.RED, GHQ.stroke5);
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
