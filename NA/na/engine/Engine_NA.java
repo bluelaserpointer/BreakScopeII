@@ -10,7 +10,6 @@ import action.ActionInfo;
 import action.ActionSource;
 import core.CornerNavigation;
 import core.GHQ;
-import effect.debugEffect.DebugEffect;
 import gui.ItemStorageViewer;
 import gui.DefaultStageEditor;
 import gui.GUIGroup;
