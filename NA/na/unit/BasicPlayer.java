@@ -1,13 +1,11 @@
 package unit;
 
 import core.GHQ;
-import item.ItemData;
-import storage.Storage;
 
 public abstract class BasicPlayer extends BasicUnit{
 	private static final long serialVersionUID = -5939573262134727671L;
-	public BasicPlayer(int charaSize, int initialGroup, Storage<ItemData> itemStorageKind) {
-		super(charaSize, initialGroup, itemStorageKind);
+	public BasicPlayer(int charaSize, int initialGroup) {
+		super(charaSize, initialGroup);
 	}
 	@Override
 	public final void baseIdle() {

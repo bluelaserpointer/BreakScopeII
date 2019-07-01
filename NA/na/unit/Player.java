@@ -7,18 +7,23 @@ import engine.Engine_NA;
 import item.ItemData;
 import paint.DotPaintMultiple;
 import paint.ImageFrame;
+import storage.ItemStorage;
 import storage.TableStorage;
 
 public class Player extends BasicPlayer{
 	private static final long serialVersionUID = 8121281285749873895L;
 	
 	public Player(int initialGroup) {
-		super(20, initialGroup, new TableStorage<ItemData>(5,3));
+		super(20, initialGroup);
 	}
 
 	@Override
 	public final String getName() {
 		return "Player";
+	}
+	@Override
+	public ItemStorage def_inventory() {
+		return new ItemStorage(new TableStorage<ItemData>(5,3));
 	}
 	
 	@Override

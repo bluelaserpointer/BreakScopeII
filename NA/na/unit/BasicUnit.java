@@ -3,7 +3,6 @@ package unit;
 import core.GHQ;
 import core.Standpoint;
 import geom.Circle;
-import geom.Square;
 import item.Ammo;
 import item.Equipment;
 import item.ItemData;
@@ -150,15 +149,13 @@ public abstract class BasicUnit extends Unit {
 		return Ammo.ammoNames[Ammo.AMMO_9MM];
 	}
 	//inventory
-	public final ItemStorage inventory;
+	public final ItemStorage inventory = def_inventory();
+	protected ItemStorage def_inventory() {
+		return new ItemStorage(new Storage<ItemData>());
+	}
 	
 	public BasicUnit(int charaSize, int initialGroup) {
 		super(new Circle(charaSize), initialGroup);
-		inventory = new ItemStorage(new Storage<ItemData>());
-	}
-	public BasicUnit(int charaSize, int initialGroup, Storage<ItemData> itemStorageKind) {
-		super(new Square(charaSize), initialGroup);
-		inventory = new ItemStorage(itemStorageKind);
 	}
 	@Override
 	public void respawn(int x, int y) {
