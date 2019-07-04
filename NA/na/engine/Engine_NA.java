@@ -10,6 +10,7 @@ import action.ActionInfo;
 import action.ActionSource;
 import core.CornerNavigation;
 import core.GHQ;
+import core.Game;
 import gui.ItemStorageViewer;
 import gui.DefaultStageEditor;
 import gui.GUIGroup;
@@ -26,10 +27,7 @@ import item.ItemData;
 import paint.ColorFilling;
 import paint.ImageFrame;
 import paint.RectPaint;
-import physics.Direction4;
-import physics.Point;
 import physics.Route;
-import stage.StageEngine;
 import stage.StageSaveData;
 import storage.TableStorage;
 import structure.Structure;
@@ -48,7 +46,7 @@ import vegetation.Vegetation;
  * @version alpha1.0
  */
 
-public class Engine_NA extends StageEngine implements MessageSource,ActionSource{
+public class Engine_NA extends Game implements MessageSource,ActionSource{
 	public static final int FRIEND = 0,ENEMY = 100;
 	
 	private static Player player;
@@ -90,7 +88,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 	
 	//images
 	
-	int focusIID,magicCircleIID;
+	int focusIID;
 	
 	//GUIParts
 	private static DefaultStageEditor editor;
@@ -116,7 +114,6 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		//images this engine required
 		/////////////////////////////////
 		focusIID = GHQ.loadImage("thhimage/focus.png");
-		magicCircleIID = GHQ.loadImage("thhimage/MagicCircle.png");
 		/////////////////////////////////
 		//stage
 		/////////////////////////////////
@@ -252,11 +249,13 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		cornerNavi.defaultCornerCollect();
 		cornerNavi.startCornerLink();
 		cornerNavi.setGoalPoint(player);
-		cornerNavi.getRoot(testUnit).setDebugEffect(Color.RED, GHQ.stroke5);
+		Route route = cornerNavi.getRoot(testUnit);
+		if(route != null)
+			route.setDebugEffect(Color.RED, GHQ.stroke5);
 	}
 	@Override
 	public final StageSaveData getStageSaveData() {
-		return new Stage_NA(GHQ.getUnits(),GHQ.getStructures());
+		return new Stage_NA(GHQ.getUnitList(),GHQ.getStructureList());
 	}
 	//idle
 	private int gameFrame;
@@ -265,30 +264,21 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		gameFrame++;
 		//stagePaint
 		//background
-		g2.setColor(new Color(112,173,71));
-		g2.fillRect(0,0,stageW,stageH);
-		//vegetation
-		for(Vegetation ver : GHQ.getVegetationList())
-			ver.paint();
-		//landscape
-		for(Structure ver : GHQ.getStructureList())
-			ver.paint();
-		////////////////
-		GHQ.drawImageGHQ_center(magicCircleIID, formationCenterX, formationCenterY, (double)GHQ.getNowFrame()/35.0);
+		g2.setColor(new Color(112, 173, 71));
+		g2.fillRect(0, 0, stageW, stageH);
+		//center point
 		g2.setColor(Color.RED);
 		g2.fillOval(formationCenterX - 2, formationCenterY - 2, 5, 5);
 		////////////////
 		final int MOUSE_X = GHQ.getMouseX(),MOUSE_Y = GHQ.getMouseY();
-		if(stopEventKind == NONE) {
+		if(stopEventKind == GHQ.NONE) {
 			//others
 			switch(nowStage) {
 			case 0:
 				//friend
-				player.teleportTo(formationCenterX, formationCenterY);
-				player.idle();
+				player.dstPoint.setXY(player.dynam.setXY(formationCenterX, formationCenterY));
 				//enemy
 				for(Unit enemy : GHQ.getUnitList()) {
-					enemy.idle();
 					if(enemy.getName() == "FairyA") {
 						final int FRAME = gameFrame % 240;
 						if(FRAME < 100)
@@ -304,7 +294,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 				//leap
 				if(s_keyL.hasEvent(VK_SHIFT)){
 					formationCenterX = MOUSE_X;formationCenterY = MOUSE_Y;
-					player.teleportTo(formationCenterX, formationCenterY);
+					player.dstPoint.setXY(player.dynam.setXY(formationCenterX, formationCenterY));
 				}
 				if(stageFieldGUI.isClicking()) {
 					//shot
@@ -316,9 +306,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 				}
 				break;
 			}
-		}else if(stopEventKind == GHQ.STOP)
-			GHQ.defaultCharaIdle(GHQ.getUnitList());
-		GHQ.defaultEntityIdle();
+		}
 		////////////
 		//focus
 		////////////
@@ -344,7 +332,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		}
 		if(editor.isEnabled()){ //editor GUI
 			if(s_mouseL.pullButton3Event()) {
-				unitEditor.setWithEnable(GHQ.getMouseOverUnit());
+				unitEditor.setWithEnable(GHQ.getUnitList().forMouseOver());
 			}
 		}else { //game GUI
 			GHQ.translateForGUI(true);
@@ -383,7 +371,7 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 		///////////////
 		//scroll
 		///////////////
-		if(stopEventKind == NONE || editor.isEnabled()) {
+		if(stopEventKind == GHQ.NONE || editor.isEnabled()) {
 			//scroll by keys
 			if(s_keyL.hasEvent(VK_W) && !GHQ.hitObstacle_DXDY(player, 0, -F_MOVE_SPD)) {
 				formationCenterY -= F_MOVE_SPD;
@@ -409,6 +397,10 @@ public class Engine_NA extends StageEngine implements MessageSource,ActionSource
 				GHQ.viewApproach_rate(10);
 			}
 		}
+		//////////////////////////
+		//idle
+		//////////////////////////
+		GHQ.defaultGHQObjectsIdle();
 		//////////////////////////
 		//test
 		//////////////////////////

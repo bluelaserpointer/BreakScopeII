@@ -39,7 +39,8 @@ public class Player extends BasicPlayer{
 	
 	//idle
 	@Override
-	public void extendIdle() {
+	public void idle() {
+		super.idle();
 		////////////
 		//aim
 		////////////

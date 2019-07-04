@@ -23,16 +23,16 @@ public class UnitEditor extends ClickMenu<Unit>{
 				final Unit GENERATED_UNIT;
 				switch(text){
 				case "HumanGuard":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.dynam.intX(), targetObject.dynam.intY()));
+					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.dynam));
 					break;
 				case "FAIRY":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.dynam.intX(), targetObject.dynam.intY()));
+					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.dynam));
 					break;
 				default:
 					GENERATED_UNIT = null;
 					return;
 				}
-				GHQ.deleteUnit(targetObject);
+				targetObject.claimDelete();
 				targetObject = GENERATED_UNIT;
 			}
 		});

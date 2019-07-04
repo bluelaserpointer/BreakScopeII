@@ -49,25 +49,20 @@ public abstract class BulletLibrary extends Bullet{
 			return new ACCAR(ORIGIN_WEAPON, SHOOTER, STANDPOINT);
 		}
 		@Override
-		public boolean idle() {
+		public void idle() {
 			if(checkIsOutofLifeSpan()) {
-				delete();
-				return false;
+				claimDelete();
+				return;
 			}
 			boolean alive;
 			while(dynam.inStage()) {
 				alive = dynamIdle();
 				paint();
 				if(!alive)
-					return false;
+					return;
 			}
 			dynam.setXY(SHOOTER);
 			dynam.setMoveAngle(SHOOTER.getAngle().angle());
-			return true;
-		}
-		@Override
-		public void paint() {
-			super.paint();
 		}
 		@Override
 		public final void hitObject() {

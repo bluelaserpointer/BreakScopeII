@@ -63,7 +63,7 @@ public abstract class EffectLibrary extends Effect{
 			return new DamageNumberEF(SHOOTER, Integer.valueOf(((StringViewer)paintScript).WORDS));
 		}
 		@Override
-		public void paint() {
+		public void paint(boolean doAnimation) {
 			fadingPaint();
 		}
 	}

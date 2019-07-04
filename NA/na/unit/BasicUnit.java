@@ -10,6 +10,7 @@ import paint.DotPaint;
 import paint.RectPaint;
 import physics.Dynam;
 import physics.HasAnglePoint;
+import physics.Point;
 import status.StatusWithDefaultValue;
 import storage.ItemStorage;
 import storage.Storage;
@@ -20,7 +21,8 @@ import weapon.WeaponInfo;
 public abstract class BasicUnit extends Unit {
 	private static final long serialVersionUID = -3074084304336765077L;
 	public int charaSize;
-	public double charaDstX, charaDstY, charaSpeed = 30;
+	public Point.IntPoint dstPoint = new Point.IntPoint();
+	public double charaSpeed = 30;
 	public boolean charaOnLand;
 
 	//effect
@@ -165,7 +167,7 @@ public abstract class BasicUnit extends Unit {
 		subWeapon.reset();
 		meleeWeapon.reset();
 		dynam.clear();
-		dynam.setXY(charaDstX = x,charaDstY = y);
+		dstPoint.setXY(dynam.setXY(x, y));
 		baseAngle.set(0.0);
 		charaOnLand = false;
 		inventory.items.clear();
@@ -180,7 +182,8 @@ public abstract class BasicUnit extends Unit {
 		spellOrder = dodgeOrder = false;
 	}
 	@Override
-	public void baseIdle() {
+	public void idle() {
+		super.idle();
 		////////////
 		// weapon
 		////////////
@@ -211,26 +214,6 @@ public abstract class BasicUnit extends Unit {
 	
 	// control
 	// move
-	@Override
-	public void moveRel(int x,int y) {
-		charaDstX += x;
-		charaDstY += y;
-	}
-	@Override
-	public void moveTo(int x,int y) {
-		charaDstX = x;
-		charaDstY = y;
-	}
-	@Override
-	public void teleportRel(int x,int y) {
-		getDynam().addXY(x, y);
-		charaDstX += x;
-		charaDstY += y;
-	}
-	@Override
-	public void teleportTo(int x,int y) {
-		getDynam().setXY(charaDstX = x, charaDstY = y);
-	}
 	protected final void dodge(double targetX, double targetY) {
 		final Dynam DYNAM = getDynam();
 		DYNAM.addSpeed_DA(40, DYNAM.angleTo(targetX,targetY));

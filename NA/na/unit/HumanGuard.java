@@ -27,20 +27,20 @@ public class HumanGuard extends BasicEnemy{
 		charaPaint = new ImageFrame("picture/SHESS.png");
 	}
 	@Override
-	public void extendIdle() {
+	public void idle() {
+		super.idle();
 		mainWeapon.startReloadIfNotDoing();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
 			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
-				charaDstX = targetEnemy.getDynam().doubleX();
-				charaDstY = targetEnemy.getDynam().doubleY();
+				dstPoint.setXY(targetEnemy);
 				if(baseAngle.spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
 					mainWeapon.trigger(this);
 			}else
 				baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
 		}else
 			baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
-		dynam.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
+		dynam.approachIfNoObstacles(this, dstPoint, charaSpeed);
 	}
 }

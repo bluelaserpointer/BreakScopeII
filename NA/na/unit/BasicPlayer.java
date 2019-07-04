@@ -8,8 +8,8 @@ public abstract class BasicPlayer extends BasicUnit{
 		super(charaSize, initialGroup);
 	}
 	@Override
-	public final void baseIdle() {
-		super.baseIdle();
+	public void idle() {
+		super.idle();
 		final int mouseX = GHQ.getMouseX(), mouseY = GHQ.getMouseY();
 		////////////
 		//main
@@ -25,6 +25,6 @@ public abstract class BasicPlayer extends BasicUnit{
 		if (spellOrder) {
 			spellWeapon.trigger(this);
 		}
-		dynam.approachIfNoObstacles(this, charaDstX, charaDstY, charaSpeed);
+		dynam.approachIfNoObstacles(this, dstPoint, charaSpeed);
 	}
 }

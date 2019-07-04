@@ -29,7 +29,8 @@ public class HumanGuard2 extends BasicEnemy{
 		magicCirclePaint = new ImageFrame("picture/focus.png");
 	}
 	@Override
-	public void extendIdle() {
+	public void idle() {
+		super.idle();
 		mainWeapon.startReloadIfNotDoing();
 		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
