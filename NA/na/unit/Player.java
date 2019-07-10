@@ -5,8 +5,8 @@ import static java.awt.event.KeyEvent.*;
 import core.GHQ;
 import engine.Engine_NA;
 import item.ItemData;
-import paint.DotPaintMultiple;
 import paint.ImageFrame;
+import paint.dot.DotPaintMultiple;
 import storage.ItemStorage;
 import storage.TableStorage;
 
@@ -54,14 +54,14 @@ public class Player extends BasicPlayer{
 		////////////
 		//itemPick
 		////////////
-		final ItemData PICKED_ITEM = GHQ.getCoveredDropItem_pickup(this, charaSize);
+		final ItemData PICKED_ITEM = GHQ.stage().getCoveredDropItem_pickup(this, charaSize);
 		if(PICKED_ITEM != null)
 			super.inventory.items.add(PICKED_ITEM);
 		////////////
 		//talk
 		////////////
 		if(Engine_NA.s_keyL.pullEvent(VK_SPACE)) {
-			final Unit npc = GHQ.getNearstVisibleEnemy(this);
+			final Unit npc = GHQ.stage().getNearstVisibleEnemy(this);
 			if(npc instanceof BasicNPC && npc.dynam.inRange(this.dynam,240)) {
 				((BasicNPC) npc).startTalk();
 			}

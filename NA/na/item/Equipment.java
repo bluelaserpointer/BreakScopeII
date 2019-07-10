@@ -1,7 +1,7 @@
 package item;
 
-import paint.DotPaint;
 import paint.ImageFrame;
+import paint.dot.DotPaint;
 
 public class Equipment extends BSItem{
 	private static final long serialVersionUID = -1892229139354741548L;

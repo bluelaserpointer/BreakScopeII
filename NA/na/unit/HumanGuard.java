@@ -30,7 +30,7 @@ public class HumanGuard extends BasicEnemy{
 	public void idle() {
 		super.idle();
 		mainWeapon.startReloadIfNotDoing();
-		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
+		final Unit targetEnemy = GHQ.stage().getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
 			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {

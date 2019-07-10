@@ -4,6 +4,7 @@ import java.awt.Color;
 
 import core.GHQ;
 import engine.Engine_NA;
+import gui.grouped.ClickMenu;
 import paint.ColorFilling;
 import paint.ColorFraming;
 import unit.HumanGuard2;
@@ -17,16 +18,16 @@ public class UnitEditor extends ClickMenu<Unit>{
 	public UnitEditor() {
 		super("UnitEditor", new ColorFraming(Color.BLACK, GHQ.stroke1), 150, 24, 2);
 		addEmptyLine();
-		addPartsLine(nameLabel = new TitledLabel("unitNameLabel", new ColorFilling(Color.WHITE)) {
+		addNewLine(nameLabel = new TitledLabel("unitNameLabel", new ColorFilling(Color.WHITE)) {
 			@Override
 			public void typeEnded(String text) {
 				final Unit GENERATED_UNIT;
 				switch(text){
 				case "HumanGuard":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.dynam));
+					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.dynam));
 					break;
 				case "FAIRY":
-					GENERATED_UNIT = GHQ.addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.dynam));
+					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.dynam));
 					break;
 				default:
 					GENERATED_UNIT = null;
@@ -37,9 +38,9 @@ public class UnitEditor extends ClickMenu<Unit>{
 			}
 		});
 		nameLabel.setTitle("EnemyName");
-		addParts(new InputOptionList(nameLabel)).addWord("WHITE_MAN", "BLACK_MAN", "FAIRY");
+		addLast(new InputOptionList(nameLabel)).addWord("WHITE_MAN", "BLACK_MAN", "FAIRY");
 		addEmptyLine();
-		addPartsLine(new TitledLabel("dumpLabel1", new ColorFilling(Color.WHITE)), new TitledLabel("dumpLabel2", new ColorFilling(Color.WHITE)));
+		addNewLine(new TitledLabel("dumpLabel1", new ColorFilling(Color.WHITE)), new TitledLabel("dumpLabel2", new ColorFilling(Color.WHITE)));
 	}
 	
 	//information

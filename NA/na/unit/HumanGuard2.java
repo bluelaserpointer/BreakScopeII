@@ -2,8 +2,8 @@ package unit;
 
 import core.GHQ;
 import item.Equipment;
-import paint.DotPaint;
 import paint.ImageFrame;
+import paint.dot.DotPaint;
 import unit.Unit;
 
 public class HumanGuard2 extends BasicEnemy{
@@ -32,7 +32,7 @@ public class HumanGuard2 extends BasicEnemy{
 	public void idle() {
 		super.idle();
 		mainWeapon.startReloadIfNotDoing();
-		final Unit targetEnemy = GHQ.getNearstVisibleEnemy(this);
+		final Unit targetEnemy = GHQ.stage().getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
 			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {

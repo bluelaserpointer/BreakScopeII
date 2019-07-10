@@ -6,15 +6,12 @@ import java.awt.Color;
 
 import core.GHQ;
 import effect.Effect;
-import paint.DotPaint;
 import paint.ImageFrame;
-import paint.StringViewer;
+import paint.dot.DotPaint;
+import paint.text.StringViewer;
 import physics.HasDynam;
 
 public abstract class EffectLibrary extends Effect{
-	public static void loadResource() {
-		SparkHitEF.paint = ImageFrame.createNew("thhimage/NarrowSpark_HitEffect.png");
-	}
 	
 	public EffectLibrary(HasDynam source) {
 		super(source);
@@ -32,7 +29,7 @@ public abstract class EffectLibrary extends Effect{
 	//SparkHitEF
 	/////////////////
 	public static class SparkHitEF extends EffectLibrary{
-		private static DotPaint paint;
+		private static DotPaint paint = ImageFrame.createNew("thhimage/NarrowSpark_HitEffect.png");;
 		public SparkHitEF(HasDynam source) {
 			super(source);
 			name = "SparkHitEF";

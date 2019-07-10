@@ -1,16 +1,16 @@
 package unit;
 
 import core.GHQ;
-import core.Standpoint;
-import geom.Circle;
+import hitShape.Circle;
 import item.Ammo;
 import item.Equipment;
 import item.ItemData;
-import paint.DotPaint;
-import paint.RectPaint;
+import paint.dot.DotPaint;
+import paint.rect.RectPaint;
 import physics.Dynam;
 import physics.HasAnglePoint;
 import physics.Point;
+import physics.Standpoint;
 import status.StatusWithDefaultValue;
 import storage.ItemStorage;
 import storage.Storage;
@@ -116,7 +116,7 @@ public abstract class BasicUnit extends Unit {
 				private static final long serialVersionUID = -1692674505068462831L;
 				@Override
 				public void setBullets(HasAnglePoint shooter, Standpoint standpoint) {
-					final Dynam BULLET_DYNAM = GHQ.addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam;
+					final Dynam BULLET_DYNAM = GHQ.stage().addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam;
 					BULLET_DYNAM.setSpeed(10);
 					BULLET_DYNAM.addXY_allowsMoveAngle(0, 18);
 				}
@@ -205,17 +205,17 @@ public abstract class BasicUnit extends Unit {
 		charaPaint.dotPaint_turn(this);
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
-		paintScript.dotPaint_turn(dynam, (double)GHQ.getNowFrame()/35.0);
+		paintScript.dotPaint_turn(dynam, (double)GHQ.nowFrame()/35.0);
 	}
 	public void killed() {
 		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
-			GHQ.addVegetation(inventory.items.remove(i).drop((int)(dynam.doubleX() + GHQ.random2(-50,50)), (int)(dynam.doubleY() + GHQ.random2(-50,50))));
+			GHQ.stage().addVegetation(inventory.items.remove(i).drop((int)(dynam.doubleX() + GHQ.random2(-50,50)), (int)(dynam.doubleY() + GHQ.random2(-50,50))));
 	}
 	
 	// control
 	// move
 	protected final void dodge(double targetX, double targetY) {
-		final Dynam DYNAM = getDynam();
+		final Dynam DYNAM = dynam();
 		DYNAM.addSpeed_DA(40, DYNAM.angleTo(targetX,targetY));
 		charaOnLand = false;
 	}
@@ -234,7 +234,7 @@ public abstract class BasicUnit extends Unit {
 				subWeapon = Weapon.NULL_WEAPON; //destroy shield and take damage
 		}
 		final int DMG = status.add(RED_BAR, -amount);
-		GHQ.addEffect(new EffectLibrary.DamageNumberEF(this, DMG));
+		GHQ.stage().addEffect(new EffectLibrary.DamageNumberEF(this, DMG));
 		if(!isAlive())
 			killed();
 		return DMG;

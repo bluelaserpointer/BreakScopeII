@@ -2,18 +2,14 @@ package unit;
 
 import bullet.Bullet;
 import core.GHQ;
-import core.Standpoint;
-import geom.Circle;
-import paint.DotPaint;
+import hitShape.Circle;
 import paint.ImageFrame;
+import paint.dot.DotPaint;
 import physics.HasAnglePoint;
+import physics.Standpoint;
 import weapon.Weapon;
 
 public abstract class BulletLibrary extends Bullet{
-
-	public static void loadResource() {
-		ACCAR.paint = ImageFrame.createNew("picture/Bullet_7p62.png");
-	}
 	
 	public BulletLibrary(Weapon sourceWeapon, HasAnglePoint shooter, Standpoint standpoint) {
 		super(sourceWeapon, shooter, standpoint);
@@ -36,7 +32,7 @@ public abstract class BulletLibrary extends Bullet{
 	//ACCAR
 	/////////////////
 	public static class ACCAR extends BulletLibrary{
-		private static DotPaint paint;
+		private static final DotPaint paint = ImageFrame.createNew("picture/Bullet_7p62.png");
 		public ACCAR(Weapon sourceWeapon, HasAnglePoint shooter, Standpoint standpoint) {
 			super(sourceWeapon, shooter, standpoint);
 			name = "ACCAR";
@@ -62,11 +58,11 @@ public abstract class BulletLibrary extends Bullet{
 					return;
 			}
 			dynam.setXY(SHOOTER);
-			dynam.setMoveAngle(SHOOTER.getAngle().angle());
+			dynam.setMoveAngle(SHOOTER.angle().angle());
 		}
 		@Override
 		public final void hitObject() {
-			GHQ.addEffect(new EffectLibrary.SparkHitEF(this));
+			GHQ.stage().addEffect(new EffectLibrary.SparkHitEF(this));
 		}
 	}
 }

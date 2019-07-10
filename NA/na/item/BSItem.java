@@ -1,7 +1,7 @@
 package item;
 
 import core.GHQ;
-import paint.DotPaint;
+import paint.dot.DotPaint;
 
 public abstract class BSItem extends ItemData{
 	private static final long serialVersionUID = -9128122250005568441L;
