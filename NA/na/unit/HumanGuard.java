@@ -1,7 +1,7 @@
 package unit;
 
 import core.GHQ;
-import item.Equipment;
+import item.weapon.ACCAR;
 import paint.ImageFrame;
 
 public class HumanGuard extends BasicEnemy{
@@ -17,26 +17,27 @@ public class HumanGuard extends BasicEnemy{
 		return "HumanGuard";
 	}
 	@Override
-	public final void respawn(int x, int y) {
+	public final HumanGuard respawn(int x, int y) {
 		super.respawn(x, y);
-		mainWeapon = super.getWeapon(new Equipment(Equipment.ACCAR));
+		mainSlot = addItem(new ACCAR());
+		return this;
 	}
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("picture/SHESS.png");
+		charaPaint = ImageFrame.create("picture/SHESS.png");
 	}
 	@Override
 	public void idle() {
 		super.idle();
-		mainWeapon.startReloadIfNotDoing();
+		mainSlot.reloadIfEquipment();
 		final Unit targetEnemy = GHQ.stage().getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
 			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
 				dstPoint.setXY(targetEnemy);
 				if(baseAngle.spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
-					mainWeapon.trigger(this);
+					mainSlot.use();
 			}else
 				baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
 		}else

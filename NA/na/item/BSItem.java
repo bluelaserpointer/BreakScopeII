@@ -1,28 +1,35 @@
 package item;
 
-import core.GHQ;
+import item.weapon.Equipment;
+import item.weapon.MainSlot;
+import item.weapon.SubSlot;
 import paint.dot.DotPaint;
+import unit.BasicUnit;
 
-public abstract class BSItem extends ItemData{
+public class BSItem extends ItemData{
 	private static final long serialVersionUID = -9128122250005568441L;
-	final String BASE_NAME;
-	@Override
-	public final String getName() {
-		return BASE_NAME;
-	}
-	public BSItem(String baseName,int stackCap, DotPaint paint) {
-		super(stackCap, paint);
-		BASE_NAME = baseName;
-	}
-	public BSItem(String baseName, DotPaint paint) {
-		super(GHQ.MAX, paint);
-		BASE_NAME = baseName;
+	public static final BSItem BLANK_ITEM = new BSItem(DotPaint.BLANK_SCRIPT);
+	public BSItem(DotPaint paint) {
+		super(paint);
 	}
 	//main role
-	public void paintInInventory(int x,int y,int w,int h) {
+	@Override
+	public void idle() {
+		super.idle();
+		if(hasOwner() && this instanceof Equipment) {
+			if(this instanceof MainSlot && ((BasicUnit)owner).mainSlot == this)
+				((Equipment)this).weapon.idle();
+			else if(this instanceof SubSlot && ((BasicUnit)owner).subSlot == this) {
+				((Equipment)this).weapon.idle();
+			}
+		}
+	}
+	public void paintInInventory(int x, int y, int w, int h) {
 		super.paintScript.dotPaint_turnAndCapSize(x, y, w, h);
 	}
-	public void paintInStage(int x,int y,int w,int h) {
-		super.paintScript.dotPaint_turnAndCapSize(x, y, w, h);
+	public void reset() {}
+	public void reloadIfEquipment() {
+		if(this instanceof Equipment)
+			((Equipment)this).weapon.startReloadIfNotDoing();
 	}
 }

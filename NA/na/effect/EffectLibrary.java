@@ -1,4 +1,4 @@
-package unit;
+package effect;
 
 import static java.lang.Math.PI;
 
@@ -29,7 +29,7 @@ public abstract class EffectLibrary extends Effect{
 	//SparkHitEF
 	/////////////////
 	public static class SparkHitEF extends EffectLibrary{
-		private static DotPaint paint = ImageFrame.createNew("thhimage/NarrowSpark_HitEffect.png");;
+		private static DotPaint paint = ImageFrame.create("thhimage/NarrowSpark_HitEffect.png");;
 		public SparkHitEF(HasDynam source) {
 			super(source);
 			name = "SparkHitEF";

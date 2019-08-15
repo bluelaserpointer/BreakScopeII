@@ -10,7 +10,7 @@ public abstract class BasicPlayer extends BasicUnit{
 	@Override
 	public void idle() {
 		super.idle();
-		final int mouseX = GHQ.getMouseX(), mouseY = GHQ.getMouseY();
+		final int mouseX = GHQ.mouseX(), mouseY = GHQ.mouseY();
 		////////////
 		//main
 		////////////
@@ -18,13 +18,11 @@ public abstract class BasicPlayer extends BasicUnit{
 		if (dodgeOrder)
 			dodge(mouseX, mouseY);
 		// attack
-		if (attackOrder) {
-			mainWeapon.trigger(this);
-		}
+		if (attackOrder)
+			mainSlot.use();
 		// spell
 		if (spellOrder) {
-			spellWeapon.trigger(this);
+			spellWeapon.use();
 		}
-		dynam.approachIfNoObstacles(this, dstPoint, charaSpeed);
 	}
 }

@@ -4,8 +4,6 @@ import java.awt.Color;
 
 import core.GHQ;
 import engine.Engine_NA;
-import gui.grouped.ClickMenu;
-import paint.ColorFilling;
 import paint.ColorFraming;
 import unit.HumanGuard2;
 import unit.HumanGuard;
@@ -16,9 +14,13 @@ public class UnitEditor extends ClickMenu<Unit>{
 	//label
 	private final TitledLabel nameLabel;
 	public UnitEditor() {
-		super("UnitEditor", new ColorFraming(Color.BLACK, GHQ.stroke1), 150, 24, 2);
+		super(150, 24, 2);
+		super.setBGPaint(new ColorFraming(Color.BLACK, GHQ.stroke1));
 		addEmptyLine();
-		addNewLine(nameLabel = new TitledLabel("unitNameLabel", new ColorFilling(Color.WHITE)) {
+		addNewLine(nameLabel = new TitledLabel() {
+			{
+				setName("unitNameLabel").setBGColor(Color.WHITE);
+			}
 			@Override
 			public void typeEnded(String text) {
 				final Unit GENERATED_UNIT;
@@ -40,7 +42,7 @@ public class UnitEditor extends ClickMenu<Unit>{
 		nameLabel.setTitle("EnemyName");
 		addLast(new InputOptionList(nameLabel)).addWord("WHITE_MAN", "BLACK_MAN", "FAIRY");
 		addEmptyLine();
-		addNewLine(new TitledLabel("dumpLabel1", new ColorFilling(Color.WHITE)), new TitledLabel("dumpLabel2", new ColorFilling(Color.WHITE)));
+		addNewLine(new TitledLabel().setName("dumpLabel1").setBGColor(Color.WHITE), new TitledLabel().setName("dumpLabel2").setBGColor(Color.WHITE));
 	}
 	
 	//information

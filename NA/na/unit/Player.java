@@ -2,6 +2,8 @@ package unit;
 
 import static java.awt.event.KeyEvent.*;
 
+import java.awt.Color;
+
 import core.GHQ;
 import engine.Engine_NA;
 import item.ItemData;
@@ -29,12 +31,8 @@ public class Player extends BasicPlayer{
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new DotPaintMultiple(new ImageFrame("picture/human2-1.png"));
-		iconPaint = new ImageFrame("thhimage/MarisaIcon.png");
-	}
-	
-	@Override
-	public final void loadSoundData(){
+		charaPaint = new DotPaintMultiple(ImageFrame.create("picture/human2-1.png"));
+		iconPaint = ImageFrame.create("thhimage/MarisaIcon.png");
 	}
 	
 	//idle
@@ -48,15 +46,20 @@ public class Player extends BasicPlayer{
 		////////////
 		//reload
 		////////////
-		if(Engine_NA.s_keyL.pullEvent(VK_R)) {
-			mainWeapon.startReloadIfNotDoing();
-		}
+		if(Engine_NA.s_keyL.pullEvent(VK_R))
+			mainSlot.reloadIfEquipment();
 		////////////
 		//itemPick
 		////////////
-		final ItemData PICKED_ITEM = GHQ.stage().getCoveredDropItem_pickup(this, charaSize);
-		if(PICKED_ITEM != null)
-			super.inventory.items.add(PICKED_ITEM);
+		final ItemData item = GHQ.stage().items.forIntersects(this);
+		if(item != null) {
+			if(Engine_NA.s_keyL.pullEvent(VK_E))
+				super.inventory.items.add(item.pickup(this));
+			else {
+				GHQ.getGraphics2D(Color.WHITE);
+				GHQ.drawStringGHQ(item.getName(), item.point().intX(), item.point().intY() - 20);
+			}
+		}
 		////////////
 		//talk
 		////////////

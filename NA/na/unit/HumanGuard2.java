@@ -1,9 +1,8 @@
 package unit;
 
 import core.GHQ;
-import item.Equipment;
+import item.weapon.ACCAR;
 import paint.ImageFrame;
-import paint.dot.DotPaint;
 import unit.Unit;
 
 public class HumanGuard2 extends BasicEnemy{
@@ -11,33 +10,32 @@ public class HumanGuard2 extends BasicEnemy{
 	public HumanGuard2(int initialGroup) {
 		super(70, initialGroup);
 	}
-	private DotPaint magicCirclePaint;
 	@Override
 	public final String getName() {
 		return "FairyA";
 	}
 	@Override
-	public final void respawn(int x, int y) {
+	public final HumanGuard2 respawn(int x, int y) {
 		super.respawn(x, y);
-		mainWeapon = super.getWeapon(new Equipment(Equipment.ACCAR));
+		mainSlot = addItem(new ACCAR());
+		return this;
 	}
 	
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
-		charaPaint = new ImageFrame("picture/grayman.png");
-		magicCirclePaint = new ImageFrame("picture/focus.png");
+		charaPaint = ImageFrame.create("picture/grayman.png");
 	}
 	@Override
 	public void idle() {
 		super.idle();
-		mainWeapon.startReloadIfNotDoing();
+		mainSlot.reloadIfEquipment();
 		final Unit targetEnemy = GHQ.stage().getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
 			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
 			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
 				if(baseAngle.spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
-					mainWeapon.trigger(this);
+					mainSlot.use();
 			}else
 				baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
 		}else
@@ -45,7 +43,6 @@ public class HumanGuard2 extends BasicEnemy{
 	}
 	@Override
 	public void paint(boolean doAnimation) {
-		super.paintMagicCircle(magicCirclePaint);
 		super.paint(true);
 	}
 }

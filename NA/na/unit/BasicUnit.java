@@ -1,22 +1,28 @@
 package unit;
 
+import java.util.LinkedList;
+
+import buff.Buff;
+import buff.ToughnessBroke;
+import calculate.ConsumableEnergy;
+import calculate.Setter;
 import core.GHQ;
+import effect.EffectLibrary;
 import hitShape.Circle;
-import item.Ammo;
-import item.Equipment;
+import item.BSItem;
 import item.ItemData;
+import item.ammo.Ammo_9mm;
+import item.weapon.ElectronShield;
+import item.weapon.MainSlot;
+import item.weapon.SubSlot;
 import paint.dot.DotPaint;
 import paint.rect.RectPaint;
 import physics.Dynam;
-import physics.HasAnglePoint;
 import physics.Point;
-import physics.Standpoint;
-import status.StatusWithDefaultValue;
+import status.Status;
 import storage.ItemStorage;
 import storage.Storage;
 import unit.Unit;
-import weapon.Weapon;
-import weapon.WeaponInfo;
 
 public abstract class BasicUnit extends Unit {
 	private static final long serialVersionUID = -3074084304336765077L;
@@ -30,125 +36,124 @@ public abstract class BasicUnit extends Unit {
 	public static final int ACCAR_HIT_EF = 0;
 	// Weapon
 	public final int weapon_max = 10;
-	public Weapon
-		mainWeapon = Weapon.NULL_WEAPON,
-		subWeapon = Weapon.NULL_WEAPON,
-		meleeWeapon = Weapon.NULL_WEAPON,
-		spellWeapon = Weapon.NULL_WEAPON;
+	public BSItem
+		mainSlot = BSItem.BLANK_ITEM,
+		subSlot = BSItem.BLANK_ITEM,
+		meleeSlot = BSItem.BLANK_ITEM,
+		spellWeapon = BSItem.BLANK_ITEM;
 
 	// GUI
 	public RectPaint iconPaint;
 
 	// Resource
 	// Images
-	public DotPaint charaPaint;
+	public DotPaint charaPaint = DotPaint.BLANK_SCRIPT;
 	//special
 	public int favorDegree;
-	//status constants
-
-	public static final int PARAMETER_AMOUNT = 9;
-	public static final int RED_BAR = 0,BLUE_BAR = 1,GREEN_BAR = 2,
-			POW_FIXED = 3,POW_FLOAT = 4,
-			INT_FIXED = 5,INT_FLOAT = 6,
-			AGI_FIXED = 7,AGI_FLOAT = 8;
-	private static final String names[] = new String[PARAMETER_AMOUNT];
-	static {
-		names[RED_BAR] = "RED_BAR";
-		names[BLUE_BAR] = "BLUE_BAR";
-		names[GREEN_BAR] = "GREEN_BAR";
-		names[POW_FIXED] = "POW_FIXED";
-		names[POW_FLOAT] = "POW_FLOAT";
-		names[INT_FIXED] = "INT_FIXED";
-		names[INT_FLOAT] = "INT_FLOAT";
-		names[AGI_FIXED] = "AGI_FIXED";
-		names[AGI_FLOAT] = "AGI_FLOAT";
-	}
-	public final StatusWithDefaultValue status = new StatusWithDefaultValue(PARAMETER_AMOUNT) {
-		private static final long serialVersionUID = 6570141041982027510L;
-		{
-			parameterDefaults[POW_FIXED] = 5;
-			parameterDefaults[INT_FIXED] = 5;
-			parameterDefaults[AGI_FIXED] = 5;
-			parameterDefaults[RED_BAR] = 20;
-			parameterDefaults[BLUE_BAR] = 20;
-			parameterDefaults[GREEN_BAR] = 20;
-		}
-		@Override
-		public int capCheck(int index) {
-			final int VALUE = parameters[index];
-			switch(index) {
-			case RED_BAR:
-			case BLUE_BAR:
-			case GREEN_BAR:
-				return GHQ.arrangeIn(VALUE, 0, getDefault(index));
-			case POW_FIXED:
-			case INT_FIXED:
-			case AGI_FIXED:
-				return VALUE > 0 ? VALUE : 0;
-			default:
-				return VALUE;
+	//buff
+	public LinkedList<Buff> buffs = new LinkedList<Buff>();
+	//status
+	@SuppressWarnings("serial")
+	public final ConsumableEnergy
+		POW_FIXED = new ConsumableEnergy(5).setMin(1),
+		POW_FLOAT = new ConsumableEnergy(new Setter() {
+			private static final long serialVersionUID = 1L;
+			public Number set() {
+				return (int)(POW_FIXED.doubleValue()*RED_BAR.getRate());
 			}
-		}
-		@Override
-		public int getDefault(int index) {
-			switch(index) {
-			case RED_BAR:
-				return parameterDefaults[RED_BAR]*POW_FIXED;
-			case BLUE_BAR:
-				return parameterDefaults[BLUE_BAR]*INT_FIXED;
-			case GREEN_BAR:
-				return parameterDefaults[GREEN_BAR]*AGI_FIXED;
-			default:
-				return isLegalIndex(index) ? parameterDefaults[index] : GHQ.NONE;
+		}).setMin(1),
+		INT_FIXED = new ConsumableEnergy(5).setMin(1),
+		INT_FLOAT = new ConsumableEnergy(new Setter() {
+			private static final long serialVersionUID = 1L;
+			public Number set() {
+				return (int)(INT_FIXED.doubleValue()*RED_BAR.getRate());
 			}
-		}
-	};
-	//weapons
-	public final Weapon getWeapon(Equipment equipment) {
-		WeaponInfo.clear();
-		switch(equipment.EQUIPMENT_ID) {
-		case Equipment.ACCAR:
-			WeaponInfo.name = Equipment.eqiupmentNames[Equipment.ACCAR];
-			WeaponInfo.coolTime = 50;
-			WeaponInfo.magazineSize = 10;
-			WeaponInfo.reloadTime = 150;
-			return new Weapon() {
-				private static final long serialVersionUID = -1692674505068462831L;
-				@Override
-				public void setBullets(HasAnglePoint shooter, Standpoint standpoint) {
-					final Dynam BULLET_DYNAM = GHQ.stage().addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam;
-					BULLET_DYNAM.setSpeed(10);
-					BULLET_DYNAM.addXY_allowsMoveAngle(0, 18);
-				}
-				@Override
-				public int getLeftAmmo() {
-					return inventory.countItemByName(getCurrentAmmoName());
-				}
-				@Override
-				public void consumeAmmo(int value) {
-					ItemData.removeInInventory(inventory.items, new Ammo(Ammo.AMMO_9MM, value));
-				}
-			};
-		case Equipment.ELECTRON_SHIELD:
-			WeaponInfo.name = Equipment.eqiupmentNames[Equipment.ELECTRON_SHIELD];
-			WeaponInfo.magazineSize = 50;
-			return new Weapon() {
-				private static final long serialVersionUID = -3255234899242748103L;
-				@Override
-				public int getLeftAmmo() {
-					return status.get(BLUE_BAR);
-				}
-				@Override
-				public void consumeAmmo(int value) {
-					status.add(BLUE_BAR, -value);
-				}
-			};
-		default:
-			return Weapon.NULL_WEAPON;
-		}
-	}
+		}).setMin(1),
+		AGI_FIXED = new ConsumableEnergy(5).setMin(1),
+		AGI_FLOAT = new ConsumableEnergy(new Setter() {
+			private static final long serialVersionUID = 1L;
+			public Number set() {
+				return (int)(AGI_FIXED.doubleValue()*RED_BAR.getRate());
+			}
+		}).setMin(1),
+		RED_BAR = new ConsumableEnergy().setMin(0).setMax(new Setter() {
+			private static final long serialVersionUID = 1702800523004611744L;
+			@Override
+			public Number set() {
+				return POW_FIXED.doubleValue()*20;
+			}
+		}).setDefaultToMax(),
+		BLUE_BAR = new ConsumableEnergy().setMin(0).setMax(new Setter() {
+			private static final long serialVersionUID = 1702800523004611744L;
+			@Override
+			public Number set() {
+				return INT_FIXED.doubleValue()*20;
+			}
+		}).setDefaultToMax(),
+		GREEN_BAR = new ConsumableEnergy().setMin(0).setMax(new Setter() {
+			private static final long serialVersionUID = 1702800523004611744L;
+			@Override
+			public Number set() {
+				return AGI_FIXED.doubleValue()*20;
+			}
+		}).setDefaultToMax(),
+		RED_REG = new ConsumableEnergy(new Setter() {
+			private static final long serialVersionUID = 590642405739512738L;
+			@Override
+			public Number set() {
+				return POW_FIXED.doubleValue()*0.02;
+			}
+		}).setMin(0),
+		BLUE_REG = new ConsumableEnergy(new Setter() {
+			private static final long serialVersionUID = 590642405739512738L;
+			@Override
+			public Number set() {
+				return INT_FIXED.doubleValue()*0.2;
+			}
+		}).setMin(0),
+		GREEN_REG = new ConsumableEnergy(new Setter() {
+			private static final long serialVersionUID = 590642405739512738L;
+			@Override
+			public Number set() {
+				return AGI_FIXED.doubleValue()*4.0;
+			}
+		}).setMin(0),
+		ENERGY = new ConsumableEnergy().setMin(0).setMax(new Setter() {
+			private static final long serialVersionUID = 590642405739512738L;
+			@Override
+			public Number set() {
+				return POW_FIXED.doubleValue()*200.0;
+			}
+		}).setDefaultToMax(),
+		SPEED_PPS = new ConsumableEnergy().setMin(0).setDefault(new Setter() {
+			private static final long serialVersionUID = 590642405739512738L;
+			@Override
+			public Number set() {
+				return AGI_FLOAT.doubleValue()*40.0 + 100;
+			}
+		}),
+		SENSE = new ConsumableEnergy(5).setMin(0).setDefault(5),
+		WEIGHT = new ConsumableEnergy(60).setMin(0).setDefault(60),
+		TOUGHNESS = new ConsumableEnergy().setMin(0).setMax(new Setter() {
+			@Override
+			public Number set() {
+				return POW_FIXED.doubleValue()*20.0 + AGI_FIXED.doubleValue()*10.0;
+			}
+		}).setDefaultToMax(),
+		TOUGHNESS_REG = new ConsumableEnergy(new Setter() {
+			@Override
+			public Number set() {
+				return POW_FIXED.doubleValue()*5.0 + AGI_FIXED.doubleValue()*10.0;
+			}
+		}),
+		CRI = new ConsumableEnergy(0.05).setMin(0.00).setDefault(0.05),
+		AVD = new ConsumableEnergy(0.05).setMin(0.00).setDefault(0.05),
+		REF = new ConsumableEnergy(0.00).setDefault(0.00),
+		SUCK = new ConsumableEnergy(0.00).setDefault(0.00);
+	public final Status status = new Status(RED_BAR, BLUE_BAR, GREEN_BAR, POW_FLOAT, INT_FLOAT, AGI_FLOAT, ENERGY
+			, SPEED_PPS, TOUGHNESS);
 	public String getCurrentAmmoName() {
-		return Ammo.ammoNames[Ammo.AMMO_9MM];
+		return new Ammo_9mm(0).getName();
 	}
 	//inventory
 	public final ItemStorage inventory = def_inventory();
@@ -157,21 +162,22 @@ public abstract class BasicUnit extends Unit {
 	}
 	
 	public BasicUnit(int charaSize, int initialGroup) {
-		super(new Circle(charaSize), initialGroup);
+		super(new Circle(new Dynam(), charaSize), initialGroup);
 	}
 	@Override
-	public void respawn(int x, int y) {
+	public BasicUnit respawn(int x, int y) {
 		resetOrder();
 		status.reset();
-		mainWeapon.reset();
-		subWeapon.reset();
-		meleeWeapon.reset();
+		mainSlot.reset();
+		subSlot.reset();
+		meleeSlot.reset();
 		dynam.clear();
 		dstPoint.setXY(dynam.setXY(x, y));
 		baseAngle.set(0.0);
 		charaOnLand = false;
 		inventory.items.clear();
-		inventory.add_stack(new Ammo(Ammo.AMMO_9MM, 32));
+		inventory.add_stack(new Ammo_9mm(32));
+		return this;
 	}
 	public void resetOrder() {
 		weaponChangeOrder = 0;
@@ -185,13 +191,36 @@ public abstract class BasicUnit extends Unit {
 	public void idle() {
 		super.idle();
 		////////////
+		// status
+		////////////
+		//relate to energy
+		if(!ENERGY.isMin()) {
+			//regeneration
+			ENERGY.consume(RED_BAR.consume_getEffect(-RED_REG.doubleValue()*GHQ.getSPF()).doubleValue()*1.0*GHQ.getSPF());
+			ENERGY.consume(BLUE_BAR.consume_getEffect(-BLUE_REG.doubleValue()*GHQ.getSPF()).doubleValue()*0.2*GHQ.getSPF());
+			if(GHQ.isExpired_dynamicSeconds(GREEN_BAR.lastDecreasedFrame(), 1.0))
+				ENERGY.consume(GREEN_BAR.consume_getEffect(-GREEN_REG.doubleValue()*GHQ.getSPF()).doubleValue()*0.1*GHQ.getSPF());
+			//reduce energy
+			if(GHQ.checkSpan_dynamicSeconds(30.0))
+				ENERGY.consume(1);
+		}else if(GHQ.checkSpan_dynamicSeconds(30.0)) { //reduce hp
+			RED_BAR.consume(1);
+		}
+		//relate to toughness
+		if(GHQ.isExpired_dynamicSeconds(TOUGHNESS.lastDecreasedFrame(), 1.0))
+			TOUGHNESS.consume(-TOUGHNESS_REG.doubleValue()*GHQ.getSPF());
+		////////////
+		// buffs
+		////////////
+		for(Buff buff : buffs)
+			buff.idle();
+		////////////
 		// weapon
 		////////////
-		mainWeapon.idle();
-		subWeapon.idle();
-		meleeWeapon.idle();
-		subWeapon.startReloadIfNotDoing();
-		meleeWeapon.startReloadIfNotDoing();
+		mainSlot.idle();
+		subSlot.idle();
+		meleeSlot.idle();
+		meleeSlot.reloadIfEquipment();
 		////////////
 		//dynam
 		////////////
@@ -209,10 +238,24 @@ public abstract class BasicUnit extends Unit {
 	}
 	public void killed() {
 		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
-			GHQ.stage().addVegetation(inventory.items.remove(i).drop((int)(dynam.doubleX() + GHQ.random2(-50,50)), (int)(dynam.doubleY() + GHQ.random2(-50,50))));
+			GHQ.stage().addItem(inventory.items.remove(i).drop((int)(dynam.doubleX() + GHQ.random2(-50,50)), (int)(dynam.doubleY() + GHQ.random2(-50,50))));
 	}
 	
 	// control
+	// inventory
+	public <T extends ItemData>T addItem(T item) {
+		inventory.add_stack(item);
+		item.setOwner(this);
+		return item;
+	}
+	public void removedItem(ItemData item){
+		if(item instanceof MainSlot)
+			mainSlot = BSItem.BLANK_ITEM;
+		else if(item instanceof SubSlot)
+			subSlot = BSItem.BLANK_ITEM;
+		inventory.items.remove(item);
+		item.setOwner(null);
+	}
 	// move
 	protected final void dodge(double targetX, double targetY) {
 		final Dynam DYNAM = dynam();
@@ -225,33 +268,85 @@ public abstract class BasicUnit extends Unit {
 	}
 
 	// decreases
+	public int damage_amount(int amount, Dynam harmerDynam) {
+		final int REAL_DMG = damage_amount(amount);
+		dynam.addSpeed_DA(-REAL_DMG/WEIGHT.doubleValue()*(containsBuff(ToughnessBroke.class) ? 40 : 20), harmerDynam.moveAngle());
+		return REAL_DMG;
+	}
 	@Override
 	public int damage_amount(int amount) {
-		if(subWeapon.NAME.equals(Equipment.eqiupmentNames[Equipment.ELECTRON_SHIELD])) {
-			if(subWeapon.unload(amount) == amount) //shield success
-				return amount;
-			else
-				subWeapon = Weapon.NULL_WEAPON; //destroy shield and take damage
+		//reduce toughness
+		TOUGHNESS.consume(amount);
+		//gain toughnessBroke when zero
+		if(TOUGHNESS.isMin() && !containsBuff(ToughnessBroke.class)) {
+			addBuff(new ToughnessBroke(this));
 		}
-		final int DMG = status.add(RED_BAR, -amount);
-		GHQ.stage().addEffect(new EffectLibrary.DamageNumberEF(this, DMG));
-		if(!isAlive())
-			killed();
-		return DMG;
+		//try shield
+		if(subSlot instanceof ElectronShield) {
+			if(((ElectronShield)subSlot).weapon.unload(amount) == amount) //shield success
+				((ElectronShield)subSlot).damaged();
+			else
+				removedItem(subSlot); //destroy shield
+			return -amount;
+		}else {
+			final int DMG = RED_BAR.consume_getEffect(amount).intValue();
+			//show dmg
+			GHQ.stage().addEffect(new EffectLibrary.DamageNumberEF(this, DMG));
+			//judge alive
+			if(!isAlive())
+				killed();
+			return DMG;
+		}
 	}
 	public final boolean kill(boolean force) {
-		status.set(RED_BAR, 0);
+		RED_BAR.setToMin();
 		killed();
 		return true;
 	}
+	public final void removeBuff(Buff buff) {
+		buffs.remove(buff);
+	}
+	public final LinkedList<Buff> removeBuff(String className, int amount) {
+		final LinkedList<Buff> removedBuffs = new LinkedList<Buff>();
+		if(amount <= 0)
+			return removedBuffs;
+		for(Buff buff : buffs) {
+			if(buff.getClass().getName().equals(className)) {
+				removedBuffs.add(buff);
+				buffs.remove(buff);
+				if(--amount <= 0)
+					return removedBuffs;
+			}
+		}
+		return removedBuffs;
+	}
+	public final void addBuff(Buff buff) {
+		buffs.add(buff);
+	}
+	public final boolean containsBuff(Buff buff) {
+		return buffs.contains(buff);
+	}
+	public final boolean containsBuff(Class<? extends Buff> buffClass) {
+		for(Buff buff : buffs) {
+			if(buff.getClass().equals(buffClass))
+				return true;
+		}
+		return false;
+	}
 
 	// information
+	public int getShield() {
+		if(subSlot instanceof ElectronShield) {
+			return ((ElectronShield)subSlot).weapon.getMagazineFilledSpace();
+		}else
+			return 0;
+	}
 	@Override
 	public String getName() {
 		return GHQ.NOT_NAMED;
 	}
 	@Override
 	public final boolean isAlive() {
-		return status.get(RED_BAR) > 0;
+		return !RED_BAR.isMin();
 	}
 }
