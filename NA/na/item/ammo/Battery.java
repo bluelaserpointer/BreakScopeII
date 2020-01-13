@@ -6,7 +6,7 @@ import paint.ImageFrame;
 public class Battery extends Ammo{
 	private static final long serialVersionUID = -4928866416334877003L;
 	@Override
-	public String getName() {
+	public String name() {
 		return "Battery";
 	}
 	public Battery(int amount) {

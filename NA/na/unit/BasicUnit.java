@@ -8,17 +8,18 @@ import calculate.ConsumableEnergy;
 import calculate.Setter;
 import core.GHQ;
 import effect.EffectLibrary;
-import hitShape.Circle;
+import gui.stageEditor.GHQObjectHashMap;
 import item.BSItem;
 import item.ItemData;
 import item.ammo.Ammo_9mm;
 import item.weapon.ElectronShield;
-import item.weapon.MainSlot;
-import item.weapon.SubSlot;
 import paint.dot.DotPaint;
 import paint.rect.RectPaint;
 import physics.Dynam;
+import physics.HasPoint;
+import physics.HitGroup;
 import physics.Point;
+import physics.hitShape.Circle;
 import status.Status;
 import storage.ItemStorage;
 import storage.Storage;
@@ -30,7 +31,7 @@ public abstract class BasicUnit extends Unit {
 	public Point.IntPoint dstPoint = new Point.IntPoint();
 	public double charaSpeed = 30;
 	public boolean charaOnLand;
-
+	
 	//effect
 
 	public static final int ACCAR_HIT_EF = 0;
@@ -55,14 +56,14 @@ public abstract class BasicUnit extends Unit {
 	//status
 	@SuppressWarnings("serial")
 	public final ConsumableEnergy
-		POW_FIXED = new ConsumableEnergy(5).setMin(1),
+		POW_FIXED = new ConsumableEnergy(4).setMin(1),
 		POW_FLOAT = new ConsumableEnergy(new Setter() {
 			private static final long serialVersionUID = 1L;
 			public Number set() {
 				return (int)(POW_FIXED.doubleValue()*RED_BAR.getRate());
 			}
 		}).setMin(1),
-		INT_FIXED = new ConsumableEnergy(5).setMin(1),
+		INT_FIXED = new ConsumableEnergy(2).setMin(1),
 		INT_FLOAT = new ConsumableEnergy(new Setter() {
 			private static final long serialVersionUID = 1L;
 			public Number set() {
@@ -152,8 +153,35 @@ public abstract class BasicUnit extends Unit {
 		SUCK = new ConsumableEnergy(0.00).setDefault(0.00);
 	public final Status status = new Status(RED_BAR, BLUE_BAR, GREEN_BAR, POW_FLOAT, INT_FLOAT, AGI_FLOAT, ENERGY
 			, SPEED_PPS, TOUGHNESS);
+	@Override
+	public GHQObjectHashMap getKindDataHashMap() {
+		return new GHQObjectHashMap()
+				.streamPut("POW_FIXED", POW_FIXED)
+				.streamPut("POW_FLOAT", POW_FLOAT)
+				.streamPut("INT_FIXED", INT_FIXED)
+				.streamPut("INT_FLOAT", INT_FLOAT)
+				.streamPut("AGI_FIXED", AGI_FIXED)
+				.streamPut("AGI_FLOAT", AGI_FLOAT)
+				.streamPut("RED_BAR", RED_BAR)
+				.streamPut("BLUE_BAR", BLUE_BAR)
+				.streamPut("GREEN_BAR", GREEN_BAR)
+				.streamPut("RED_REG", RED_REG)
+				.streamPut("BLUE_REG", BLUE_REG)
+				.streamPut("GREEN_REG", GREEN_REG)
+				.streamPut("ENERGY", ENERGY)
+				.streamPut("SPEED_PPS", SPEED_PPS)
+				.streamPut("SENSE", SENSE)
+				.streamPut("WEIGHT", WEIGHT)
+				.streamPut("TOUGHNESS", TOUGHNESS)
+				.streamPut("TOUGHNESS_REG", TOUGHNESS_REG)
+				.streamPut("CRI", CRI)
+				.streamPut("AVD", AVD)
+				.streamPut("REF", REF)
+				.streamPut("SUCK", SUCK)
+				;
+	}
 	public String getCurrentAmmoName() {
-		return new Ammo_9mm(0).getName();
+		return new Ammo_9mm(0).name();
 	}
 	//inventory
 	public final ItemStorage inventory = def_inventory();
@@ -161,8 +189,10 @@ public abstract class BasicUnit extends Unit {
 		return new ItemStorage(new Storage<ItemData>());
 	}
 	
-	public BasicUnit(int charaSize, int initialGroup) {
-		super(new Circle(new Dynam(), charaSize), initialGroup);
+	public BasicUnit(int charaSize, int hitGroup) {
+		physics().setPoint(new Dynam());
+		physics().setHitShape(new Circle(this, charaSize));
+		physics().setHitGroup(new HitGroup(hitGroup));
 	}
 	@Override
 	public BasicUnit respawn(int x, int y) {
@@ -171,9 +201,9 @@ public abstract class BasicUnit extends Unit {
 		mainSlot.reset();
 		subSlot.reset();
 		meleeSlot.reset();
-		dynam.clear();
-		dstPoint.setXY(dynam.setXY(x, y));
-		baseAngle.set(0.0);
+		point().stop();
+		dstPoint.setXY(point().setXY(x, y));
+		angle().set(0.0);
 		charaOnLand = false;
 		inventory.items.clear();
 		inventory.add_stack(new Ammo_9mm(32));
@@ -222,23 +252,38 @@ public abstract class BasicUnit extends Unit {
 		meleeSlot.idle();
 		meleeSlot.reloadIfEquipment();
 		////////////
-		//dynam
+		//point
 		////////////
-		dynam.moveIfNoObstacles(this);
-		dynam.accelerate_MUL(0.9);
+		point().moveIfNoObstacles(this);
+		point().accelerate_MUL(0.9);
 	}
 	public int weaponChangeOrder;
 	public boolean attackOrder,dodgeOrder,spellOrder;
 	@Override
-	public void paint(boolean doAnimation) {
+	public void paint() {
 		charaPaint.dotPaint_turn(this);
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
-		paintScript.dotPaint_turn(dynam, (double)GHQ.nowFrame()/35.0);
+		paintScript.dotPaint_turn(point(), (double)GHQ.nowFrame()/35.0);
 	}
 	public void killed() {
 		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
-			GHQ.stage().addItem(inventory.items.remove(i).drop((int)(dynam.doubleX() + GHQ.random2(-50,50)), (int)(dynam.doubleY() + GHQ.random2(-50,50))));
+			GHQ.stage().addItem(inventory.items.remove(i).drop((int)(point().doubleX() + GHQ.random2(-50,50)), (int)(point().doubleY() + GHQ.random2(-50,50))));
+	}
+	
+	//tool
+	public BasicUnit getVisibleEnemy() {
+		Unit unit = GHQ.stage().getNearstVisibleEnemy(this);
+		if(this.point().distance(unit) < 500) //TODO distance of sight
+			return (BasicUnit)unit;
+		return null;
+	}
+	public boolean isVisible(HasPoint target) {
+		return isVisible(target.point());
+	}
+	public boolean isVisible(Point point) {
+		final double DISTANCE = this.point().distance(point);
+		return DISTANCE < 150 || DISTANCE < 500 && this.angle().isDeltaSmaller(this.point().angleTo(point), Math.toRadians(60.0)) && this.point().isVisible(point);
 	}
 	
 	// control
@@ -248,18 +293,16 @@ public abstract class BasicUnit extends Unit {
 		item.setOwner(this);
 		return item;
 	}
+	@Override
 	public void removedItem(ItemData item){
-		if(item instanceof MainSlot)
+		if(item == mainSlot)
 			mainSlot = BSItem.BLANK_ITEM;
-		else if(item instanceof SubSlot)
+		else if(item == subSlot)
 			subSlot = BSItem.BLANK_ITEM;
-		inventory.items.remove(item);
-		item.setOwner(null);
 	}
 	// move
 	protected final void dodge(double targetX, double targetY) {
-		final Dynam DYNAM = dynam();
-		DYNAM.addSpeed_DA(40, DYNAM.angleTo(targetX,targetY));
+		point().addSpeed_DA(40, point().angleTo(targetX,targetY));
 		charaOnLand = false;
 	}
 	//stun
@@ -268,9 +311,9 @@ public abstract class BasicUnit extends Unit {
 	}
 
 	// decreases
-	public int damage_amount(int amount, Dynam harmerDynam) {
+	public int damage_amount(int amount, Point harmerPoint) {
 		final int REAL_DMG = damage_amount(amount);
-		dynam.addSpeed_DA(-REAL_DMG/WEIGHT.doubleValue()*(containsBuff(ToughnessBroke.class) ? 40 : 20), harmerDynam.moveAngle());
+		point().addSpeed_DA(-REAL_DMG/WEIGHT.doubleValue()*(containsBuff(ToughnessBroke.class) ? 40 : 20), harmerPoint.moveAngle());
 		return REAL_DMG;
 	}
 	@Override
@@ -342,7 +385,7 @@ public abstract class BasicUnit extends Unit {
 			return 0;
 	}
 	@Override
-	public String getName() {
+	public String name() {
 		return GHQ.NOT_NAMED;
 	}
 	@Override

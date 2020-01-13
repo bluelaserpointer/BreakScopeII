@@ -1,9 +1,12 @@
-package gui;
+package ui;
 
 import java.awt.Color;
 
 import core.GHQ;
 import engine.Engine_NA;
+import gui.ClickMenu;
+import gui.InputOptionList;
+import gui.TitledLabel;
 import paint.ColorFraming;
 import unit.HumanGuard2;
 import unit.HumanGuard;
@@ -26,10 +29,10 @@ public class UnitEditor extends ClickMenu<Unit>{
 				final Unit GENERATED_UNIT;
 				switch(text){
 				case "HumanGuard":
-					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.dynam));
+					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.point()));
 					break;
 				case "FAIRY":
-					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.dynam));
+					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.point()));
 					break;
 				default:
 					GENERATED_UNIT = null;
@@ -43,11 +46,5 @@ public class UnitEditor extends ClickMenu<Unit>{
 		addLast(new InputOptionList(nameLabel)).addWord("WHITE_MAN", "BLACK_MAN", "FAIRY");
 		addEmptyLine();
 		addNewLine(new TitledLabel().setName("dumpLabel1").setBGColor(Color.WHITE), new TitledLabel().setName("dumpLabel2").setBGColor(Color.WHITE));
-	}
-	
-	//information
-	@Override
-	public boolean isMouseEntered() {
-		return GHQ.isMouseInArea_Screen(x, y, w, h);
 	}
 }

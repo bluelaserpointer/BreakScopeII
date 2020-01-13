@@ -2,24 +2,24 @@ package bullet;
 
 import bullet.Bullet;
 import core.GHQ;
+import core.GHQObject;
 import effect.EffectLibrary;
-import hitShape.Circle;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
-import physics.HasAnglePoint;
-import physics.Standpoint;
+import physics.HitGroup;
+import physics.hitShape.Circle;
 import unit.BasicUnit;
 import unit.Unit;
 import weapon.Weapon;
 
 public abstract class BulletLibrary extends Bullet{
 	
-	public BulletLibrary(Weapon sourceWeapon, HasAnglePoint shooter, Standpoint standpoint) {
-		super(sourceWeapon, shooter, standpoint);
+	public BulletLibrary(GHQObject shooter) {
+		super(shooter);
 	}
 	@Override
 	public boolean hitUnitDeleteCheck(Unit unit) {
-		((BasicUnit)unit).damage_amount(damage, this.dynam);
+		((BasicUnit)unit).damage_amount(damage, point());
 		hitObject();
 		if(penetration > 0) {
 			if(penetration != GHQ.MAX)
@@ -48,16 +48,18 @@ public abstract class BulletLibrary extends Bullet{
 	/////////////////
 	public static class ACCAR extends BulletLibrary{
 		private static final DotPaint paint = ImageFrame.create("picture/Bullet_7p62.png");
-		public ACCAR(Weapon sourceWeapon, HasAnglePoint shooter, Standpoint standpoint) {
-			super(sourceWeapon, shooter, standpoint);
+		public ACCAR(Weapon originWeapon, GHQObject shooter, HitGroup hitGroup) {
+			super(shooter);
+			this.originWeapon = originWeapon;
+			physics().setHitGroup(hitGroup);
+			physics().setHitShape(new Circle(this, 3));
 			name = "ACCAR";
-			hitShape = new Circle(dynam, 3);
 			damage = 8;
 			limitFrame = 2;
 			paintScript = paint;
 		}
 		public ACCAR getOriginal() {
-			return new ACCAR(ORIGIN_WEAPON, SHOOTER, standpoint());
+			return new ACCAR(originWeapon, shooter, hitGroup());
 		}
 		@Override
 		public void idle() {
@@ -66,14 +68,14 @@ public abstract class BulletLibrary extends Bullet{
 				return;
 			}
 			boolean alive;
-			while(dynam.inStage()) {
+			while(point().inStage()) {
 				alive = dynamIdle();
 				paint();
 				if(!alive)
 					return;
 			}
-			dynam.setXY(SHOOTER);
-			dynam.setMoveAngle(SHOOTER.angle().angle());
+			point().setXY(shooter);
+			point().setMoveAngle(shooter.angle().get());
 		}
 		@Override
 		public final void hitObject() {

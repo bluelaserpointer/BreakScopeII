@@ -7,7 +7,7 @@ import paint.ImageFrame;
 public class Ammo_9mm extends Ammo implements ACCAR_AMMO{
 	private static final long serialVersionUID = 1468750527265985047L;
 	@Override
-	public String getName() {
+	public String name() {
 		return "AMMO_9MM";
 	}
 	public Ammo_9mm(int amount) {

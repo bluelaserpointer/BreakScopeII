@@ -3,11 +3,11 @@ package item.weapon;
 import bullet.BulletLibrary;
 import calculate.Filter;
 import core.GHQ;
+import core.GHQObject;
 import item.ItemData;
 import paint.ImageFrame;
-import physics.Dynam;
-import physics.HasAnglePoint;
-import physics.Standpoint;
+import physics.Point;
+import physics.HitGroup;
 import unit.BasicUnit;
 import weapon.Weapon;
 
@@ -24,7 +24,7 @@ public class ACCAR extends Equipment implements MainSlot{
 		super(ImageFrame.create("picture/AK.png"));
 	}
 	@Override
-	public String getName() {
+	public String name() {
 		return weapon.name;
 	}
 	@Override
@@ -38,8 +38,8 @@ public class ACCAR extends Equipment implements MainSlot{
 				reloadTime = 150;
 			}
 			@Override
-			public void setBullets(HasAnglePoint shooter, Standpoint standpoint) {
-				final Dynam BULLET_DYNAM = GHQ.stage().addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).dynam();
+			public void setBullets(GHQObject shooter, HitGroup standpoint) {
+				final Point BULLET_DYNAM = GHQ.stage().addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).point();
 				BULLET_DYNAM.setSpeed(10);
 				BULLET_DYNAM.addXY_allowsMoveAngle(0, 18);
 			}

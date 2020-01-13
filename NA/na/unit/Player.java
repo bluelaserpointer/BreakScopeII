@@ -9,6 +9,7 @@ import engine.Engine_NA;
 import item.ItemData;
 import paint.ImageFrame;
 import paint.dot.DotPaintMultiple;
+import stage.Gridder;
 import storage.ItemStorage;
 import storage.TableStorage;
 
@@ -20,12 +21,12 @@ public class Player extends BasicPlayer{
 	}
 
 	@Override
-	public final String getName() {
+	public final String name() {
 		return "Player";
 	}
 	@Override
 	public ItemStorage def_inventory() {
-		return new ItemStorage(new TableStorage<ItemData>(5,3));
+		return new ItemStorage(new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM));
 	}
 	
 	@Override
@@ -42,7 +43,7 @@ public class Player extends BasicPlayer{
 		////////////
 		//aim
 		////////////
-		baseAngle.set(dynam.angleToMouse());
+		angle().set(point().angleToMouse());
 		////////////
 		//reload
 		////////////
@@ -56,17 +57,28 @@ public class Player extends BasicPlayer{
 			if(Engine_NA.s_keyL.pullEvent(VK_E))
 				super.inventory.items.add(item.pickup(this));
 			else {
-				GHQ.getGraphics2D(Color.WHITE);
-				GHQ.drawStringGHQ(item.getName(), item.point().intX(), item.point().intY() - 20);
+				GHQ.getG2D(Color.WHITE);
+				GHQ.drawStringGHQ(item.name(), item.point().intX(), item.point().intY() - 20);
 			}
 		}
 		////////////
 		//talk
 		////////////
-		if(Engine_NA.s_keyL.pullEvent(VK_SPACE)) {
+		if(Engine_NA.s_keyL.pullEvent(VK_E)) {
 			final Unit npc = GHQ.stage().getNearstVisibleEnemy(this);
-			if(npc instanceof BasicNPC && npc.dynam.inRange(this.dynam,240)) {
+			if(npc instanceof BasicNPC && npc.point().inRange(this.point(), 240)) {
 				((BasicNPC) npc).startTalk();
+			}
+		}
+		////////////
+		//enlightVisibleArea
+		////////////
+		Gridder gridder = new Gridder(50, 50);
+		for(int xPos = 0;xPos < gridder.W_DIV;++xPos) {
+			for(int yPos = 0;yPos < gridder.H_DIV;++yPos) {
+				if(super.isVisible(gridder.getPosPoint(xPos, yPos))) {
+					gridder.drawGrid(GHQ.getG2D(Color.RED, 1F), xPos, yPos);
+				}
 			}
 		}
 	}

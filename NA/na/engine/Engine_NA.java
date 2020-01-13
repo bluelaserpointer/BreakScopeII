@@ -4,6 +4,7 @@ import static java.awt.event.KeyEvent.*;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,16 +14,16 @@ import action.ActionInfo;
 import action.ActionSource;
 import core.CornerNavigation;
 import core.GHQ;
-import core.GHQStage;
+import core.GHQObjectType;
 import core.Game;
-import gui.DefaultStageEditor;
 import gui.GUIParts;
+import gui.InventoryViewer;
 import gui.MessageSource;
-import gui.UnitEditor;
-import hitShape.MyPolygon;
+import gui.stageEditor.DefaultStageEditor;
 import input.key.SingleKeyListener;
 import input.key.SingleNumKeyListener;
 import input.mouse.MouseListenerEx;
+import item.ItemData;
 import item.ammo.Ammo_45acp;
 import item.ammo.Ammo_9mm;
 import item.weapon.ACCAR;
@@ -33,10 +34,14 @@ import paint.ImageFrame;
 import paint.dot.DotPaint;
 import physics.Point;
 import physics.Route;
+import physics.hitShape.MyPolygon;
+import stage.GHQStage;
+import storage.TableStorage;
 import structure.Structure;
 import structure.Terrain;
 import structure.Tile;
 import ui.ESC_menu;
+import ui.UnitEditor;
 import unit.HumanGuard2;
 import unit.HumanGuard;
 import unit.Player;
@@ -82,7 +87,7 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 					oos.writeInt(tile.point().intY());
 					oos.writeInt(tile.xTiles());
 					oos.writeInt(tile.yTiles());
-				}else if(structure instanceof Terrain) {
+				} else if(structure instanceof Terrain) {
 					oos.writeObject("Terrain");
 					oos.writeObject(((Terrain)structure).hitShape());
 				}
@@ -206,7 +211,7 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 		return new GHQStage(5000, 5000);
 	}
 	@Override
-	public final void loadResource() {
+	public final void loadResource() { 
 		/////////////////////////////////
 		//images this engine required
 		/////////////////////////////////
@@ -243,22 +248,71 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf3.png"),822,886));
 		new Ammo_9mm(10).drop(822, 886);
 		new Ammo_45acp(10).drop(862, 896);
-		new ACCAR().drop(702,796);
-		new ElectronShield().drop(702,796);
+		new ACCAR().drop(702, 796);
+		new ElectronShield().drop(702, 796);
 		//stageDataSaver.doLoad(new File("stage/saveData1.txt"));
 		/////////////////////////////////
 		//GUI
 		/////////////////////////////////
 		//ESC menu
-		GHQ.addGUIParts(escMenu = new ESC_menu());
+		GHQ.addGUIParts(new InventoryViewer(ImageFrame.create("picture/gui/slot.png"), 200, 500, 50, new TableStorage<ItemData>(10, 1, ItemData.BLANK_ITEM)) {
+			{
+				setName("QuickSlot");
+				setBGColor(Color.WHITE);
+			}
+			@Override
+			public void idle() {
+				super.idle();
+				//quick slot use
+				int quickSlotID = SingleNumKeyListener.keyNumToLocationNum(s_numKeyL.pullHasEventKeyNum());
+				if(quickSlotID != GHQ.NONE) {
+					final ItemData itemData = storage.get(quickSlotID);
+					if(itemData != null) {
+						itemData.use();
+						final Graphics2D g2 = GHQ.getG2D(Color.WHITE, GHQ.stroke3);
+						g2.drawRect(point().intX() + quickSlotID*CELL_SIZE, point().intY(), CELL_SIZE, CELL_SIZE);
+					}
+				}
+			}
+			@Override
+			public boolean doLinkDrag() {
+				return true;
+			}
+		}).enable();
+		GHQ.addGUIParts(escMenu = new ESC_menu()).disable();
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP") {
 			@Override
 			public void saveStage() {
 				stageDataSaver.doSave(new File("stage/saveData1.txt"));
 			}
+		}).disable();
+		editor.addFirst(unitEditor = new UnitEditor()).disable();
+		
+		GHQ.addGUIParts(stageFieldGUI = new GUIParts() {
+			{
+				setName("stageFieldGUI");
+			}
+			@Override
+			public void clicked() {
+				player.attackOrder = s_mouseL.hasButton1Event();
+				player.spellOrder = s_mouseL.pullButton2Event();
+			}
+			@Override
+			public void released() {
+				player.attackOrder = player.spellOrder = false;
+			}
+			//stage field always does not invoke swap operation.
+			@Override
+			public void dragIn(GUIParts sourceUI, Object dropObject) {
+				final double ANGLE = player.point().angleToMouse();
+				((ItemData)dropObject).drop((int)(player.point().doubleX() + 50*Math.cos(ANGLE)), (int)(player.point().doubleY() + 50*Math.sin(ANGLE)));
+			}
+			@Override
+			public boolean checkDragIn(GUIParts sourceUI, Object dropObject) { //item throw
+				//only check this is a item.
+				return dropObject instanceof ItemData;
+			}
 		});
-		editor.addFirst(unitEditor = new UnitEditor());
-		GHQ.addGUIParts(stageFieldGUI = new GUIParts().setName("stageFieldGUI")).enable();
 		/////////////////////////////////
 		//input
 		/////////////////////////////////
@@ -285,7 +339,7 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 		GHQ.stage().fill(new Color(112, 173, 71));
 		//center point
 		g2.setColor(Color.RED);
-		g2.fillOval(player.dynam.intX() - 2, player.dynam.intY() - 2, 5, 5);
+		g2.fillOval(player.point().intX() - 2, player.point().intY() - 2, 5, 5);
 		////////////////
 		final int MOUSE_X = GHQ.mouseX(),MOUSE_Y = GHQ.mouseY();
 		if(stopEventKind == GHQ.NONE) {
@@ -294,50 +348,59 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 			case 0:
 				//enemy
 				for(Unit enemy : GHQ.stage().units) {
-					if(enemy.getName() == "FairyA") {
+					if(enemy.name() == "FairyA") {
 						final int FRAME = gameFrame % 240;
 						if(FRAME < 100)
-							;//enemy.dynam().addSpeed(-1, 0);
+							enemy.point().addSpeed(-1, 0);
 						else if(FRAME < 120)
 							;
 						else if(FRAME < 220)
-							;//enemy.dynam().addSpeed(1, 0);
+							enemy.point().addSpeed(1, 0);
 						else
 							;
 					}
 				}
 				//warp
 				if(s_keyL.hasEvent(VK_TAB)){
-					player.dynam.setXY(MOUSE_X, MOUSE_Y);
-				}
-				if(stageFieldGUI.isClicking()) {
-					//shot
-					player.attackOrder = s_mouseL.hasButton1Event();
-					//spell
-					player.spellOrder = s_mouseL.pullButton2Event();
-				}else {
-					player.attackOrder = player.spellOrder = false;
+					player.point().setXY(MOUSE_X, MOUSE_Y);
 				}
 				break;
 			}
 		}
+		//////////////////////////
+		//idle
+		//////////////////////////
+		//System.out.println("UNIT");
+		GHQ.stage().idle(GHQObjectType.UNIT);
+		//System.out.println("BULLET");
+		GHQ.stage().idle(GHQObjectType.BULLET);
+		//System.out.println("EFFECT");
+		GHQ.stage().idle(GHQObjectType.EFFECT);
+		//System.out.println("STRUCTURE");
+		GHQ.stage().idle(GHQObjectType.STRUCTURE);
+		//System.out.println("VEGETATION");
+		GHQ.stage().idle(GHQObjectType.VEGETATION);
+		//System.out.println("ITEM");
+		GHQ.stage().idle(GHQObjectType.ITEM);
 		////////////
 		//focus
 		////////////
-		g2.setColor(new Color(200,120,10,100));
-		g2.setStroke(GHQ.stroke3);
-		g2.drawLine(player.dynam.intX(), player.dynam.intY(), MOUSE_X, MOUSE_Y);
-		focusIF.dotPaint(MOUSE_X, MOUSE_Y);
-		if(player.mainSlot instanceof Equipment) {
-			final Weapon WEAPON = ((Equipment)player.mainSlot).weapon;
-			g2.setColor(WEAPON.canFire() ? Color.WHITE : Color.RED);
-			final int UNFIRED = WEAPON.getMagazineFilledSpace(), LEFT_AMMO = WEAPON.getLeftAmmo();
-			g2.drawString(UNFIRED != GHQ.MAX ? String.valueOf(UNFIRED) : "-", MOUSE_X - 25, MOUSE_Y);
-			g2.drawString(LEFT_AMMO != GHQ.MAX ? String.valueOf(LEFT_AMMO) : "-", MOUSE_X, MOUSE_Y);
-			g2.setColor(WEAPON.isCoolFinished() ? Color.WHITE : Color.RED);
-			g2.drawString(WEAPON.getCoolProgress() + "/" + 50, MOUSE_X - 25, MOUSE_Y + 25);
-			g2.setColor(WEAPON.isReloadFinished() ? Color.WHITE : Color.RED);
-			g2.drawString(WEAPON.getReloadProgress() + "/" + 150, MOUSE_X + 35, MOUSE_Y + 25);
+		if(!escMenu.isEnabled()) {
+			g2.setColor(new Color(200,120,10,100));
+			g2.setStroke(GHQ.stroke3);
+			g2.drawLine(player.point().intX(), player.point().intY(), MOUSE_X, MOUSE_Y);
+			focusIF.dotPaint(MOUSE_X, MOUSE_Y);
+			if(player.mainSlot instanceof Equipment) {
+				final Weapon WEAPON = ((Equipment)player.mainSlot).weapon;
+				g2.setColor(WEAPON.canFire() ? Color.WHITE : Color.RED);
+				final int UNFIRED = WEAPON.getMagazineFilledSpace(), LEFT_AMMO = WEAPON.getLeftAmmo();
+				g2.drawString(UNFIRED != GHQ.MAX ? String.valueOf(UNFIRED) : "-", MOUSE_X - 25, MOUSE_Y);
+				g2.drawString(LEFT_AMMO != GHQ.MAX ? String.valueOf(LEFT_AMMO) : "-", MOUSE_X, MOUSE_Y);
+				g2.setColor(WEAPON.isCoolFinished() ? Color.WHITE : Color.RED);
+				g2.drawString(WEAPON.getCoolProgress() + "/" + 50, MOUSE_X - 25, MOUSE_Y + 25);
+				g2.setColor(WEAPON.isReloadFinished() ? Color.WHITE : Color.RED);
+				g2.drawString(WEAPON.getReloadProgress() + "/" + 150, MOUSE_X + 35, MOUSE_Y + 25);
+			}
 		}
 		////////////
 		//editor
@@ -370,7 +433,7 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 		///////////////
 		//GUI idle
 		///////////////
-		final Graphics2D G2 = GHQ.getGraphics2D();
+		final Graphics2D G2 = GHQ.getG2D();
 		//HP bars
 		G2.setStroke(GHQ.stroke5);
 		GHQ.translateForGUI(true);
@@ -405,49 +468,46 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 		//scroll
 		///////////////
 		if(stopEventKind == GHQ.NONE || editor.isEnabled()) {
-			final int F_MOVE_SPD;
+			//movement
+			final double F_MOVE_SPD;
 			boolean dashed = false;
 			//dash speed*2
 			if(s_keyL.hasEvent(VK_SHIFT)) {
-				F_MOVE_SPD = (int)(GHQ.mulSPF(player.SPEED_PPS.doubleValue()))*2;
+				F_MOVE_SPD = GHQ.mulSPF(player.SPEED_PPS.doubleValue())*2.0;
 				dashed = true;
 			}else
-				F_MOVE_SPD = (int)(GHQ.mulSPF(player.SPEED_PPS.doubleValue()));
+				F_MOVE_SPD = GHQ.mulSPF(player.SPEED_PPS.doubleValue());
 			//judge rolling
 			boolean doLolling = s_keyL.pullEvent(VK_SPACE) && player.GREEN_BAR.intValue() > 25;
 			boolean didLolling = false;
 			final double ROLL_STR = player.SPEED_PPS.doubleValue()/10;
 			if(s_keyL.hasEvent(VK_W) && !GHQ.stage().hitObstacle_atNewPoint(player, 0, -F_MOVE_SPD)) {
-				player.dynam.addY(-F_MOVE_SPD);
-				GHQ.viewTargetMove(0, -F_MOVE_SPD);
-				GHQ.pureViewMove(0, -F_MOVE_SPD);
+				player.point().addY(-F_MOVE_SPD);
+				GHQ.viewMove(0, -F_MOVE_SPD);
 				if(doLolling) {
-					player.dynam.addSpeed(0, -ROLL_STR);
+					player.point().addSpeed(0, -ROLL_STR);
 					didLolling = true;
 				}
 			}else if(s_keyL.hasEvent(VK_S) && !GHQ.stage().hitObstacle_atNewPoint(player, 0, +F_MOVE_SPD)) {
-				player.dynam.addY(F_MOVE_SPD);
-				GHQ.viewTargetMove(0, F_MOVE_SPD);
-				GHQ.pureViewMove(0, F_MOVE_SPD);
+				player.point().addY(F_MOVE_SPD);
+				GHQ.viewMove(0, F_MOVE_SPD);
 				if(doLolling) {
-					player.dynam.addSpeed(0, ROLL_STR);
+					player.point().addSpeed(0, ROLL_STR);
 					didLolling = true;
 				}
 			}
 			if(s_keyL.hasEvent(VK_A) && !GHQ.stage().hitObstacle_atNewPoint(player, -F_MOVE_SPD, 0)) {
-				player.dynam.addX(-F_MOVE_SPD);
-				GHQ.viewTargetMove(-F_MOVE_SPD,0);
-				GHQ.pureViewMove(-F_MOVE_SPD,0);
+				player.point().addX(-F_MOVE_SPD);
+				GHQ.viewMove(-F_MOVE_SPD,0);
 				if(doLolling) {
-					player.dynam.addSpeed(-ROLL_STR, 0);
+					player.point().addSpeed(-ROLL_STR, 0);
 					didLolling = true;
 				}
 			}else if(s_keyL.hasEvent(VK_D) && !GHQ.stage().hitObstacle_atNewPoint(player, +F_MOVE_SPD, 0)) {
-				player.dynam.addX(F_MOVE_SPD);
-				GHQ.viewTargetMove(F_MOVE_SPD,0);
-				GHQ.pureViewMove(F_MOVE_SPD,0);
+				player.point().addX(F_MOVE_SPD);
+				GHQ.viewMove(F_MOVE_SPD,0);
 				if(doLolling) {
-					player.dynam.addSpeed(ROLL_STR, 0);
+					player.point().addSpeed(ROLL_STR, 0);
 					didLolling = true;
 				}
 			}
@@ -461,19 +521,44 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 			}
 			//scroll by mouse
 			if(doScrollView) {
-				GHQ.viewTargetTo((MOUSE_X + player.dynam.intX())/2,(MOUSE_Y + player.dynam.intY())/2);
+				GHQ.viewTargetTo((MOUSE_X + player.point().intX())/2,(MOUSE_Y + player.point().intY())/2);
 				GHQ.viewApproach_rate(10);
 			}
 		}
-		//////////////////////////
-		//idle
-		//////////////////////////
-		GHQ.stage().idle();
 		//////////////////////////
 		//test
 		//////////////////////////
 		cornerNavi.debugPreview();
 	}
+	//drag
+	@Override
+	public void mousePressed(MouseEvent e) {
+		if(!GHQ.mouseHook.isEmpty() && e.getButton() == MouseEvent.BUTTON1 && GHQ.isMouseHoveredUI()) {
+			//drag event
+			final Object OBJ = GHQ.mouseHook.get(); //object for drag In/Out
+			final GUIParts SRC = GHQ.mouseHook.sourceUI(); //drag source
+			final GUIParts DST = GHQ.mouseHoveredUI(); //drag destination
+			final boolean dragInPermit = DST.checkDragIn(SRC, OBJ);
+			final boolean dragOutPermit = SRC.checkDragOut(DST, OBJ);
+			final boolean dragPermit = dragInPermit && dragOutPermit; //judge this drag action is legal.
+			GHQ.mouseHook.clear(); //release mouse hooked object
+			//check general item drag I/O rule
+			if(SRC.doLinkDrag() && !DST.doLinkDrag() && dragOutPermit) { //delete link
+				SRC.dragOut(DST, OBJ, null);
+			} else if(!SRC.doLinkDrag() && DST.doLinkDrag() && dragInPermit) { //create link
+				DST.dragIn(SRC, OBJ);
+			} else if(dragPermit) { //swap link || swap real object
+				SRC.dragOut(DST, OBJ, DST.peekDragObject());
+				DST.dragIn(SRC, OBJ);
+			}
+			SRC.dragFinished();
+			DST.dragFinished();
+		}else {
+			GHQ.mouseHoveredUI().clicked();
+		}
+	}
+	
+	//information
 	public static Player getPlayer() {
 		return player;
 	}

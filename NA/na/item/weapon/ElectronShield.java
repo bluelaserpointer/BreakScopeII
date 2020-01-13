@@ -12,7 +12,7 @@ public class ElectronShield extends Equipment implements SubSlot{
 		super(ImageFrame.create("picture/FreezeEffect.png"));
 	}
 	@Override
-	public String getName() {
+	public String name() {
 		return "ELECTRON_SHIELD";
 	}
 	@Override

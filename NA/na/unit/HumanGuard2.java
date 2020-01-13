@@ -1,6 +1,5 @@
 package unit;
 
-import core.GHQ;
 import item.weapon.ACCAR;
 import paint.ImageFrame;
 import unit.Unit;
@@ -11,7 +10,7 @@ public class HumanGuard2 extends BasicEnemy{
 		super(70, initialGroup);
 	}
 	@Override
-	public final String getName() {
+	public final String name() {
 		return "FairyA";
 	}
 	@Override
@@ -30,19 +29,15 @@ public class HumanGuard2 extends BasicEnemy{
 	public void idle() {
 		super.idle();
 		mainSlot.reloadIfEquipment();
-		final Unit targetEnemy = GHQ.stage().getNearstVisibleEnemy(this);
+		final Unit targetEnemy = super.getVisibleEnemy();
 		if(targetEnemy != null) {
-			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
-			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
-				if(baseAngle.spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
+			final double TARGET_ANGLE = point().angleTo(targetEnemy);
+			if(angle().isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
+				if(angle().spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
 					mainSlot.use();
 			}else
-				baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
+				angle().spinTo_Suddenly(point().moveAngle(), 10);
 		}else
-			baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
-	}
-	@Override
-	public void paint(boolean doAnimation) {
-		super.paint(true);
+			angle().spinTo_Suddenly(point().moveAngle(), 10);
 	}
 }

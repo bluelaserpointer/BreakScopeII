@@ -13,7 +13,7 @@ public class HumanGuard extends BasicEnemy{
 		charaSpeed = 6;
 	}
 	@Override
-	public final String getName() {
+	public final String name() {
 		return "HumanGuard";
 	}
 	@Override
@@ -33,15 +33,15 @@ public class HumanGuard extends BasicEnemy{
 		mainSlot.reloadIfEquipment();
 		final Unit targetEnemy = GHQ.stage().getNearstVisibleEnemy(this);
 		if(targetEnemy != null) {
-			final double TARGET_ANGLE = dynam.angleTo(targetEnemy);
-			if(baseAngle.isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
+			final double TARGET_ANGLE = point().angleTo(targetEnemy);
+			if(angle().isDeltaSmaller(TARGET_ANGLE, Math.PI*10/18)) {
 				dstPoint.setXY(targetEnemy);
-				if(baseAngle.spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
+				if(angle().spinTo_Suddenly(TARGET_ANGLE, 10) < 0.10)
 					mainSlot.use();
 			}else
-				baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
+				angle().spinTo_Suddenly(point().moveAngle(), 10);
 		}else
-			baseAngle.spinTo_Suddenly(dynam.moveAngle(), 10);
-		dynam.approachIfNoObstacles(this, dstPoint, charaSpeed);
+			angle().spinTo_Suddenly(point().moveAngle(), 10);
+		point().approachIfNoObstacles(this, dstPoint, charaSpeed);
 	}
 }
