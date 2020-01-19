@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 
 import action.ActionInfo;
 import action.ActionSource;
+import buff.Buff;
 import core.CornerNavigation;
 import core.GHQ;
 import core.GHQObjectType;
@@ -28,7 +29,6 @@ import item.ammo.Ammo_45acp;
 import item.ammo.Ammo_9mm;
 import item.weapon.ACCAR;
 import item.weapon.ElectronShield;
-import item.weapon.Equipment;
 import loading.MyDataSaver;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
@@ -255,7 +255,23 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 		//GUI
 		/////////////////////////////////
 		//ESC menu
-		GHQ.addGUIParts(new InventoryViewer(ImageFrame.create("picture/gui/slot.png"), 200, 500, 50, new TableStorage<ItemData>(10, 1, ItemData.BLANK_ITEM)) {
+		GHQ.addGUIParts(new GUIParts() {
+			{
+				setBounds(250, 500, 500 ,50);
+				setBGColor(Color.LIGHT_GRAY);
+			}
+			@Override
+			public void idle() {
+				super.idle();
+				//show player buffs
+				int pos = 0;
+				for(Buff buff : player.buffs()) {
+					buff.getRectPaint().rectPaint(point().intX() + pos*50, point().intY(), 50);
+					++pos;
+				}
+			}
+		});
+		GHQ.addGUIParts(new InventoryViewer(ImageFrame.create("picture/gui/slot.png"), 250, 550, 50, new TableStorage<ItemData>(10, 1, ItemData.BLANK_ITEM)) {
 			{
 				setName("QuickSlot");
 				setBGColor(Color.WHITE);
@@ -390,17 +406,15 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 			g2.setStroke(GHQ.stroke3);
 			g2.drawLine(player.point().intX(), player.point().intY(), MOUSE_X, MOUSE_Y);
 			focusIF.dotPaint(MOUSE_X, MOUSE_Y);
-			if(player.mainSlot instanceof Equipment) {
-				final Weapon WEAPON = ((Equipment)player.mainSlot).weapon;
-				g2.setColor(WEAPON.canFire() ? Color.WHITE : Color.RED);
-				final int UNFIRED = WEAPON.getMagazineFilledSpace(), LEFT_AMMO = WEAPON.getLeftAmmo();
-				g2.drawString(UNFIRED != GHQ.MAX ? String.valueOf(UNFIRED) : "-", MOUSE_X - 25, MOUSE_Y);
-				g2.drawString(LEFT_AMMO != GHQ.MAX ? String.valueOf(LEFT_AMMO) : "-", MOUSE_X, MOUSE_Y);
-				g2.setColor(WEAPON.isCoolFinished() ? Color.WHITE : Color.RED);
-				g2.drawString(WEAPON.getCoolProgress() + "/" + 50, MOUSE_X - 25, MOUSE_Y + 25);
-				g2.setColor(WEAPON.isReloadFinished() ? Color.WHITE : Color.RED);
-				g2.drawString(WEAPON.getReloadProgress() + "/" + 150, MOUSE_X + 35, MOUSE_Y + 25);
-			}
+			final Weapon WEAPON = player.mainEquip().weapon;
+			g2.setColor(WEAPON.canFire() ? Color.WHITE : Color.RED);
+			final int UNFIRED = WEAPON.getMagazineFilledSpace(), LEFT_AMMO = WEAPON.getLeftAmmo();
+			g2.drawString(UNFIRED != GHQ.MAX ? String.valueOf(UNFIRED) : "-", MOUSE_X - 25, MOUSE_Y);
+			g2.drawString(LEFT_AMMO != GHQ.MAX ? String.valueOf(LEFT_AMMO) : "-", MOUSE_X, MOUSE_Y);
+			g2.setColor(WEAPON.isCoolFinished() ? Color.WHITE : Color.RED);
+			g2.drawString(WEAPON.getCoolProgress() + "/" + 50, MOUSE_X - 25, MOUSE_Y + 25);
+			g2.setColor(WEAPON.isReloadFinished() ? Color.WHITE : Color.RED);
+			g2.drawString(WEAPON.getReloadProgress() + "/" + 150, MOUSE_X + 35, MOUSE_Y + 25);
 		}
 		////////////
 		//editor
@@ -472,7 +486,7 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 			final double F_MOVE_SPD;
 			boolean dashed = false;
 			//dash speed*2
-			if(s_keyL.hasEvent(VK_SHIFT)) {
+			if(s_keyL.hasEvent(VK_SHIFT) && !player.GREEN_BAR.isMin()) {
 				F_MOVE_SPD = GHQ.mulSPF(player.SPEED_PPS.doubleValue())*2.0;
 				dashed = true;
 			}else
@@ -513,11 +527,11 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 			}
 			//reduce green bar when dash
 			if(dashed && s_keyL.hasEventOne(VK_W, VK_S, VK_A, VK_D)) {
-				player.GREEN_BAR.consume_getEffect(GHQ.getSPF()*15.0).doubleValue();
+				player.GREEN_BAR.consume(GHQ.getSPF()*15.0);
 			}
 			//reduce green bar when rolling
 			if(didLolling) {
-				player.GREEN_BAR.consume_getEffect(25.0).doubleValue();
+				player.GREEN_BAR.consume(25.0);
 			}
 			//scroll by mouse
 			if(doScrollView) {
@@ -559,7 +573,7 @@ public class Engine_NA extends Game implements MessageSource,ActionSource{
 	}
 	
 	//information
-	public static Player getPlayer() {
+	public static Player player() {
 		return player;
 	}
 	private boolean doScrollView = true;

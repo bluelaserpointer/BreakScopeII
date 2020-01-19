@@ -2,7 +2,7 @@ package unit;
 
 import core.GHQ;
 
-public abstract class BasicPlayer extends BasicUnit{
+public abstract class BasicPlayer extends NAUnit{
 	private static final long serialVersionUID = -5939573262134727671L;
 	public BasicPlayer(int charaSize, int initialGroup) {
 		super(charaSize, initialGroup);
@@ -20,9 +20,5 @@ public abstract class BasicPlayer extends BasicUnit{
 		// attack
 		if (attackOrder)
 			mainSlot.use();
-		// spell
-		if (spellOrder) {
-			spellWeapon.use();
-		}
 	}
 }

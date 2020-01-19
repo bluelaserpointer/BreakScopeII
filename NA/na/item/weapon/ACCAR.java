@@ -1,14 +1,16 @@
 package item.weapon;
 
+import bullet.Bullet;
 import bullet.BulletLibrary;
 import calculate.Filter;
 import core.GHQ;
 import core.GHQObject;
+import damage.NADamage;
 import item.ItemData;
 import paint.ImageFrame;
 import physics.Point;
 import physics.HitGroup;
-import unit.BasicUnit;
+import unit.NAUnit;
 import weapon.Weapon;
 
 public class ACCAR extends Equipment implements MainSlot{
@@ -39,7 +41,10 @@ public class ACCAR extends Equipment implements MainSlot{
 			}
 			@Override
 			public void setBullets(GHQObject shooter, HitGroup standpoint) {
-				final Point BULLET_DYNAM = GHQ.stage().addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint)).point();
+				final Bullet BULLET = GHQ.stage().addBullet(new BulletLibrary.ACCAR(this, shooter, standpoint));
+				final NADamage NA_BALLET = (NADamage)BULLET.damage;
+				NA_BALLET.setDamage(NA_BALLET.damage()*20);
+				final Point BULLET_DYNAM = BULLET.point();
 				BULLET_DYNAM.setSpeed(10);
 				BULLET_DYNAM.addXY_allowsMoveAngle(0, 18);
 			}
@@ -48,7 +53,7 @@ public class ACCAR extends Equipment implements MainSlot{
 				if(!hasOwner())
 					return 0;
 				int result = 0;
-				for(ItemData item : ((BasicUnit)owner).inventory.items) {
+				for(ItemData item : ((NAUnit)owner).inventory.items) {
 					if(item instanceof ACCAR_AMMO) {
 						result += item.getAmount();
 					}
@@ -57,7 +62,7 @@ public class ACCAR extends Equipment implements MainSlot{
 			}
 			@Override
 			public void consumeAmmo(int value) {
-				ItemData.removeInInventory(((BasicUnit)owner).inventory.items, AMMO_FILTER, value);
+				ItemData.removeInInventory(((NAUnit)owner).inventory.items, AMMO_FILTER, value);
 			}
 		};
 	}

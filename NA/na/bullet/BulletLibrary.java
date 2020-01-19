@@ -3,12 +3,15 @@ package bullet;
 import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
+import damage.DamageMaterialType;
+import damage.DamageResourceType;
+import damage.NADamage;
 import effect.EffectLibrary;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
 import physics.HitGroup;
 import physics.hitShape.Circle;
-import unit.BasicUnit;
+import unit.NAUnit;
 import unit.Unit;
 import weapon.Weapon;
 
@@ -19,14 +22,13 @@ public abstract class BulletLibrary extends Bullet{
 	}
 	@Override
 	public boolean hitUnitDeleteCheck(Unit unit) {
-		((BasicUnit)unit).damage_amount(damage, point());
+		((NAUnit)unit).damage(damage, this);
 		hitObject();
 		if(penetration > 0) {
 			if(penetration != GHQ.MAX)
 				penetration--;
-		}else {
+		}else
 			return outOfPenetration();
-		}
 		return false;
 	}
 	/////////////////
@@ -54,7 +56,7 @@ public abstract class BulletLibrary extends Bullet{
 			physics().setHitGroup(hitGroup);
 			physics().setHitShape(new Circle(this, 3));
 			name = "ACCAR";
-			damage = 8;
+			damage = new NADamage(10, DamageMaterialType.Phy, DamageResourceType.Bullet);
 			limitFrame = 2;
 			paintScript = paint;
 		}

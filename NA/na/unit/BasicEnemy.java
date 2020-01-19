@@ -3,7 +3,7 @@ package unit;
 import core.GHQ;
 import engine.Engine_NA;
 
-public abstract class BasicEnemy extends BasicUnit{
+public abstract class BasicEnemy extends NAUnit{
 	private static final long serialVersionUID = -5866340512027239900L;
 
 	int lastDetectedFrame;
@@ -11,16 +11,16 @@ public abstract class BasicEnemy extends BasicUnit{
 		super(charaSize, initialGroup);
 	}
 	@Override
-	public BasicUnit respawn(int x, int y) {
+	public NAUnit respawn(int x, int y) {
 		lastDetectedFrame = 0;
 		return super.respawn(x, y);
 	}
 	@Override
 	public void paint() {
-		if(Engine_NA.getPlayer().isVisible(this)) {
+		if(Engine_NA.player().isVisible(this)) {
 			lastDetectedFrame = GHQ.nowFrame();
 			super.paint();
-			GHQ.paintHPArc(point(), 20, RED_BAR.intValue(), RED_BAR.getDefault().intValue());
+			GHQ.paintHPArc(point(), 20, RED_BAR.intValue(), RED_BAR.defaultValue().intValue());
 		}else {
 			final double passedTime = GHQ.passedFrame(lastDetectedFrame)*GHQ.getSPF();
 			final double KEEP_TIME = 3.0;

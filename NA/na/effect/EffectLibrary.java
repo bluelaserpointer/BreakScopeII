@@ -9,7 +9,7 @@ import core.GHQObject;
 import effect.Effect;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
-import paint.text.StringViewer;
+import paint.text.StringPaint;
 
 public abstract class EffectLibrary extends Effect{
 	
@@ -47,17 +47,18 @@ public abstract class EffectLibrary extends Effect{
 	//DamageNumberEF
 	/////////////////
 	public static class DamageNumberEF extends EffectLibrary{
-		public DamageNumberEF(GHQObject source, int damage) {
+		public DamageNumberEF(GHQObject source, double damage, Color color) {
 			super(source);
 			name = "DamageNumberEF";
-			limitFrame = 15;
-			paintScript = new StringViewer(String.valueOf(damage), Color.RED);
+			limitFrame = 25;
+			paintScript = new StringPaint(GHQ.DF0_00.format(damage), color);
 			point().stop();
-			point().setMoveAngle(0);
+			point().addY(-25);
+			point().addX(-20);
 		}
 		@Override
 		public DamageNumberEF getOriginal() {
-			return new DamageNumberEF(shooter, Integer.valueOf(((StringViewer)paintScript).WORDS));
+			return new DamageNumberEF(shooter, Integer.valueOf(((StringPaint)paintScript).WORDS), ((StringPaint)paintScript).COLOR);
 		}
 		@Override
 		public void paint() {

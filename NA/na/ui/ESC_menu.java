@@ -12,8 +12,9 @@ import gui.InventorySystem;
 import gui.InventoryViewer;
 import gui.TextButton;
 import gui.TitledLabel;
-import item.BSItem;
+import item.NAItem;
 import item.ItemData;
+import item.weapon.Equipment;
 import item.weapon.MainSlot;
 import item.weapon.MelleSlot;
 import item.weapon.SubSlot;
@@ -46,15 +47,15 @@ public class ESC_menu extends GUIPartsSwitcher{
 			{
 				setName("INVENTORY");
 				addLast(new InventorySystem(
-						new InventoryViewer(ImageFrame.create("picture/gui/slot.png"), 50, 100, 70, (TableStorage<ItemData>)Engine_NA.getPlayer().inventory.items),
+						new InventoryViewer(ImageFrame.create("picture/gui/slot.png"), 50, 100, 70, (TableStorage<ItemData>)Engine_NA.player().inventory.items),
 						new ItemRCMenu()
 						)
 				);
 				addLast(mainWeaponLabel = new TitledLabel("mainWeapon") {
 					@Override
 					public void clicked() {
-						if(Engine_NA.getPlayer().mainSlot != BSItem.BLANK_ITEM)
-							GHQ.mouseHook.hook(Engine_NA.getPlayer().mainSlot, this);
+						if(Engine_NA.player().hasMainEquip())
+							GHQ.mouseHook.hook(Engine_NA.player().mainEquip(), this);
 					}
 					@Override
 					public boolean doLinkDrag() {
@@ -62,15 +63,15 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					public boolean checkDragIn(GUIParts sourceUI, Object dropObject) {
-						return dropObject instanceof BSItem && dropObject instanceof MainSlot;
+						return dropObject instanceof NAItem && dropObject instanceof MainSlot;
 					}
 					@Override
 					public void dragIn(GUIParts sourceUI, Object dropObject) {
-						Engine_NA.getPlayer().mainSlot = (BSItem)dropObject;
+						((Equipment)dropObject).equipToOwner();
 					}
 					@Override
 					public Object peekDragObject() {
-						return Engine_NA.getPlayer().mainSlot;
+						return Engine_NA.player().mainEquip();
 					}
 					@Override
 					public boolean checkDragOut(GUIParts targetUI, Object dropObject) {
@@ -78,14 +79,17 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					public void dragOut(GUIParts sourceUI, Object dropObject, Object swapObject) {
-						Engine_NA.getPlayer().mainSlot = swapObject == null ? BSItem.BLANK_ITEM : (BSItem)swapObject;
+						if(swapObject == null)
+							((Equipment)dropObject).dequipFromOwner();
+						else
+							((Equipment)swapObject).equipToOwner();
 					}
 				}).setName("mainWeaponLabel").setBGColor(Color.WHITE).setBounds(550, 130, 400, 40);
 				addLast(subWeaponLabel = new TitledLabel("subWeapon") {
 					@Override
 					public void clicked() {
-						if(Engine_NA.getPlayer().subSlot != BSItem.BLANK_ITEM)
-							GHQ.mouseHook.hook(Engine_NA.getPlayer().subSlot, this);
+						if(Engine_NA.player().hasSubEquip())
+							GHQ.mouseHook.hook(Engine_NA.player().subEquip(), this);
 					}
 					@Override
 					public boolean doLinkDrag() {
@@ -93,15 +97,15 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					public boolean checkDragIn(GUIParts sourceUI, Object dropObject) {
-						return dropObject instanceof BSItem && dropObject instanceof SubSlot;
+						return dropObject instanceof Equipment && dropObject instanceof SubSlot;
 					}
 					@Override
 					public void dragIn(GUIParts sourceUI, Object dropObject) {
-						Engine_NA.getPlayer().subSlot = (BSItem)dropObject;
+						((Equipment)dropObject).equipToOwner();
 					}
 					@Override
 					public Object peekDragObject() {
-						return Engine_NA.getPlayer().subSlot;
+						return Engine_NA.player().subEquip();
 					}
 					@Override
 					public boolean checkDragOut(GUIParts targetUI, Object dropObject) {
@@ -109,14 +113,17 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					public void dragOut(GUIParts sourceUI, Object dropObject, Object swapObject) {
-						Engine_NA.getPlayer().subSlot = swapObject == null ? BSItem.BLANK_ITEM : (BSItem)swapObject;
+						if(swapObject == null)
+							((Equipment)dropObject).dequipFromOwner();
+						else
+							((Equipment)swapObject).equipToOwner();
 					}
 				}).setName("subWeaponLabel").setBGColor(Color.WHITE).setBounds(550, 200, 400, 40);
 				addLast(meleeWeaponLabel = new TitledLabel("meleeWeapon") {
 					@Override
 					public void clicked() {
-						if(Engine_NA.getPlayer().meleeSlot != BSItem.BLANK_ITEM)
-							GHQ.mouseHook.hook(Engine_NA.getPlayer().meleeSlot, this);
+						if(Engine_NA.player().hasMelleEquip())
+							GHQ.mouseHook.hook(Engine_NA.player().melleEquip(), this);
 					}
 					@Override
 					public boolean doLinkDrag() {
@@ -124,15 +131,15 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					public boolean checkDragIn(GUIParts sourceUI, Object dropObject) {
-						return dropObject instanceof BSItem && dropObject instanceof MelleSlot;
+						return dropObject instanceof NAItem && dropObject instanceof MelleSlot;
 					}
 					@Override
 					public void dragIn(GUIParts sourceUI, Object dropObject) {
-						Engine_NA.getPlayer().meleeSlot = (BSItem)dropObject;
+						((Equipment)dropObject).equipToOwner();
 					}
 					@Override
 					public Object peekDragObject() {
-						return Engine_NA.getPlayer().meleeSlot;
+						return Engine_NA.player().melleEquip();
 					}
 					@Override
 					public boolean checkDragOut(GUIParts targetUI, Object dropObject) {
@@ -140,7 +147,10 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					public void dragOut(GUIParts sourceUI, Object dropObject, Object swapObject) {
-						Engine_NA.getPlayer().meleeSlot = swapObject == null ? BSItem.BLANK_ITEM : (BSItem)swapObject;
+						if(swapObject == null)
+							((Equipment)dropObject).dequipFromOwner();
+						else
+							((Equipment)swapObject).equipToOwner();
 					}
 				}).setName("meleeWeaponLabel").setBGColor(Color.WHITE).setBounds(550, 270, 400, 40);
 			}
@@ -151,9 +161,9 @@ public class ESC_menu extends GUIPartsSwitcher{
 				G2.drawRect(30, 80, 400, 450);
 				G2.drawRect(520, 80, 450, 450);
 				//weaponName update
-				mainWeaponLabel.setText(Engine_NA.getPlayer().mainSlot.name());
-				subWeaponLabel.setText(Engine_NA.getPlayer().subSlot.name());
-				meleeWeaponLabel.setText(Engine_NA.getPlayer().meleeSlot.name());
+				mainWeaponLabel.setText(Engine_NA.player().mainEquip().name());
+				subWeaponLabel.setText(Engine_NA.player().subEquip().name());
+				meleeWeaponLabel.setText(Engine_NA.player().melleEquip().name());
 				//item description
 				G2.setColor(Color.GRAY);
 				G2.setStroke(GHQ.stroke3);
@@ -173,9 +183,9 @@ public class ESC_menu extends GUIPartsSwitcher{
 				GHQ.getG2D(Color.GRAY, GHQ.stroke3).drawRect(520, 80, 450, 450);
 				//triangle
 				final int xs = 200, ys = 400, d = 25;
-				final double d1 = Engine_NA.getPlayer().POW_FIXED.doubleValue(),
-						d2 = Engine_NA.getPlayer().AGI_FIXED.doubleValue(),
-						d3 = Engine_NA.getPlayer().INT_FIXED.doubleValue();
+				final double d1 = Engine_NA.player().POW_FIXED.doubleValue(),
+						d2 = Engine_NA.player().AGI_FIXED.doubleValue(),
+						d3 = Engine_NA.player().INT_FIXED.doubleValue();
 				int x1, y1, x2, y2, x3, y3;
 				x1 = 0;
 				y1 = (int)(-d1*d);
@@ -214,30 +224,30 @@ public class ESC_menu extends GUIPartsSwitcher{
 				//status text preview
 				G2.setFont(GHQ.initialFont.deriveFont(22F));
 				G2.setColor(Color.RED);
-				G2.drawString("力量: " + Engine_NA.getPlayer().POW_FLOAT.intValue() + "(" + Engine_NA.getPlayer().POW_FIXED.intValue() + ")", 545, 115);
+				G2.drawString("力量: " + Engine_NA.player().POW_FLOAT.intValue() + "(" + Engine_NA.player().POW_FIXED.intValue() + ")", 545, 115);
 				G2.setColor(Color.BLUE);
-				G2.drawString("智力: " + Engine_NA.getPlayer().INT_FLOAT.intValue() + "(" + Engine_NA.getPlayer().INT_FIXED.intValue() + ")", 545, 140);
+				G2.drawString("智力: " + Engine_NA.player().INT_FLOAT.intValue() + "(" + Engine_NA.player().INT_FIXED.intValue() + ")", 545, 140);
 				G2.setColor(Color.GREEN);
-				G2.drawString("敏捷: " + Engine_NA.getPlayer().AGI_FLOAT.intValue() + "(" + Engine_NA.getPlayer().AGI_FIXED.intValue() + ")", 545, 165);
+				G2.drawString("敏捷: " + Engine_NA.player().AGI_FLOAT.intValue() + "(" + Engine_NA.player().AGI_FIXED.intValue() + ")", 545, 165);
 				
 				G2.setColor(Color.RED);
-				G2.drawString("HP: " + Engine_NA.getPlayer().RED_BAR.intValue() + "/" + Engine_NA.getPlayer().RED_BAR.getMax().intValue(), 545, 200);
+				G2.drawString("HP: " + Engine_NA.player().RED_BAR.intValue() + "/" + Engine_NA.player().RED_BAR.max().intValue(), 545, 200);
 				G2.setColor(Color.BLUE);
-				G2.drawString("MP: " + Engine_NA.getPlayer().BLUE_BAR.intValue() + "/" + Engine_NA.getPlayer().BLUE_BAR.getMax().intValue(), 545, 225);
+				G2.drawString("MP: " + Engine_NA.player().BLUE_BAR.intValue() + "/" + Engine_NA.player().BLUE_BAR.max().intValue(), 545, 225);
 				G2.setColor(Color.GREEN);
-				G2.drawString("STAMINA: " + Engine_NA.getPlayer().GREEN_BAR.intValue() + "/" + Engine_NA.getPlayer().GREEN_BAR.getMax().intValue(), 545, 250);
+				G2.drawString("STAMINA: " + Engine_NA.player().GREEN_BAR.intValue() + "/" + Engine_NA.player().GREEN_BAR.max().intValue(), 545, 250);
 				G2.setColor(Color.WHITE);
-				G2.drawString("FOOD: " + Engine_NA.getPlayer().ENERGY.intValue() + "/" + Engine_NA.getPlayer().ENERGY.getMax().intValue(), 545, 275);
+				G2.drawString("FOOD: " + Engine_NA.player().ENERGY.intValue() + "/" + Engine_NA.player().ENERGY.max().intValue(), 545, 275);
 			
 				G2.setColor(Color.WHITE);
-				G2.drawString("SPD: " + Engine_NA.getPlayer().SPEED_PPS.intValue(), 545, 310);
-				G2.drawString("SENSE: " + Engine_NA.getPlayer().SENSE.intValue(), 545, 335);
-				G2.drawString("TOUGHNESS: " + Engine_NA.getPlayer().TOUGHNESS.intValue(), 545, 360);
-				G2.drawString("TOUGHNESS_REG: " + Engine_NA.getPlayer().TOUGHNESS_REG.intValue(), 545, 385);
-				G2.drawString("CRI: " + Engine_NA.getPlayer().CRI.doubleValue(), 545, 410);
-				G2.drawString("AVD: " + Engine_NA.getPlayer().AVD.doubleValue(), 545, 435);
-				G2.drawString("REF: " + Engine_NA.getPlayer().REF.doubleValue(), 545, 460);
-				G2.drawString("SUCK: " + Engine_NA.getPlayer().SUCK.doubleValue(), 545, 485);
+				G2.drawString("SPD: " + Engine_NA.player().SPEED_PPS.intValue(), 545, 310);
+				G2.drawString("SENSE: " + Engine_NA.player().SENSE.intValue(), 545, 335);
+				G2.drawString("TOUGHNESS: " + Engine_NA.player().TOUGHNESS.intValue(), 545, 360);
+				G2.drawString("TOUGHNESS_REG: " + Engine_NA.player().TOUGHNESS_REG.intValue(), 545, 385);
+				G2.drawString("CRI: " + Engine_NA.player().CRI.doubleValue(), 545, 410);
+				G2.drawString("AVD: " + Engine_NA.player().AVD.doubleValue(), 545, 435);
+				G2.drawString("REF: " + Engine_NA.player().REF.doubleValue(), 545, 460);
+				G2.drawString("SUCK: " + Engine_NA.player().SUCK.doubleValue(), 545, 485);
 			}
 		});
 		//Craft

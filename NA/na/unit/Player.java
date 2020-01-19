@@ -5,6 +5,9 @@ import static java.awt.event.KeyEvent.*;
 import java.awt.Color;
 
 import core.GHQ;
+import damage.DamageResourceType;
+import damage.NADamage;
+import damage.DamageMaterialType;
 import engine.Engine_NA;
 import item.ItemData;
 import paint.ImageFrame;
@@ -40,6 +43,17 @@ public class Player extends BasicPlayer{
 	@Override
 	public void idle() {
 		super.idle();
+		//buff testing space
+		if(Engine_NA.s_keyL.pullEvent(VK_SPACE)) {
+			this.damage(new NADamage(50, DamageMaterialType.Heat, DamageResourceType.Bullet));
+			//System.out.println(this.TOUGHNESS.doubleValue());
+		}
+		if(Engine_NA.s_keyL.pullEvent(VK_SHIFT)) {
+			this.damage(new NADamage(50, DamageMaterialType.Ice, DamageResourceType.Bullet));
+		}
+		if(Engine_NA.s_keyL.pullEvent(VK_R)) {
+			RED_BAR.consume(-100);
+		}
 		////////////
 		//aim
 		////////////

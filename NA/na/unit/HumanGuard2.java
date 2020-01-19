@@ -8,6 +8,7 @@ public class HumanGuard2 extends BasicEnemy{
 	private static final long serialVersionUID = -8167654165444569286L;
 	public HumanGuard2(int initialGroup) {
 		super(70, initialGroup);
+		POW_FIXED.setMax(15).setToMax();
 	}
 	@Override
 	public final String name() {

@@ -1,28 +1,25 @@
 package buff;
 
-import calculate.FixedSetter;
-import unit.BasicUnit;
-import unit.Unit;
+import calculate.Setter;
+import paint.ImageFrame;
+import paint.rect.RectPaint;
+import unit.NAUnit;
 
-public class ToughnessBroke extends Buff{
+public class ToughnessBroke extends NABuff{
 	private static final long serialVersionUID = -3341059350704317027L;
-	private final FixedSetter zeroSetter = new FixedSetter(0);
-	public ToughnessBroke(Unit owner) {
-		super(owner);
-		((BasicUnit)owner).SPEED_PPS.getValueFormula().append(zeroSetter);
+	private static final RectPaint rectPaint = ImageFrame.create("picture/buff/ToughnessBroke.png");
+	public ToughnessBroke(NAUnit owner) {
+		super(owner, rectPaint);
+		owner.SPEED_PPS.getValueWithCalculation_value().addCalculation(Setter.ZERO_SETTER);
 	}
 
 	@Override
 	public void idle() {
-		final BasicUnit UNIT = (BasicUnit)owner;
-		if(UNIT.TOUGHNESS.isMax()) {
-			removed();
-		}
+		if(((NAUnit)owner).TOUGHNESS.isMax())
+			removeFromOwner();
 	}
-	
 	@Override
 	public void removed() {
-		((BasicUnit)owner).removeBuff(this);
-		((BasicUnit)owner).SPEED_PPS.getValueFormula().delete(zeroSetter);
+		((NAUnit)owner).SPEED_PPS.getValueWithCalculation_value().removeCalculation(Setter.ZERO_SETTER);
 	}
 }
