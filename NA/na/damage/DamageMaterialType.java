@@ -32,7 +32,7 @@ public enum DamageMaterialType {
 		case Poi:
 			return Color.GREEN;
 		case Rea:
-			return Color.BLACK;
+			return Color.WHITE;
 		default:
 			return null;
 		}

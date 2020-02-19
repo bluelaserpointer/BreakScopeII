@@ -1,9 +1,11 @@
 package unit;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 import buff.Buff;
+import buff.NABuff;
 import buff.ToughnessBroke;
 import bullet.Bullet;
 import calculate.Calculation;
@@ -13,56 +15,178 @@ import core.GHQ;
 import core.GHQObject;
 import damage.DamageMaterialType;
 import damage.NADamage;
+import effect.Effect;
+import engine.NAGame;
 import gui.stageEditor.GHQObjectHashMap;
 import item.ItemData;
 import item.NAItem;
+import item.NAUsable;
 import item.ammo.Ammo_9mm;
-import item.weapon.ElectronShield;
-import item.weapon.Equipment;
-import item.weapon.MainSlot;
-import item.weapon.MelleSlot;
-import item.weapon.SubSlot;
+import paint.ImageFrame;
 import paint.dot.DotPaint;
-import paint.rect.RectPaint;
+import physics.Angle;
 import physics.Dynam;
 import physics.HasPoint;
 import physics.HitGroup;
 import physics.Point;
+import physics.Direction.Direction8;
 import physics.hitShape.Circle;
+import stage.Gridder;
 import status.Status;
 import storage.ItemStorage;
-import storage.Storage;
+import storage.TableStorage;
+import talent.Talent;
 import unit.Unit;
+import unit.body.HumanBody;
+import weapon.ElectronShield;
+import weapon.Equipment;
 
-public abstract class NAUnit extends Unit {
-	private static final long serialVersionUID = -3074084304336765077L;
+public abstract class NAUnit extends Unit implements Person {
+	public static final NAUnit NULL_NAUnit = new NAUnit(0) {
+		{
+			status.reset();
+		}
+		@Override
+		public UnitGroup unitGroup() {
+			return UnitGroup.INVALID;
+		}
+	};
+	//resources
+	protected ImageFrame battleStanceIF = 
+			ImageFrame.create("picture/mark/battleStance.png");
+	protected ImageFrame battleStanceWhenVisibleIF = 
+			ImageFrame.create("picture/mark/battleStanceWithEye.png");
+	//physics
 	public int charaSize;
 	public Point.IntPoint dstPoint = new Point.IntPoint();
-	public double charaSpeed = 30;
-	public boolean charaOnLand;
 	
-	//effect
-
-	public static final int ACCAR_HIT_EF = 0;
-	// Weapon
-	public final int weapon_max = 10;
-	protected Equipment
-		mainSlot = Equipment.NULL_EQUIPMENT,
-		subSlot = Equipment.NULL_EQUIPMENT,
-		melleSlot = Equipment.NULL_EQUIPMENT;
-
-	// GUI
-	public RectPaint iconPaint;
-
-	// Resource
-	// Images
+	//body&actions
+	public enum BodyPartsTypeLibrary implements BodyPartsType {
+		HEAD, TRUNK, HAND, LEGS, FOOTS,
+		MAIN_WEAPON, SUB_WEAPON, MELLE_WEAPON, SHIELD, EXOSKELETON
+	}
+	protected HumanBody body = new HumanBody(this);
+	protected BodyParts currentWeaponBodyParts = body().mainEquipSlot();
+	protected BodyParts lastWeaponBodyParts = currentWeaponBodyParts;
+	protected final InputProcesser actionProcesserByShortcutKeys = new InputProcesser(this) {
+		@Override
+		public void process() {
+			for(int i = 0; i < 10; ++i)
+				useQuickSlotByInput(i);
+		}
+	};
+	private final void useQuickSlotByInput(int id) {
+		final String STR = "SHORTCUT" + id;
+		if(gameInputs().consumeIgnoreConsume(STR)) { 
+			final int SLOT_ID = id == 0 ? 9 : id - 1;
+			final NAUsable itemData = quickSlot.get(SLOT_ID);
+			if(itemData != null) {
+				itemData.use(gameInputs().hasSecondEvent(STR));
+				NAGame.quickSlotViewer().lit(SLOT_ID);
+			}
+		}
+	}
+	protected final LinkedList<InputProcesser> actionProcesserByBuff = new LinkedList<InputProcesser>();
+	protected final InputProcesser actionProcesserByPlayer = def_ActionProcesser();
+	protected InputProcesser def_ActionProcesser() { //define process for actions
+		return new InputProcesser(this) {
+			@Override
+			public void process() {
+				//judge rolling
+				boolean didLolling = false;
+				final double ROLL_STR = SPEED_PPS.doubleValue()/10;
+				final Direction8 direction = Direction8.getDirectionByWASD(
+						gameInputs().hasEvent("WALK_NORTH"),
+						gameInputs().hasEvent("WALK_WEST"),
+						gameInputs().hasEvent("WALK_SOUTH"),
+						gameInputs().hasEvent("WALK_EAST"));
+				if(gameInputs().consume("ROLL") && GREEN_BAR.intValue() > 25) {
+					body.rolling.setRolling(ROLL_STR, direction);
+				}else if(gameInputs().hasEvent("SPRINT") && !GREEN_BAR.isMin()) {
+					body.directionDash.setDirection(direction, 2*GHQ.mulSPF(SPEED_PPS.doubleValue()));
+				}else
+					body.directionWalk.setDirection(direction, GHQ.mulSPF(SPEED_PPS.doubleValue()));
+				//reduce green bar when rolling
+				if(didLolling) {
+					//GREEN_BAR.consume(25.0);
+					//suspend any action during rolling
+					actionProcesserByBuff.add(new InputProcesser(UNIT) {
+						private final int INITIAL_FRAME = GHQ.nowFrame();
+						@Override
+						public void process() {
+							if(GHQ.passedFrame(INITIAL_FRAME) > 15) {
+								actionProcesserByBuff.remove(this);
+								return;
+							}
+							gameInputs().consume("FIRE");
+							gameInputs().consume("RELOAD");
+						}
+					});
+				}
+				//weapon action
+				if(currentEquipment() != null) { //has weapon
+					//attack
+					if(gameInputs().hasEvent("FIRE")) {
+						currentEquipment().use(true);
+						setMiniTalking("Fire.");
+					}
+					//reload
+					if(gameInputs().hasEvent("RELOAD")) {
+						if(currentEquipment() != null)
+							currentEquipment().reloadIfEquipment();
+						setMiniTalking("Reloading.");
+					}
+				}else {
+					//attack
+					if(gameInputs().hasEvent("FIRE")) {
+						body.punch.setPunch();
+						setMiniTalking("Punch.");
+					}
+				}
+				if(gameInputs().consume("LAST_WEAPON")) {
+					final BodyParts tmp = currentWeaponBodyParts;
+					currentWeaponBodyParts = lastWeaponBodyParts;
+					lastWeaponBodyParts = tmp;
+				}
+				//itemPick & talk
+				final ItemData item = GHQ.stage().items.forIntersects(UNIT);
+				if(gameInputs().consume("INTERACT")) {
+					if(item != null)
+						inventory.items.add(item.pickup(UNIT));
+					else {
+						final NAUnit npc = (NAUnit)GHQ.stage().getNearstVisibleEnemy(UNIT);
+						if(npc.point().inRange(UNIT.point(), 240)) {
+							npc.startTalk((NAUnit)UNIT);
+						}
+					}
+				}else if(item != null) { //show item name
+					GHQ.getG2D(Color.WHITE);
+					GHQ.drawStringGHQ(item.name(), item.point().intX(), item.point().intY() - 20);
+				}
+			}
+		};
+	}
+	//personal information
+	protected String personalName;
+	public ImageFrame personalIcon;
 	public DotPaint charaPaint = DotPaint.BLANK_SCRIPT;
-	//special
-	public int favorDegree;
+	
+	//battle
+	protected NAUnit targetUnit;
+	protected int targetFoundFrame;
+	protected boolean isBattleStance;
+	protected double suspiciousAngle;
+	protected int lastDetectedFrame;
+	protected boolean invisibled;
+
+	//favor
+	protected final int[] personalFavor = new int[UnitGroup.GROUP_AMOUNT];
 	//buff
-	public LinkedList<Buff> buffs = new LinkedList<Buff>(),
-			waitingBuffs = new LinkedList<Buff>(),
-			waitingDeleteBuffs = new LinkedList<Buff>();
+	protected LinkedList<NABuff> buffs = new LinkedList<NABuff>(),
+			waitingBuffs = new LinkedList<NABuff>(),
+			waitingDeleteBuffs = new LinkedList<NABuff>();
+	//talent
+	protected LinkedList<Talent> talents = new LinkedList<Talent>();
 	//status
 	private NADamage lastDamage;
 	private final HashMap<DamageMaterialType, Double> damageResMap = new HashMap<DamageMaterialType, Double>();
@@ -73,14 +197,14 @@ public abstract class NAUnit extends Unit {
 		damageResMap.put(DamageMaterialType.Poi, 0.0);
 	}
 	public final ConsumableEnergy
-		POW_FIXED = new ConsumableEnergy(4).setMin(1),
+		POW_FIXED = new ConsumableEnergy(5).setMin(1),
 		POW_FLOAT = new ConsumableEnergy(new Calculation() {
 			@Override
 			public Number calculate(Number number) {
 				return (int)(POW_FIXED.doubleValue()*RED_BAR.getRate());
 			}
 		}).setMin(1),
-		INT_FIXED = new ConsumableEnergy(2).setMin(1),
+		INT_FIXED = new ConsumableEnergy(5).setMin(1),
 		INT_FLOAT = new ConsumableEnergy(new Calculation() {
 			@Override
 			public Number calculate(Number number) {
@@ -136,14 +260,14 @@ public abstract class NAUnit extends Unit {
 				return POW_FIXED.doubleValue()*200.0;
 			}
 		}).setDefaultToMax(),
-		SPEED_PPS = new ConsumableEnergy().setMin(0).setDefault(new Calculation() {
+		SPEED_PPS = new ConsumableEnergy(new Calculation() {
 			@Override
 			public Number calculate(Number number) {
 				return AGI_FLOAT.doubleValue()*40.0 + 100;
 			}
-		}),
+		}).setMin(0),
 		SENSE = new ConsumableEnergy(5).setMin(0).setDefault(5),
-		WEIGHT = new ConsumableEnergy(60).setMin(0).setDefault(60),
+		WEIGHT = new ConsumableEnergy(60).setMin(0),
 		TOUGHNESS = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
 			@Override
 			public Number calculate(Number number) {
@@ -157,7 +281,7 @@ public abstract class NAUnit extends Unit {
 			}
 		}),
 		CRI = new ConsumableEnergy().setMin(0.00).setDefault(0.05),
-		CRI_EFFECT = new ConsumableEnergy().setMin(0.00).setDefault(0.05),
+		CRI_EFFECT = new ConsumableEnergy().setMin(0.00).setDefault(2.0),
 		AVD = new ConsumableEnergy().setDefault(new Calculation() {
 			@Override
 			public Number calculate(Number number) {
@@ -167,7 +291,7 @@ public abstract class NAUnit extends Unit {
 		REF = new ConsumableEnergy(0.00).setDefault(0.00),
 		SUCK = new ConsumableEnergy(0.00).setDefault(0.00);
 	public final Status status = new Status(RED_BAR, BLUE_BAR, GREEN_BAR, POW_FLOAT, INT_FLOAT, AGI_FLOAT, ENERGY
-			, SPEED_PPS, TOUGHNESS);
+			, SPEED_PPS, TOUGHNESS, TOUGHNESS_REG, CRI, CRI_EFFECT, AVD, REF, SUCK);
 	@Override
 	public GHQObjectHashMap getKindDataHashMap() {
 		return new GHQObjectHashMap()
@@ -199,38 +323,27 @@ public abstract class NAUnit extends Unit {
 		return new Ammo_9mm(0).name();
 	}
 	//inventory
-	public final ItemStorage inventory = def_inventory();
-	protected ItemStorage def_inventory() {
-		return new ItemStorage(new Storage<ItemData>());
-	}
+	public final TableStorage<NAUsable> quickSlot = new TableStorage<NAUsable>(10, 1, NAUsable.NULL_NA_USABLE);
+	public final ItemStorage inventory = new ItemStorage(new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM));
 	
-	public NAUnit(int charaSize, int hitGroup) {
+	public NAUnit(int charaSize) {
 		physics().setPoint(new Dynam());
 		physics().setHitShape(new Circle(this, charaSize));
-		physics().setHitGroup(new HitGroup(hitGroup));
+		physics().setHitGroup(HitGroup.HIT_ALL);
 	}
 	@Override
 	public NAUnit respawn(int x, int y) {
-		resetOrder();
 		status.reset();
-		mainSlot.reset();
-		subSlot.reset();
-		melleSlot.reset();
+		//remain previous weapon.
+		for(ItemData item : body.equipments())
+			((Equipment)item).reset();
 		point().stop();
+		lastDetectedFrame = 0;
 		dstPoint.setXY(point().setXY(x, y));
 		angle().set(0.0);
-		charaOnLand = false;
 		inventory.items.clear();
 		inventory.add_stack(new Ammo_9mm(32));
 		return this;
-	}
-	public void resetOrder() {
-		weaponChangeOrder = 0;
-		attackOrder = dodgeOrder = spellOrder = false;
-	}
-	public void resetSingleOrder() {
-		weaponChangeOrder = 0;
-		spellOrder = dodgeOrder = false;
 	}
 	@Override
 	public void idle() {
@@ -241,10 +354,10 @@ public abstract class NAUnit extends Unit {
 		//relate to energy
 		if(!ENERGY.isMin()) {
 			//regeneration
-			ENERGY.consume(RED_BAR.consume(-RED_REG.doubleValue()*GHQ.getSPF())*1.0*GHQ.getSPF());
-			ENERGY.consume(BLUE_BAR.consume(-BLUE_REG.doubleValue()*GHQ.getSPF())*0.2*GHQ.getSPF());
+			ENERGY.consume(-RED_BAR.consume(-RED_REG.doubleValue()*GHQ.getSPF())*1.0*GHQ.getSPF());
+			ENERGY.consume(-BLUE_BAR.consume(-BLUE_REG.doubleValue()*GHQ.getSPF())*0.2*GHQ.getSPF());
 			if(GHQ.isExpired_dynamicSeconds(GREEN_BAR.lastDecreasedFrame(), 1.0))
-				ENERGY.consume(GREEN_BAR.consume(-GREEN_REG.doubleValue()*GHQ.getSPF())*0.1*GHQ.getSPF());
+				ENERGY.consume(-GREEN_BAR.consume(-GREEN_REG.doubleValue()*GHQ.getSPF())*0.1);
 			//reduce energy
 			if(GHQ.checkSpan_dynamicSeconds(30.0))
 				ENERGY.consume(1);
@@ -266,23 +379,117 @@ public abstract class NAUnit extends Unit {
 		for(Buff buff : buffs)
 			buff.idle();
 		////////////
-		// weapon
+		// item in inventory (includes weapon equipped to body parts)
 		////////////
-		mainSlot.idle();
-		subSlot.idle();
-		melleSlot.idle();
-		melleSlot.reloadIfEquipment();
+		for(ItemData item : inventory.items)
+			item.idle();
+		////////////
+		//input
+		////////////
+		if(isControllingUnit()) {
+			actionProcesserByShortcutKeys.process();
+			for(InputProcesser processer : actionProcesserByBuff)
+				processer.process();
+			actionProcesserByPlayer.process();
+		}
 		////////////
 		//point
 		////////////
 		point().moveIfNoObstacles(this);
 		point().accelerate_MUL(0.9);
+		////////////
+		//sight & battle
+		////////////
+		updateTargetUnit();
+		if(!isControllingUnit()) {
+			attack();
+		} else if(this instanceof Boss_1)
+			attack();
+		////////////
+		//aim
+		////////////
+		if(isControllingUnit())
+			angle().set(point().angleToMouse());
+		////////////
+		// body
+		////////////
+		//movement
+		//must proceed last, or later functions cannot get correct coordinate.
+		body.idle();
 	}
-	public int weaponChangeOrder;
-	public boolean attackOrder,dodgeOrder,spellOrder;
+	protected void attack() {
+		if(targetUnit != null) {
+			final double targetAngle = point().angleTo(targetUnit);
+			final double angleDiff = angle().spinTo_Suddenly(targetAngle, 10);
+			final double distance = point().distance(targetUnit);
+			if(angle().isDeltaSmaller(targetAngle, Math.PI*10/18)) {
+				if(currentEquipment() == null && angleDiff < 0.30 && distance < 50
+						|| angleDiff < currentEquipment().effectiveAngleWidth &&  distance < currentEquipment().effectiveRange) {
+					if(currentEquipment() != null)
+						currentEquipment().use();
+					else
+						body().punch.setPunch();
+				}
+			}
+		}else if(isBattleStance) {
+			if(GHQ.nowFrame() % 80 == 0) {
+				suspiciousAngle = Angle.random();
+			}
+			angle().spinTo_Suddenly(suspiciousAngle, 10);
+		}else
+			angle().spinTo_Suddenly(point().moveAngle(), 10);
+	}
 	@Override
 	public void paint() {
-		charaPaint.dotPaint_turn(this);
+		////////////
+		//enlightVisibleArea
+		////////////
+		if(/*true || */isControllingUnit() || NAGame.controllingUnit().isVisible(this)) {
+			if(this.isControllingUnit())
+				GHQ.getG2D(new Color(1F, 1F, 1F, 0.1F), 1F);
+			else
+				GHQ.getG2D(new Color(1F, 0F, 0F, 0.1F), 1F);
+			Gridder gridder = new Gridder(250, 250);
+			for(int xPos = 0;xPos < gridder.W_DIV;++xPos) {
+				for(int yPos = 0;yPos < gridder.H_DIV;++yPos) {
+					if(isVisible(gridder.getPosPoint(xPos, yPos))) {
+						gridder.fillGrid(GHQ.getG2D(), xPos, yPos);
+					}
+				}
+			}
+		}
+		////////////
+		//body and weapon
+		////////////
+		if(!isControllingUnit()) {
+			if(NAGame.controllingUnit().isVisible(this)) {
+				lastDetectedFrame = GHQ.nowFrame();
+				body.paint();
+				GHQ.paintHPArc(point(), 20, RED_BAR.intValue(), RED_BAR.defaultValue().intValue());
+			}else {
+				final double passedTime = GHQ.passedFrame(lastDetectedFrame)*GHQ.getSPF();
+				final double KEEP_TIME = 3.0;
+				if(passedTime < KEEP_TIME) {
+					GHQ.setImageAlpha((float)(1F - passedTime/KEEP_TIME));
+					body.paint();
+					GHQ.setImageAlpha();
+				}
+			}
+		}else {
+			body.paint();
+		}
+		////////////
+		//show mark
+		////////////
+		if(isControllingUnit() || NAGame.controllingUnit().isVisible(this)) {
+			if(isBattleStance) {
+				if(targetUnit != null && this.isVisible(targetUnit)) {
+					battleStanceWhenVisibleIF.dotPaint(point().intX(), point().intY() - charaPaint.height());
+				}else {
+					battleStanceIF.dotPaint(point().intX(), point().intY() - charaPaint.height());
+				}
+			}
+		}
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
 		paintScript.dotPaint_turn(point(), (double)GHQ.nowFrame()/35.0);
@@ -293,46 +500,145 @@ public abstract class NAUnit extends Unit {
 	}
 	
 	//tool
-	public NAUnit getVisibleEnemy() {
-		Unit unit = GHQ.stage().getNearstVisibleEnemy(this);
-		if(this.point().distance(unit) < 500) //TODO distance of sight
-			return (NAUnit)unit;
-		return null;
+	public void updateTargetUnit() {
+		NAUnit leastFriendlyUnit = null;
+		int leastFavor = 0, favor;
+		double leastFriendlyUnitDistance = Double.MAX_VALUE, distance;
+		for(Unit unit : GHQ.stage().getVisibleUnit(this)) {
+			if(!isVisible(unit)) //TODO distance of sight should change upon status
+				continue;
+			favor = favorTo((NAUnit)unit);
+			distance = point().distance(leastFriendlyUnit);
+			if(favor < leastFavor || favor == leastFavor && distance < leastFriendlyUnitDistance) {
+				leastFriendlyUnit = (NAUnit)unit;
+				leastFavor = favor;
+				leastFriendlyUnitDistance = distance;
+			}
+		}
+		if(isHostile(leastFavor)) { //hostile
+			//record this target and attack it
+			targetUnit = leastFriendlyUnit;
+			targetFoundFrame = GHQ.nowFrame();
+			isBattleStance = true;
+			//say something
+			this.setMiniTalking("I found you.");
+		}else {
+			if(targetUnit != null && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*5)))
+				targetUnit = null;
+			if(isBattleStance && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*15)))
+				isBattleStance = false;
+		}
+	}
+	public boolean isHostile(int favor) {
+		return favor <= -30;
+	}
+	public boolean isHostile(NAUnit target) {
+		return isHostile(favorTo(target));
 	}
 	public boolean isVisible(HasPoint target) {
-		return isVisible(target.point());
+		final double DISTANCE = this.point().distance(target);
+		return isAware(target) || !(target instanceof NAUnit && ((NAUnit)target).isInvisibled()) && DISTANCE < 700 && this.angle().isDeltaSmaller(this.point().angleTo(target), Math.toRadians(60.0)) && this.point().isVisible(target);
 	}
 	public boolean isVisible(Point point) {
 		final double DISTANCE = this.point().distance(point);
-		return DISTANCE < 150 || DISTANCE < 500 && this.angle().isDeltaSmaller(this.point().angleTo(point), Math.toRadians(60.0)) && this.point().isVisible(point);
+		return isAware(point) || DISTANCE < 700 && this.angle().isDeltaSmaller(this.point().angleTo(point), Math.toRadians(60.0)) && this.point().isVisible(point);
 	}
-	
-	// control
-	//weapon equip&dequip
+	public boolean isAware(HasPoint target) {
+		return isAware(target.point());
+	}
+	public boolean isAware(Point point) {
+		return point().distance(point) < SENSE.intValue()*30;
+	}
+	protected boolean isVisibleByControllingUnit() {
+		return this.isControllingUnit() || NAGame.controllingUnit().isVisible(this);
+	}
+	protected boolean isAwareByControllingUnit() {
+		return this.isControllingUnit() || NAGame.controllingUnit().isAware(this);
+	}
+	//control
+	//invisible
+	public void setInvisible(boolean b) {
+		if(b) {
+			if(invisibled)
+				return;
+			for(Unit unit : GHQ.stage().units) {
+				if(isHostile((NAUnit)unit) && this.isVisible(unit)) {
+					//cannot activate invisible mode when a hostile unit is watching him.
+					return;
+				}
+			}
+			invisibled = true;
+		}else
+			invisibled = false;
+	}
+	//talk
+	public void startTalk(NAUnit unit) {}
+	public void setMiniTalking(String text) {
+		GHQ.stage().addEffect(new Effect(this) {
+			{
+				this.limitFrame = 30;
+				point().stop();
+				point().setXY(shooter.point().intX(), shooter.point().intY() - 50);
+			}
+			@Override
+			public void paint() {
+				super.paint();
+				GHQ.getG2D(new Color(0, 0, 0, GHQ.getFadingAlpha(initialFrame, limitFrame))).setFont(GHQ.commentFont);
+				GHQ.drawStringGHQ(text, point().intX(), point().intY());
+			}
+		});
+	}
+	//weapon equip & dequip
 	public void equip(Equipment item) {
-		if(item instanceof MainSlot) {
-			if(mainSlot != null)
-				mainSlot.dequipped();
-			(mainSlot = item).equipped();
-		}else if(item instanceof SubSlot) {
-			if(subSlot != null)
-				subSlot.dequipped();
-			(subSlot = item).equipped();
-		}else if(item instanceof MelleSlot) {
-			if(melleSlot != null)
-				melleSlot.dequipped();
-			(melleSlot = item).equipped();
-		}
+		body.equip(item);
+		item.equipped();
 	}
 	public void dequip(Equipment item) {
-		if(item == mainSlot) {
-			mainSlot = Equipment.NULL_EQUIPMENT;
-		}else if(item == subSlot) {
-			subSlot = Equipment.NULL_EQUIPMENT;
-		}else if(item == melleSlot) {
-			melleSlot = Equipment.NULL_EQUIPMENT;
-		}
+		body.dequip(item);
 		item.dequipped();
+	}
+	public void arm(BodyParts itemSlot) {
+		currentWeaponBodyParts = itemSlot;
+		if(itemSlot.hasEquipment())
+			body().hands().equip(itemSlot.equipment());
+	}
+	public void changeToNextWeapon() {
+		lastWeaponBodyParts = currentWeaponBodyParts;
+		if(currentWeaponBodyParts == body().mainEquipSlot()) {
+			if(body().hasSubEquip())
+				arm(body().subEquipSlot());
+			else if(body().hasMelleEquip())
+				arm(body().melleEquipSlot());
+		}else if(currentWeaponBodyParts == body().subEquipSlot()) {
+			if(body().hasMelleEquip())
+				arm(body().melleEquipSlot());
+			else if(body().hasMainEquip())
+				arm(body().mainEquipSlot());
+		}else if(currentWeaponBodyParts == body().melleEquipSlot()) {
+			if(body().hasMainEquip())
+				arm(body().mainEquipSlot());
+			else if(body().hasSubEquip())
+				arm(body().subEquipSlot());
+		}
+	}
+	public void changeToPrevWeapon() {
+		lastWeaponBodyParts = currentWeaponBodyParts;
+		if(currentWeaponBodyParts == body().mainEquipSlot()) {
+			if(body().hasMelleEquip())
+				arm(body().melleEquipSlot());
+			else if(body().hasSubEquip())
+				arm(body().subEquipSlot());
+		}else if(currentWeaponBodyParts == body().subEquipSlot()) {
+			if(body().hasMainEquip())
+				arm(body().mainEquipSlot());
+			else if(body().hasMelleEquip())
+				arm(body().melleEquipSlot());
+		}else if(currentWeaponBodyParts == body().melleEquipSlot()) {
+			if(body().hasSubEquip())
+				arm(body().subEquipSlot());
+			else if(body().hasMainEquip())
+				arm(body().mainEquipSlot());
+		}
 	}
 	//damage resistance
 	public double damageRes(NADamage damage) {
@@ -368,7 +674,6 @@ public abstract class NAUnit extends Unit {
 	// move
 	protected final void dodge(double targetX, double targetY) {
 		point().addSpeed_DA(40, point().angleTo(targetX,targetY));
-		charaOnLand = false;
 	}
 	//stun
 	public boolean pullStun() {
@@ -380,20 +685,23 @@ public abstract class NAUnit extends Unit {
 	public void damagedTarget(Unit targetUnit, Bullet bullet) {}
 	@Override
 	public void damage(Damage damage, Bullet bullet) {
+		if(damage == NADamage.NULL_DAMAGE || !(damage instanceof NADamage))
+			return;
 		RED_BAR.clearLastSet();
-		final NADamage lastDamage = (NADamage)damage;
-		this.lastDamage = lastDamage;
-		damage.doDamage(this);
-		final double DMG = RED_BAR.lastSetDiff_underZero();
-		//tell this unit damaged him
+		lastDamage = (NADamage)damage;
 		final GHQObject shooterObject = bullet.shooter();
 		if(shooterObject instanceof NAUnit) {
+			damage.doDamage(this, ((NAUnit)shooterObject));
+			//tell this unit damaged him
 			((NAUnit)shooterObject).damagedTarget(this, bullet);
-		}
+		}else
+			damage.doDamage(this, NAUnit.NULL_NAUnit);
 		//knockback when it was physical damage
-		if(lastDamage.materialType() == DamageMaterialType.Phy)
-			point().addSpeed_DA(DMG/WEIGHT.doubleValue()*(containsBuff(ToughnessBroke.class) ? 40 : 20), bullet.point().moveAngle());		
-		//judge alive
+		final double DMG = RED_BAR.lastSetDiff_underZero();
+		if(DMG > 0 && lastDamage.materialType() == DamageMaterialType.Phy) {
+			point().addSpeed_DA(lastDamage.knockbackRate()*DMG/WEIGHT.doubleValue()*(containsBuff(ToughnessBroke.class) ? 40 : 20), bullet.point().moveAngle());		
+			body.damaged.set();
+		}//judge alive
 		if(!isAlive())
 			killed();
 	}
@@ -402,21 +710,21 @@ public abstract class NAUnit extends Unit {
 		killed();
 		return true;
 	}
-	public final void removeOneBuff(Buff buff) {
+	public final void removeOneBuff(NABuff buff) {
 		waitingDeleteBuffs.add(buff);
 	}
-	public final Buff removeOneBuff(Class<? extends Buff> buffClass) {
+	public final Buff removeOneBuff(Class<? extends NABuff> buffClass) {
 		final LinkedList<Buff> BUFF_LIST = removeBuff(buffClass, 1);
 		return BUFF_LIST.size() == 0 ? null : BUFF_LIST.getFirst();
 	}
-	public final LinkedList<Buff> removeAllBuff(Class<? extends Buff> buffClass) {
+	public final LinkedList<Buff> removeAllBuff(Class<? extends NABuff> buffClass) {
 		return removeBuff(buffClass, Integer.MAX_VALUE);
 	}
-	public final LinkedList<Buff> removeBuff(Class<? extends Buff> buffClass, int amount) {
+	public final LinkedList<Buff> removeBuff(Class<? extends NABuff> buffClass, int amount) {
 		final LinkedList<Buff> removedBuffs = new LinkedList<Buff>();
 		if(amount <= 0)
 			return removedBuffs;
-		for(Buff buff : buffs) {
+		for(NABuff buff : buffs) {
 			if(buff.getClass().equals(buffClass)) {
 				removedBuffs.add(buff);
 				removeOneBuff(buff);
@@ -426,47 +734,96 @@ public abstract class NAUnit extends Unit {
 		}
 		return removedBuffs;
 	}
-	public final void addBuff(Buff buff) {
+	public final void addBuff(NABuff buff) {
 		waitingBuffs.add(buff);
 	}
-	public final boolean containsBuff(Buff buff) {
+	public final boolean containsBuff(NABuff buff) {
 		return buffs.contains(buff);
 	}
-	public final boolean containsBuff(Class<? extends Buff> buffClass) {
-		for(Buff buff : buffs) {
-			if(buff.getClass().equals(buffClass))
-				return true;
-		}
-		return false;
+	public final boolean containsBuff(Class<? extends NABuff> buffClass) {
+		return getBuff(buffClass) != null;
 	}
-	public final LinkedList<Buff> buffs() {
+	public final NABuff getBuff(Class<? extends NABuff> buffClass) {
+		for(NABuff buff : buffs) {
+			if(buff.getClass().equals(buffClass))
+				return buff;
+		}
+		return null;
+	}
+	public final LinkedList<NABuff> buffs() {
 		return buffs;
 	}
+	public final void addTalent(Talent talent) {
+		talents.add(talent);
+	}
+	public final LinkedList<Talent> talents() {
+		return talents;
+	}
+	public void addFavor(UnitGroup targetGroup, int value) {
+		personalFavor[targetGroup.ordinal()] += value;
+	}
+	public void setPersonalName(String name) {
+		personalName = name;
+	}
+	public void setPersonalIcon(ImageFrame dotPaint) {
+		personalIcon = dotPaint;
+	}
 	// information
-	public Equipment mainEquip() {
-		return mainSlot;
+	public final boolean isControllingUnit() {
+		return this == NAGame.controllingUnit();
 	}
-	public Equipment subEquip() {
-		return subSlot;
+	//battle
+	public boolean isBattleStance() {
+		return isBattleStance;
 	}
-	public Equipment melleEquip() {
-		return melleSlot;
+	// input action
+	public static GameInputList gameInputs() {
+		return NAGame.gameInputs();
 	}
-	public boolean hasMainEquip() {
-		return mainSlot != Equipment.NULL_EQUIPMENT;
+	public InputProcesser actionProcesserByShortcutKeys() {
+		return actionProcesserByShortcutKeys;
 	}
-	public boolean hasSubEquip() {
-		return subSlot != Equipment.NULL_EQUIPMENT;
+	public LinkedList<InputProcesser> actionProcesserByBuff() {
+		return actionProcesserByBuff;
 	}
-	public boolean hasMelleEquip() {
-		return melleSlot != Equipment.NULL_EQUIPMENT;
+	public InputProcesser actionProcesserByPlayer() {
+		return actionProcesserByPlayer;
+	}
+	// storage
+	public ItemStorage inventory() {
+		return inventory;
+	}
+	public TableStorage<NAUsable> quickSlot() {
+		return quickSlot;
+	}
+	// personal information
+	@Override
+	public String personalName() {
+		return personalName;
+	}
+	@Override
+	public ImageFrame personalIcon() {
+		return personalIcon;
+	}
+	public abstract UnitGroup unitGroup();
+	public int favorTo(NAUnit unit) {
+		return unitGroup().groupFavorTo(unit) + personalFavor[unit.unitGroup().ordinal()];
+	}
+	protected BodyParts currentEquipSlot() {
+		return currentWeaponBodyParts;
+	}
+	public Equipment currentEquipment() {
+		return (Equipment)currentWeaponBodyParts.equipment();
+	}
+	public HumanBody body() {
+		return body;
 	}
 	public NADamage lastDamage() {
 		return lastDamage;
 	}
 	public int getShield() {
-		if(subSlot instanceof ElectronShield) {
-			return ((ElectronShield)subSlot).weapon.getMagazineFilledSpace();
+		if(body().shield() instanceof ElectronShield) {
+			return ((ElectronShield)body().shield()).weapon.getMagazineFilledSpace();
 		}else
 			return 0;
 	}
@@ -477,5 +834,14 @@ public abstract class NAUnit extends Unit {
 	@Override
 	public final boolean isAlive() {
 		return !RED_BAR.isMin();
+	}
+	public NAUnit targetUnit() {
+		return targetUnit;
+	}
+	public boolean isInvisibled() {
+		return invisibled;
+	}
+	public boolean hasTargetUnit() {
+		return targetUnit != null;
 	}
 }

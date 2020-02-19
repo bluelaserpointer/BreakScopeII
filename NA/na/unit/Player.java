@@ -2,25 +2,23 @@ package unit;
 
 import static java.awt.event.KeyEvent.*;
 
-import java.awt.Color;
-
-import core.GHQ;
-import damage.DamageResourceType;
-import damage.NADamage;
-import damage.DamageMaterialType;
-import engine.Engine_NA;
-import item.ItemData;
+import engine.NAGame;
 import paint.ImageFrame;
 import paint.dot.DotPaintMultiple;
-import stage.Gridder;
-import storage.ItemStorage;
-import storage.TableStorage;
+import talent.AllUp;
+import weapon.ElectronShield;
 
-public class Player extends BasicPlayer{
-	private static final long serialVersionUID = 8121281285749873895L;
+public class Player extends NAUnit {
 	
-	public Player(int initialGroup) {
-		super(20, initialGroup);
+	public Player() {
+		super(20);
+		this.addTalent(new AllUp(this));
+	}
+	@Override
+	public final Player respawn(int x, int y) {
+		super.respawn(x, y);
+		equip(addItem(new ElectronShield()));
+		return this;
 	}
 
 	@Override
@@ -28,15 +26,15 @@ public class Player extends BasicPlayer{
 		return "Player";
 	}
 	@Override
-	public ItemStorage def_inventory() {
-		return new ItemStorage(new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM));
+	public final UnitGroup unitGroup() { //TODO change unitGroup upon current coat
+		return UnitGroup.PRISONER;
 	}
 	
 	@Override
 	public final void loadImageData(){
 		super.loadImageData();
 		charaPaint = new DotPaintMultiple(ImageFrame.create("picture/human2-1.png"));
-		iconPaint = ImageFrame.create("thhimage/MarisaIcon.png");
+		personalIcon = ImageFrame.create("thhimage/MarisaIcon.png");
 	}
 	
 	//idle
@@ -44,56 +42,19 @@ public class Player extends BasicPlayer{
 	public void idle() {
 		super.idle();
 		//buff testing space
-		if(Engine_NA.s_keyL.pullEvent(VK_SPACE)) {
-			this.damage(new NADamage(50, DamageMaterialType.Heat, DamageResourceType.Bullet));
+		if(NAGame.s_keyL.hasEvent(VK_SPACE)) {
+			//this.damage(new NADamage(50, DamageMaterialType.Heat, DamageResourceType.Bullet));
 			//System.out.println(this.TOUGHNESS.doubleValue());
+			
 		}
-		if(Engine_NA.s_keyL.pullEvent(VK_SHIFT)) {
-			this.damage(new NADamage(50, DamageMaterialType.Ice, DamageResourceType.Bullet));
+		if(NAGame.s_keyL.hasEvent(VK_SHIFT)) {
+			//this.damage(new NADamage(50, DamageMaterialType.Ice, DamageResourceType.Bullet));
 		}
-		if(Engine_NA.s_keyL.pullEvent(VK_R)) {
+		if(NAGame.s_keyL.hasEvent(VK_R)) {
 			RED_BAR.consume(-100);
 		}
-		////////////
-		//aim
-		////////////
-		angle().set(point().angleToMouse());
-		////////////
-		//reload
-		////////////
-		if(Engine_NA.s_keyL.pullEvent(VK_R))
-			mainSlot.reloadIfEquipment();
-		////////////
-		//itemPick
-		////////////
-		final ItemData item = GHQ.stage().items.forIntersects(this);
-		if(item != null) {
-			if(Engine_NA.s_keyL.pullEvent(VK_E))
-				super.inventory.items.add(item.pickup(this));
-			else {
-				GHQ.getG2D(Color.WHITE);
-				GHQ.drawStringGHQ(item.name(), item.point().intX(), item.point().intY() - 20);
-			}
-		}
-		////////////
-		//talk
-		////////////
-		if(Engine_NA.s_keyL.pullEvent(VK_E)) {
-			final Unit npc = GHQ.stage().getNearstVisibleEnemy(this);
-			if(npc instanceof BasicNPC && npc.point().inRange(this.point(), 240)) {
-				((BasicNPC) npc).startTalk();
-			}
-		}
-		////////////
-		//enlightVisibleArea
-		////////////
-		Gridder gridder = new Gridder(50, 50);
-		for(int xPos = 0;xPos < gridder.W_DIV;++xPos) {
-			for(int yPos = 0;yPos < gridder.H_DIV;++yPos) {
-				if(super.isVisible(gridder.getPosPoint(xPos, yPos))) {
-					gridder.drawGrid(GHQ.getG2D(Color.RED, 1F), xPos, yPos);
-				}
-			}
+		if(NAGame.s_keyL.hasEvent(VK_F)) {
+			//this.damage(new NADamage(1, DamageMaterialType.Phy, DamageResourceType.Bullet));
 		}
 	}
 }

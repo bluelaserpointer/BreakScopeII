@@ -28,4 +28,8 @@ public class ColdBuff extends NABuff {
 		((NAUnit)owner).AVD.getValueWithCalculation_value().removeCalculation(Setter.ZERO_SETTER);
 		((NAUnit)owner).addDamageRes(DamageMaterialType.Heat, -0.25);
 	}
+	@Override
+	public String description() {
+		return "闪避率=0%, 必定被暴击";
+	}
 }

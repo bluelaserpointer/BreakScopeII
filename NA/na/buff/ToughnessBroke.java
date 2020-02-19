@@ -22,4 +22,8 @@ public class ToughnessBroke extends NABuff{
 	public void removed() {
 		((NAUnit)owner).SPEED_PPS.getValueWithCalculation_value().removeCalculation(Setter.ZERO_SETTER);
 	}
+	@Override
+	public String description() {
+		return "无法行动";
+	}
 }

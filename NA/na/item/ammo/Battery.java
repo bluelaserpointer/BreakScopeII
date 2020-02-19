@@ -3,8 +3,7 @@ package item.ammo;
 import item.ItemData;
 import paint.ImageFrame;
 
-public class Battery extends Ammo{
-	private static final long serialVersionUID = -4928866416334877003L;
+public class Battery extends Ammo {
 	@Override
 	public String name() {
 		return "Battery";

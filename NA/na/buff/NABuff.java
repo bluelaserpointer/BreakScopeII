@@ -19,4 +19,5 @@ public abstract class NABuff extends Buff{
 	public final void removeFromOwner() {
 		((NAUnit)owner).removeOneBuff(this);
 	}
+	public abstract String description();
 }

@@ -1,9 +1,9 @@
 package ui;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 
 import core.GHQ;
-import engine.Engine_NA;
 import gui.ClickMenu;
 import gui.InputOptionList;
 import gui.TitledLabel;
@@ -15,6 +15,10 @@ import unit.Unit;
 public class UnitEditor extends ClickMenu<Unit>{
 	
 	//label
+	@Override
+	public void idle() {
+		super.idle();
+	}
 	private final TitledLabel nameLabel;
 	public UnitEditor() {
 		super(150, 24, 2);
@@ -29,10 +33,10 @@ public class UnitEditor extends ClickMenu<Unit>{
 				final Unit GENERATED_UNIT;
 				switch(text){
 				case "HumanGuard":
-					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(Engine_NA.ENEMY), targetObject.point()));
+					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(), targetObject.point()));
 					break;
 				case "FAIRY":
-					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(Engine_NA.ENEMY), targetObject.point()));
+					GENERATED_UNIT = GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), targetObject.point()));
 					break;
 				default:
 					GENERATED_UNIT = null;
@@ -45,6 +49,12 @@ public class UnitEditor extends ClickMenu<Unit>{
 		nameLabel.setTitle("EnemyName");
 		addLast(new InputOptionList(nameLabel)).addWord("WHITE_MAN", "BLACK_MAN", "FAIRY");
 		addEmptyLine();
-		addNewLine(new TitledLabel().setName("dumpLabel1").setBGColor(Color.WHITE), new TitledLabel().setName("dumpLabel2").setBGColor(Color.WHITE));
+		addNewLine(new TitledLabel() {
+			@Override
+			public void idle() {
+				super.idle();
+				final FontMetrics fm = GHQ.getG2D().getFontMetrics(GHQ.initialFont.deriveFont(20F));
+			}
+		}.setName("dumpLabel1").setBGColor(Color.WHITE), new TitledLabel().setName("dumpLabel2").setBGColor(Color.WHITE));
 	}
 }

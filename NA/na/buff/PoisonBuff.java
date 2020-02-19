@@ -23,4 +23,8 @@ public class PoisonBuff extends NABuff {
 			removeFromOwner();
 		}
 	}
+	@Override
+	public String description() {
+		return "每秒受渐渐减少的【毒素伤害】，目前： " + nowDamage;
+	}
 }

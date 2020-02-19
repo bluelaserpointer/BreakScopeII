@@ -1,14 +1,18 @@
 package unit;
 
-public class Researcher extends BasicNPC{
-	private static final long serialVersionUID = 3932442974492354471L;
+public class Researcher extends NAUnit{
 
-	public Researcher(int charaSize, int initialGroup) {
-		super(charaSize, initialGroup);
+	public Researcher(int charaSize) {
+		super(charaSize);
 	}
 
 	@Override
-	public void startTalk() {
+	public void startTalk(NAUnit unit) {
 		
+	}
+	@Override
+	public UnitGroup unitGroup() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

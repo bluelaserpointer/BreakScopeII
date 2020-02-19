@@ -4,8 +4,7 @@ import item.NAItem;
 import item.ItemData;
 import paint.dot.DotPaint;
 
-public abstract class Ammo extends NAItem{
-	private static final long serialVersionUID = -4135430612764459044L;
+public abstract class Ammo extends NAItem {
 	
 	public Ammo(DotPaint paint, int amount) {
 		super(paint);

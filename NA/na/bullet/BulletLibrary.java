@@ -11,25 +11,12 @@ import paint.ImageFrame;
 import paint.dot.DotPaint;
 import physics.HitGroup;
 import physics.hitShape.Circle;
-import unit.NAUnit;
-import unit.Unit;
 import weapon.Weapon;
 
 public abstract class BulletLibrary extends Bullet{
 	
 	public BulletLibrary(GHQObject shooter) {
 		super(shooter);
-	}
-	@Override
-	public boolean hitUnitDeleteCheck(Unit unit) {
-		((NAUnit)unit).damage(damage, this);
-		hitObject();
-		if(penetration > 0) {
-			if(penetration != GHQ.MAX)
-				penetration--;
-		}else
-			return outOfPenetration();
-		return false;
 	}
 	/////////////////
 	/*	<Parameters and their default values of Bullet>
@@ -57,7 +44,7 @@ public abstract class BulletLibrary extends Bullet{
 			physics().setHitShape(new Circle(this, 3));
 			name = "ACCAR";
 			damage = new NADamage(10, DamageMaterialType.Phy, DamageResourceType.Bullet);
-			limitFrame = 2;
+			limitFrame = 1;
 			paintScript = paint;
 		}
 		public ACCAR getOriginal() {
@@ -76,7 +63,6 @@ public abstract class BulletLibrary extends Bullet{
 				if(!alive)
 					return;
 			}
-			point().setXY(shooter);
 			point().setMoveAngle(shooter.angle().get());
 		}
 		@Override

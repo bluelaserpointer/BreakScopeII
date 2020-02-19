@@ -1,11 +1,10 @@
 package item.ammo;
 
 import item.ItemData;
-import item.weapon.ACCAR.ACCAR_AMMO;
 import paint.ImageFrame;
+import weapon.ACCAR.ACCAR_AMMO;
 
 public class Ammo_9mm extends Ammo implements ACCAR_AMMO{
-	private static final long serialVersionUID = 1468750527265985047L;
 	@Override
 	public String name() {
 		return "AMMO_9MM";

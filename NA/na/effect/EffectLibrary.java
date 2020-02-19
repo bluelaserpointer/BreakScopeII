@@ -3,6 +3,7 @@ package effect;
 import static java.lang.Math.PI;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import core.GHQ;
 import core.GHQObject;
@@ -29,7 +30,7 @@ public abstract class EffectLibrary extends Effect{
 	//SparkHitEF
 	/////////////////
 	public static class SparkHitEF extends EffectLibrary{
-		private static DotPaint paint = ImageFrame.create("thhimage/NarrowSpark_HitEffect.png");;
+		private static DotPaint paint = ImageFrame.create("thhimage/NarrowSpark_HitEffect.png");
 		public SparkHitEF(GHQObject source) {
 			super(source);
 			name = "SparkHitEF";
@@ -47,18 +48,18 @@ public abstract class EffectLibrary extends Effect{
 	//DamageNumberEF
 	/////////////////
 	public static class DamageNumberEF extends EffectLibrary{
-		public DamageNumberEF(GHQObject source, double damage, Color color) {
+		public DamageNumberEF(GHQObject source, String str, Font font, Color color) {
 			super(source);
 			name = "DamageNumberEF";
 			limitFrame = 25;
-			paintScript = new StringPaint(GHQ.DF0_00.format(damage), color);
+			paintScript = new StringPaint(str, font, color).setOwner(this);
 			point().stop();
 			point().addY(-25);
 			point().addX(-20);
 		}
 		@Override
 		public DamageNumberEF getOriginal() {
-			return new DamageNumberEF(shooter, Integer.valueOf(((StringPaint)paintScript).WORDS), ((StringPaint)paintScript).COLOR);
+			return new DamageNumberEF(shooter, ((StringPaint)paintScript).WORDS, ((StringPaint)paintScript).FONT, ((StringPaint)paintScript).COLOR);
 		}
 		@Override
 		public void paint() {
