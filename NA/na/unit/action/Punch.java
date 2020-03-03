@@ -1,5 +1,6 @@
 package unit.action;
 
+import animation.BumpAnimation;
 import core.GHQ;
 import damage.DamageMaterialType;
 import damage.NADamage;
@@ -7,20 +8,26 @@ import physics.Point;
 import unit.Body;
 import unit.NAUnit;
 import unit.Unit;
+import unit.UnitAction;
+import unit.body.HumanBody;
 
 public abstract class Punch extends NAAction {
+	protected final BumpAnimation bumpAnimation = new BumpAnimation();
 	public Punch(Body body) {
 		super(body, 100);
 	}
 	@Override
 	public void idle() {
-		super.stopActionIfFramePassed(10);
+		bumpAnimation.idle();
+		super.stopActionIfFramePassed(15);
 	}
 	////////////////////
 	//generator function
 	////////////////////
 	public void setPunch() {
-		super.activate();
+		if(super.activate()) {
+			bumpAnimation.setAnimation(((HumanBody)body()).hands(), ((HumanBody)body()).armAngleBase.angle().get(), 20, 15);
+		}
 	}
 	@Override
 	public boolean precondition() {
@@ -40,7 +47,19 @@ public abstract class Punch extends NAAction {
 		((NAUnit)owner()).GREEN_BAR.consume(20);
 	}
 	@Override
+	public void stopped() {
+		bumpAnimation.resetPosition();
+	}
+	@Override
 	public void overwriteFailed() {
 		body().setActionAppointment(this);
+	}
+	@Override
+	public boolean needFixAimAngle() {
+		return true;
+	}
+	@Override
+	public boolean canOverwrite(UnitAction action) {
+		return action == this || super.canOverwrite(action);
 	}
 }

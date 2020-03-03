@@ -11,13 +11,14 @@ import core.GHQObject;
 import damage.NADamage;
 import item.ItemData;
 import paint.ImageFrame;
+import paint.dot.DotPaint;
 import physics.Point;
 import physics.HitGroup;
 import unit.NAUnit;
 import weapon.Weapon;
 import weapon.gripStyle.RifleGrip;
 
-public class ACCAR extends Equipment {
+public class Type56 extends Equipment {
 	public interface ACCAR_AMMO {};
 	private final Filter<ItemData> AMMO_FILTER = new Filter<ItemData>() {
 		@Override
@@ -25,17 +26,31 @@ public class ACCAR extends Equipment {
 			return item instanceof ACCAR_AMMO;
 		}
 	};
-	public ACCAR() {
-		super(ImageFrame.create("picture/AK.png"), NAUnit.BodyPartsTypeLibrary.MAIN_WEAPON);
+	public Type56() {
+		super(new DotPaint() {
+			final ImageFrame if56 = ImageFrame.create("picture/weapon/56.png");
+			@Override
+			public void dotPaint(int x, int y) {
+				if56.dotPaint_rate(x, y, 1.2);
+			}
+			@Override
+			public int width() {
+				return if56.width();
+			}
+			@Override
+			public int height() {
+				return if56.height();
+			}
+		}, NAUnit.BodyPartsTypeLibrary.MAIN_WEAPON);
 		super.setFocusPaint(ImageFrame.create("thhimage/focus.png"));
 		super.setGripStyle(new RifleGrip() {
 			@Override
 			public int[] handXPositions() {
-				return new int[] {-6, -5};
+				return new int[] {2, 22};
 			}
 			@Override
 			public int[] handYPositions() {
-				return new int[] {-5, -13};
+				return new int[] {4, 3};
 			}
 		});
 	}
@@ -63,7 +78,7 @@ public class ACCAR extends Equipment {
 				if(!hasOwner())
 					return 0;
 				int result = 0;
-				for(ItemData item : ((NAUnit)owner).inventory.items) {
+				for(ItemData item : ((NAUnit)owner).inventory) {
 					if(item instanceof ACCAR_AMMO) {
 						result += item.getAmount();
 					}
@@ -72,7 +87,7 @@ public class ACCAR extends Equipment {
 			}
 			@Override
 			public void consumeAmmo(int value) {
-				ItemData.removeInInventory(((NAUnit)owner).inventory.items, AMMO_FILTER, value);
+				ItemData.removeInInventory(((NAUnit)owner).inventory, AMMO_FILTER, value);
 			}
 		};
 	}

@@ -11,12 +11,23 @@ import paint.ImageFrame;
 import paint.dot.DotPaint;
 import physics.HitGroup;
 import physics.hitShape.Circle;
+import unit.NAUnit;
+import unit.Unit;
+import unit.UnitAction;
 import weapon.Weapon;
 
 public abstract class BulletLibrary extends Bullet{
 	
 	public BulletLibrary(GHQObject shooter) {
 		super(shooter);
+	}
+	@Override
+	public boolean hitUnitDeleteCheck(Unit unit) {
+		final UnitAction rollAction = ((NAUnit)unit).body().rolling;
+		if(rollAction.isActivated() && GHQ.passedFrame(rollAction.initialFrame()) <= 12)
+			return false;
+		else
+			return super.hitUnitDeleteCheck(unit);
 	}
 	/////////////////
 	/*	<Parameters and their default values of Bullet>
@@ -35,7 +46,7 @@ public abstract class BulletLibrary extends Bullet{
 	/////////////////
 	//ACCAR
 	/////////////////
-	public static class ACCAR extends BulletLibrary{
+	public static class ACCAR extends BulletLibrary {
 		private static final DotPaint paint = ImageFrame.create("picture/Bullet_7p62.png");
 		public ACCAR(Weapon originWeapon, GHQObject shooter, HitGroup hitGroup) {
 			super(shooter);

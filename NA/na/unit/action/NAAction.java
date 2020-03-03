@@ -26,4 +26,7 @@ public abstract class NAAction extends UnitAction {
 		}
 		return false;
 	}
+	public boolean needFixAimAngle() {
+		return false;
+	}
 }

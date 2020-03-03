@@ -10,8 +10,7 @@ import gui.AutoResizeMenu;
 import gui.GHQTextArea;
 import gui.GUIParts;
 import gui.GUIPartsSwitcher;
-import gui.InventorySystem;
-import gui.InventoryViewer;
+import gui.ItemStorageViewer;
 import gui.ScrollBar;
 import gui.TableStorageViewer;
 import gui.TextButton;
@@ -48,11 +47,8 @@ public class ESC_menu extends GUIPartsSwitcher{
 			final ImageFrame humanBodyIF = ImageFrame.create("picture/humanbody/FullBody.png");
 			{
 				setName("INVENTORY");
-				addLast(new InventorySystem(
-						new InventoryViewer(ImageFrame.create("picture/gui/slot.png"), 50, 100, 70, (TableStorage<ItemData>)NAGame.controllingUnit().inventory.items),
-						new ItemRCMenu()
-						)
-				);
+				addLast(new ItemStorageViewer().setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory).setCellPaint(ImageFrame.create("picture/gui/slot.png")).setCellSize(70))
+				.appendFirst(new ItemRCMenu().disable()).point().setXY(50, 100);
 				//left 5 slot (main, sub, melee, shield, exoskeleton)
 				addLast(new EquipmentSlot() {
 					@Override
@@ -148,8 +144,11 @@ public class ESC_menu extends GUIPartsSwitcher{
 				setName("TALENT_SCREEN");
 				addLast(new ScrollBar(talentDescriptionTextArea).setScrollSpd(10))
 					.setBGColor(Color.WHITE);
-				talentList = new TableStorageViewer<Talent>(40, 90, 50, new TableStorage<Talent>(8, 15, Talent.NULL_TALENT)) {
+				talentList = new TableStorageViewer<Talent>() {
 					{
+						point().setXY(40, 90);
+						setCellSize(50);
+						setTableStorage(new TableStorage<Talent>(8, 15, Talent.NULL_TALENT));
 						setName("TalentCells");
 					}
 					@Override
@@ -160,9 +159,9 @@ public class ESC_menu extends GUIPartsSwitcher{
 					}
 					@Override
 					protected void paintOfCell(int id, HasDotPaint object, int x, int y) {
-						ICON_BG.rectPaint(x, y, this.CELL_SIZE);
+						ICON_BG.rectPaint(x, y, this.cellSize);
 						super.paintOfCell(id, object, x, y);
-						GHQ.getG2D(Color.RED, GHQ.stroke1).drawRect(x, y, CELL_SIZE, CELL_SIZE);
+						GHQ.getG2D(Color.RED, GHQ.stroke1).drawRect(x, y, cellSize, cellSize);
 					}
 					@Override
 					public boolean clicked(MouseEvent e) {
@@ -191,13 +190,14 @@ public class ESC_menu extends GUIPartsSwitcher{
 					.setName("TalentScrollBar");
 			}
 			@Override
-			public void enable() {
+			public GUIParts enable() {
 				super.enable();
 				talentList.storage.clear();
 				for(Talent talent : NAGame.controllingUnit().talents()) {
 					talentList.storage.add(talent);
 				}
 				talentDescriptionTextArea.textArea().setText("(点击一个图标查看说明...)");
+				return this;
 			}
 		});
 		//Parameter(controllingUnit information)

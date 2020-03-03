@@ -31,13 +31,14 @@ import physics.HitGroup;
 import physics.Point;
 import physics.Direction.Direction8;
 import physics.hitShape.Circle;
-import stage.Gridder;
 import status.Status;
-import storage.ItemStorage;
 import storage.TableStorage;
 import talent.Talent;
 import unit.Unit;
+import unit.action.NAAction;
 import unit.body.HumanBody;
+import vegetation.DownStair;
+import vegetation.Vegetation;
 import weapon.ElectronShield;
 import weapon.Equipment;
 
@@ -66,8 +67,6 @@ public abstract class NAUnit extends Unit implements Person {
 		MAIN_WEAPON, SUB_WEAPON, MELLE_WEAPON, SHIELD, EXOSKELETON
 	}
 	protected HumanBody body = new HumanBody(this);
-	protected BodyParts currentWeaponBodyParts = body().mainEquipSlot();
-	protected BodyParts lastWeaponBodyParts = currentWeaponBodyParts;
 	protected final InputProcesser actionProcesserByShortcutKeys = new InputProcesser(this) {
 		@Override
 		public void process() {
@@ -143,23 +142,43 @@ public abstract class NAUnit extends Unit implements Person {
 						setMiniTalking("Punch.");
 					}
 				}
-				if(gameInputs().consume("LAST_WEAPON")) {
-					final BodyParts tmp = currentWeaponBodyParts;
-					currentWeaponBodyParts = lastWeaponBodyParts;
-					lastWeaponBodyParts = tmp;
-				}
+				if(gameInputs().consume("LAST_WEAPON"))
+					body().switchLastWeapon();
 				//itemPick & talk
+				boolean interactHappened = gameInputs().consume("INTERACT");
 				final ItemData item = GHQ.stage().items.forIntersects(UNIT);
-				if(gameInputs().consume("INTERACT")) {
-					if(item != null)
-						inventory.items.add(item.pickup(UNIT));
-					else {
-						final NAUnit npc = (NAUnit)GHQ.stage().getNearstVisibleEnemy(UNIT);
-						if(npc.point().inRange(UNIT.point(), 240)) {
-							npc.startTalk((NAUnit)UNIT);
+				for(Vegetation structure : GHQ.stage().vegetations) {
+					if(structure instanceof DownStair) {
+						if(point().inRangeXY(structure.point(), (width() + structure.width())/2, (height() + structure.height())/2)) {
+							GHQ.getG2D(Color.WHITE);
+							GHQ.drawStringGHQ("\"E:\" go down", structure.point().intX(), structure.point().intY() - 20);
+							if(interactHappened) {
+								NAGame.downFloor();
+								interactHappened = false;
+							}
+							break;
 						}
 					}
-				}else if(item != null) { //show item name
+				}
+				if(interactHappened) {
+					interact: {
+						final NAUnit npc = (NAUnit)GHQ.stage().units.getClosestVisible(UNIT.point());
+						if(npc.point().inRange(UNIT.point(), 240)) {
+							if(npc.interact((NAUnit)UNIT)) {
+								interactHappened = false;
+								break interact;
+							}
+						}
+						if(item != null) {
+							inventory.add(item.pickup(UNIT));
+							interactHappened = false;
+							break interact;
+						}
+					}
+				}
+				//show item name
+				//TODO: not good to write here
+				if(item != null) {
 					GHQ.getG2D(Color.WHITE);
 					GHQ.drawStringGHQ(item.name(), item.point().intX(), item.point().intY() - 20);
 				}
@@ -324,7 +343,7 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	//inventory
 	public final TableStorage<NAUsable> quickSlot = new TableStorage<NAUsable>(10, 1, NAUsable.NULL_NA_USABLE);
-	public final ItemStorage inventory = new ItemStorage(new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM));
+	public final TableStorage<ItemData> inventory = new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM);
 	
 	public NAUnit(int charaSize) {
 		physics().setPoint(new Dynam());
@@ -341,8 +360,8 @@ public abstract class NAUnit extends Unit implements Person {
 		lastDetectedFrame = 0;
 		dstPoint.setXY(point().setXY(x, y));
 		angle().set(0.0);
-		inventory.items.clear();
-		inventory.add_stack(new Ammo_9mm(32));
+		inventory.clear();
+		ItemData.add_stack(inventory, new Ammo_9mm(32));
 		return this;
 	}
 	@Override
@@ -381,7 +400,7 @@ public abstract class NAUnit extends Unit implements Person {
 		////////////
 		// item in inventory (includes weapon equipped to body parts)
 		////////////
-		for(ItemData item : inventory.items)
+		for(ItemData item : inventory)
 			item.idle();
 		////////////
 		//input
@@ -396,7 +415,7 @@ public abstract class NAUnit extends Unit implements Person {
 		//point
 		////////////
 		point().moveIfNoObstacles(this);
-		point().accelerate_MUL(0.9);
+		point().mulSpeed(0.9);
 		////////////
 		//sight & battle
 		////////////
@@ -408,21 +427,29 @@ public abstract class NAUnit extends Unit implements Person {
 		////////////
 		//aim
 		////////////
-		if(isControllingUnit())
-			angle().set(point().angleToMouse());
+		if(isControllingUnit()) {
+			fixAimAngle: {
+				for(UnitAction action : body().doingActions) {
+					if(((NAAction)action).needFixAimAngle()) {
+						break fixAimAngle;
+					}
+				}
+				angle().set(point().angleToMouse());
+			}
+		}
 		////////////
 		// body
 		////////////
 		//movement
 		//must proceed last, or later functions cannot get correct coordinate.
-		body.idle();
+		body.idle(true, false);
 	}
 	protected void attack() {
 		if(targetUnit != null) {
 			final double targetAngle = point().angleTo(targetUnit);
 			final double angleDiff = angle().spinTo_Suddenly(targetAngle, 10);
 			final double distance = point().distance(targetUnit);
-			if(angle().isDeltaSmaller(targetAngle, Math.PI*10/18)) {
+			if(angle().isDiffSmaller(targetAngle, Math.PI*10/18)) {
 				if(currentEquipment() == null && angleDiff < 0.30 && distance < 50
 						|| angleDiff < currentEquipment().effectiveAngleWidth &&  distance < currentEquipment().effectiveRange) {
 					if(currentEquipment() != null)
@@ -441,23 +468,6 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	@Override
 	public void paint() {
-		////////////
-		//enlightVisibleArea
-		////////////
-		if(/*true || */isControllingUnit() || NAGame.controllingUnit().isVisible(this)) {
-			if(this.isControllingUnit())
-				GHQ.getG2D(new Color(1F, 1F, 1F, 0.1F), 1F);
-			else
-				GHQ.getG2D(new Color(1F, 0F, 0F, 0.1F), 1F);
-			Gridder gridder = new Gridder(250, 250);
-			for(int xPos = 0;xPos < gridder.W_DIV;++xPos) {
-				for(int yPos = 0;yPos < gridder.H_DIV;++yPos) {
-					if(isVisible(gridder.getPosPoint(xPos, yPos))) {
-						gridder.fillGrid(GHQ.getG2D(), xPos, yPos);
-					}
-				}
-			}
-		}
 		////////////
 		//body and weapon
 		////////////
@@ -495,8 +505,8 @@ public abstract class NAUnit extends Unit implements Person {
 		paintScript.dotPaint_turn(point(), (double)GHQ.nowFrame()/35.0);
 	}
 	public void killed() {
-		for(int i = inventory.items.traverseFirst();i != -1;i = inventory.items.traverseNext(i))
-			GHQ.stage().addItem(inventory.items.remove(i).drop((int)(point().doubleX() + GHQ.random2(-50,50)), (int)(point().doubleY() + GHQ.random2(-50,50))));
+		for(int i = inventory.traverseFirst();i != -1;i = inventory.traverseNext(i))
+			GHQ.stage().addItem(inventory.remove(i).drop((int)(point().doubleX() + GHQ.random2(-50,50)), (int)(point().doubleY() + GHQ.random2(-50,50))));
 	}
 	
 	//tool
@@ -505,7 +515,7 @@ public abstract class NAUnit extends Unit implements Person {
 		int leastFavor = 0, favor;
 		double leastFriendlyUnitDistance = Double.MAX_VALUE, distance;
 		for(Unit unit : GHQ.stage().getVisibleUnit(this)) {
-			if(!isVisible(unit)) //TODO distance of sight should change upon status
+			if(!isVisible(unit))
 				continue;
 			favor = favorTo((NAUnit)unit);
 			distance = point().distance(leastFriendlyUnit);
@@ -537,17 +547,17 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	public boolean isVisible(HasPoint target) {
 		final double DISTANCE = this.point().distance(target);
-		return isAware(target) || !(target instanceof NAUnit && ((NAUnit)target).isInvisibled()) && DISTANCE < 700 && this.angle().isDeltaSmaller(this.point().angleTo(target), Math.toRadians(60.0)) && this.point().isVisible(target);
+		return isAware(target) || !(target instanceof NAUnit && ((NAUnit)target).isInvisibled()) && DISTANCE < 800 && this.angle().isDiffSmaller(this.point().angleTo(target), Math.toRadians(60.0)) && this.point().isVisible(target);
 	}
 	public boolean isVisible(Point point) {
 		final double DISTANCE = this.point().distance(point);
-		return isAware(point) || DISTANCE < 700 && this.angle().isDeltaSmaller(this.point().angleTo(point), Math.toRadians(60.0)) && this.point().isVisible(point);
+		return isAware(point) || DISTANCE < 800 && this.angle().isDiffSmaller(this.point().angleTo(point), Math.toRadians(60.0)) && this.point().isVisible(point);
 	}
 	public boolean isAware(HasPoint target) {
 		return isAware(target.point());
 	}
 	public boolean isAware(Point point) {
-		return point().distance(point) < SENSE.intValue()*30;
+		return point().distance(point) < SENSE.intValue()*15;
 	}
 	protected boolean isVisibleByControllingUnit() {
 		return this.isControllingUnit() || NAGame.controllingUnit().isVisible(this);
@@ -572,7 +582,14 @@ public abstract class NAUnit extends Unit implements Person {
 			invisibled = false;
 	}
 	//talk
-	public void startTalk(NAUnit unit) {}
+	/**
+	 * Start chat or open its inventory.
+	 * @param unit
+	 * @return false if interaction rejected
+	 */
+	public boolean interact(NAUnit unit) {
+		return false;
+	}
 	public void setMiniTalking(String text) {
 		GHQ.stage().addEffect(new Effect(this) {
 			{
@@ -597,49 +614,6 @@ public abstract class NAUnit extends Unit implements Person {
 		body.dequip(item);
 		item.dequipped();
 	}
-	public void arm(BodyParts itemSlot) {
-		currentWeaponBodyParts = itemSlot;
-		if(itemSlot.hasEquipment())
-			body().hands().equip(itemSlot.equipment());
-	}
-	public void changeToNextWeapon() {
-		lastWeaponBodyParts = currentWeaponBodyParts;
-		if(currentWeaponBodyParts == body().mainEquipSlot()) {
-			if(body().hasSubEquip())
-				arm(body().subEquipSlot());
-			else if(body().hasMelleEquip())
-				arm(body().melleEquipSlot());
-		}else if(currentWeaponBodyParts == body().subEquipSlot()) {
-			if(body().hasMelleEquip())
-				arm(body().melleEquipSlot());
-			else if(body().hasMainEquip())
-				arm(body().mainEquipSlot());
-		}else if(currentWeaponBodyParts == body().melleEquipSlot()) {
-			if(body().hasMainEquip())
-				arm(body().mainEquipSlot());
-			else if(body().hasSubEquip())
-				arm(body().subEquipSlot());
-		}
-	}
-	public void changeToPrevWeapon() {
-		lastWeaponBodyParts = currentWeaponBodyParts;
-		if(currentWeaponBodyParts == body().mainEquipSlot()) {
-			if(body().hasMelleEquip())
-				arm(body().melleEquipSlot());
-			else if(body().hasSubEquip())
-				arm(body().subEquipSlot());
-		}else if(currentWeaponBodyParts == body().subEquipSlot()) {
-			if(body().hasMainEquip())
-				arm(body().mainEquipSlot());
-			else if(body().hasMelleEquip())
-				arm(body().melleEquipSlot());
-		}else if(currentWeaponBodyParts == body().melleEquipSlot()) {
-			if(body().hasSubEquip())
-				arm(body().subEquipSlot());
-			else if(body().hasMainEquip())
-				arm(body().mainEquipSlot());
-		}
-	}
 	//damage resistance
 	public double damageRes(NADamage damage) {
 		double res = POW_FIXED.doubleValue()*0.01;
@@ -657,12 +631,12 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	// inventory
 	public <T extends ItemData>T addItem(T item) {
-		inventory.add_stack(item);
+		ItemData.add_stack(inventory, item);
 		item.setOwner(this);
 		return item;
 	}
 	public final void removeItem(ItemData item) {
-		inventory.items.remove(item);
+		inventory.remove(item);
 		removedItem(item);
 	}
 	@Override
@@ -790,7 +764,7 @@ public abstract class NAUnit extends Unit implements Person {
 		return actionProcesserByPlayer;
 	}
 	// storage
-	public ItemStorage inventory() {
+	public TableStorage<ItemData> inventory() {
 		return inventory;
 	}
 	public TableStorage<NAUsable> quickSlot() {
@@ -809,11 +783,11 @@ public abstract class NAUnit extends Unit implements Person {
 	public int favorTo(NAUnit unit) {
 		return unitGroup().groupFavorTo(unit) + personalFavor[unit.unitGroup().ordinal()];
 	}
-	protected BodyParts currentEquipSlot() {
-		return currentWeaponBodyParts;
+	protected BodyParts currentEquipmentSlot() {
+		return body().currentEquipSlot();
 	}
 	public Equipment currentEquipment() {
-		return (Equipment)currentWeaponBodyParts.equipment();
+		return body().currentEquipment();
 	}
 	public HumanBody body() {
 		return body;
@@ -823,7 +797,13 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	public int getShield() {
 		if(body().shield() instanceof ElectronShield) {
-			return ((ElectronShield)body().shield()).weapon.getMagazineFilledSpace();
+			return ((ElectronShield)body().shield()).getShieldValue();
+		}else
+			return 0;
+	}
+	public int getShieldSize() {
+		if(body().shield() instanceof ElectronShield) {
+			return ((ElectronShield)body().shield()).getShieldSize();
 		}else
 			return 0;
 	}

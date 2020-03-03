@@ -2,7 +2,7 @@ package unit;
 
 import paint.ImageFrame;
 import talent.AllUp;
-import weapon.ACCAR;
+import weapon.Type56;
 
 public class HumanGuard2 extends NAUnit {
 	public HumanGuard2() {
@@ -22,7 +22,7 @@ public class HumanGuard2 extends NAUnit {
 	@Override
 	public final HumanGuard2 respawn(int x, int y) {
 		super.respawn(x, y);
-		equip(addItem(new ACCAR()));
+		equip(addItem(new Type56()));
 		return this;
 	}
 	@Override

@@ -6,6 +6,8 @@ import effect.Effect;
 import paint.animation.SerialImageFrame;
 import paint.dot.DotPaint;
 import paint.dot.DotPaintParameter;
+import physics.Dynam;
+import physics.RelativePoint;
 import unit.Body;
 import unit.BodyParts;
 
@@ -17,7 +19,7 @@ public abstract class KnifeSlash extends NAAction {
 			"picture/animations/KnifeSlash_3.png",
 			"picture/animations/KnifeSlash_3.png");
 	private BodyParts hand;
-	private CircularMotion circularMotion = new CircularMotion();
+	protected CircularMotion circularMotion = new CircularMotion();
 	private DotPaintParameter weaponDisplaySetting;
 	public KnifeSlash(Body body) {
 		super(body, 100);
@@ -30,11 +32,27 @@ public abstract class KnifeSlash extends NAAction {
 				final double turnAngle = -(Math.PI/4)/8;
 				circularMotion.setTurnSpeed(turnAngle);
 				hand.angle().spin(turnAngle);
-				weaponDisplaySetting.angle += turnAngle;
+				weaponDisplaySetting.angle.spin(turnAngle);
 				break animation;
 			}
 			passedFrame -= 8;
 			if(passedFrame < 4) {
+				if(passedFrame == 2) { //generate effect
+					GHQ.stage().addEffect(new Effect(owner()) {
+						{
+							paintScript = slashAnimation;
+							limitFrame = 5;
+							physics().setPoint(new RelativePoint(owner(), new Dynam(), false));
+							point().setSpeed(200);
+						}
+						@Override
+						public void paint() {
+							GHQ.setImageAlpha((float)(1.0 - (double)GHQ.passedFrame(initialFrame)/limitFrame));
+							paintScript.dotPaint_turn(point(), owner().angle().get());
+							GHQ.setImageAlpha();
+						}
+					});
+				}
 				final double turnAngle = +(Math.PI*5/12)/4;
 				circularMotion.setTurnSpeed(turnAngle);
 				if(passedFrame < 2) {
@@ -42,7 +60,7 @@ public abstract class KnifeSlash extends NAAction {
 					//weaponDisplaySetting.angle += 0.0;
 				}else {
 					hand.angle().set(turnAngle*2);
-					weaponDisplaySetting.angle += turnAngle*2;
+					weaponDisplaySetting.angle.spin(turnAngle*2);
 				}
 				break animation;
 			}
@@ -51,28 +69,22 @@ public abstract class KnifeSlash extends NAAction {
 				final double turnAngle = -(Math.PI/6)/8;
 				circularMotion.setTurnSpeed(turnAngle);
 				hand.angle().spin(turnAngle);
-				weaponDisplaySetting.angle += turnAngle;
+				weaponDisplaySetting.angle.spin(turnAngle);
 				break animation;
 			}
 			passedFrame -= 8;
 			super.stopAction();
+			return;
 		}
 		circularMotion.idle();
 	}
 	@Override
-	public void activated() {
-		super.activated();
-		GHQ.stage().addEffect(new Effect(owner()) {
-			{
-				paintScript = slashAnimation;
-				limitFrame = 5;
-				point().stop();
-			}
-		});
-	}
-	@Override
 	public void stopped() {
 		circularMotion.resetPosition();
+	}
+	@Override
+	public boolean needFixAimAngle() {
+		return true;
 	}
 	public abstract void setSlash();
 	public void setSlash(BodyParts hand, double rotateRadius, DotPaintParameter weaponDisplaySetting) {

@@ -10,10 +10,10 @@ import damage.NADamage;
 import paint.ImageFrame;
 import paint.animation.SerialImageFrame;
 import paint.dot.DotPaint;
+import paint.dot.DotPaintResizer;
 import physics.Angle;
 import physics.Point;
 import unit.action.NAAction;
-import unit.body.HumanBody;
 import weapon.Knife;
 
 public class Boss_1 extends NAUnit {
@@ -29,7 +29,8 @@ public class Boss_1 extends NAUnit {
 		this.POW_FIXED.setNumber(7);
 		this.AGI_FIXED.setNumber(10);
 		{
-			body().trunk().setBasePaint(ImageFrame.create("picture/boss_1/Standing.png"));
+			body().trunk().setBasePaint(new DotPaintResizer(ImageFrame.create("picture/boss_1/Standing.png"), 0.5));
+			body().hands().setBasePaint(DotPaint.BLANK_SCRIPT);
 			body().head().setBasePaint(DotPaint.BLANK_SCRIPT);
 			body().legs().setBasePaint(DotPaint.BLANK_SCRIPT);
 			body().foots().setBasePaint(DotPaint.BLANK_SCRIPT);
@@ -44,28 +45,32 @@ public class Boss_1 extends NAUnit {
 		}
 		{
 			final HashMap<BodyParts, DotPaint> dotPaints = new HashMap<BodyParts, DotPaint>();
-			final String[] imageList = new String[5];
-			imageList[0] = "picture/boss_1/knifeThrow/KnifeThrow_1.png";
-			imageList[1] = "picture/boss_1/knifeThrow/KnifeThrow_2.png";
-			imageList[2] = "picture/boss_1/knifeThrow/KnifeThrow_3.png";
-			imageList[3] = "picture/boss_1/knifeThrow/KnifeThrow_4.png";
-			imageList[4] = "picture/boss_1/knifeThrow/KnifeThrow_5.png";
-			dotPaints.put(body().trunk(), new SerialImageFrame(2, imageList));
+			final String[] imageList = new String[8];
+			imageList[0] = "picture/boss_1/knifeThrow/0.png";
+			imageList[1] = "picture/boss_1/knifeThrow/1.png";
+			imageList[2] = "picture/boss_1/knifeThrow/2.png";
+			imageList[3] = "picture/boss_1/knifeThrow/3.png";
+			imageList[4] = "picture/boss_1/knifeThrow/4.png";
+			imageList[5] = "picture/boss_1/knifeThrow/5.png";
+			imageList[6] = "picture/boss_1/knifeThrow/6.png";
+			imageList[7] = "picture/boss_1/knifeThrow/7.png";
+			dotPaints.put(body().trunk(), new DotPaintResizer(new SerialImageFrame(2, imageList), 0.5));
 			body().addDoableActionAnimations(KnifeThrow.class, dotPaints);
 		}
-		this.setInvisible(true);
 	}
 	@Override
 	public final Boss_1 respawn(int x, int y) {
 		super.respawn(x, y);
 		equip(addItem(new Knife()));
-		super.currentWeaponBodyParts = body().melleEquipSlot();
+		body().arm(body().melleEquipSlot());
+		lastPerfectDodgeFrame = -1000000;
+		invisibled = true;
 		return this;
 	}
 	private int lastAttackedFrame;
 	@Override
 	public void damage(Damage damage, Bullet bullet) {
-		/*//try perfect dodge
+		//try perfect dodge
 		if(GHQ.passedFrame(lastPerfectDodgeFrame)*GHQ.getSPF() >= 15 && this.GREEN_BAR.doubleValue() >= 20.0) {
 			lastPerfectDodgeFrame = GHQ.nowFrame();
 			final double rollingAngle;
@@ -75,7 +80,7 @@ public class Boss_1 extends NAUnit {
 				rollingAngle = bullet.point().moveAngle() + (Math.random() < 0.5 ? +1 : -1)*Math.PI/2;
 			body().rolling.setRolling(SPEED_PPS.doubleValue()/10, rollingAngle);
 			return;
-		}else*/
+		}else
 			super.damage(damage, bullet);
 	}
 	@Override
@@ -111,7 +116,7 @@ public class Boss_1 extends NAUnit {
 					}
 				}
 			} else {
-				if(angle().isDeltaSmaller(targetAngle, Math.PI*10/18)) {
+				if(angle().isDiffSmaller(targetAngle, Math.PI*10/18)) {
 					if(angleDiff < 0.30 && distance < 50) {
 						body().punch.setPunch();
 					}
@@ -194,7 +199,7 @@ class Stinger extends NAAction {
 	@Override
 	public void activated() {
 		super.activated();
-		((HumanBody)body()).punchFrontHand(20, point().angleTo(((NAUnit)owner()).targetUnit()));
+		//((HumanBody)body()).punchFrontHand(20, point().angleTo(((NAUnit)owner()).targetUnit()));
 		//dmg: POW + AGI*2
 		//stamina: -5p
 		targetUnit.damage(new NADamage(((NAUnit)owner()).POW_FLOAT.doubleValue() + 2*((NAUnit)owner()).AGI_FLOAT.doubleValue()));
@@ -286,7 +291,7 @@ class BackStab extends NAAction {
 	@Override
 	public void activated() {
 		super.activated();
-		((HumanBody)body()).punchFrontHand(30, point().angleTo(((NAUnit)owner()).targetUnit()));
+		//((HumanBody)body()).punchFrontHand(30, point().angleTo(((NAUnit)owner()).targetUnit()));
 		//teleport to back of targetUnit and look at him
 		final NAUnit targetUnit = ((NAUnit)owner()).targetUnit();
 		if(targetUnit != null) {
@@ -346,7 +351,7 @@ class StingerStrike extends NAAction {
 	@Override
 	public void activated() {
 		super.activated();
-		((HumanBody)body()).punchFrontHand(60, point().angleTo(((NAUnit)owner()).targetUnit()));
+		//((HumanBody)body()).punchFrontHand(60, point().angleTo(((NAUnit)owner()).targetUnit()));
 		owner().point().addSpeed_DA(70, owner().angle().get());
 		((NAUnit)owner()).GREEN_BAR.consume(50);
 	}

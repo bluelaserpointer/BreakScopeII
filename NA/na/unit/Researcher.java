@@ -7,8 +7,8 @@ public class Researcher extends NAUnit{
 	}
 
 	@Override
-	public void startTalk(NAUnit unit) {
-		
+	public boolean interact(NAUnit unit) {
+		return true;
 	}
 	@Override
 	public UnitGroup unitGroup() {

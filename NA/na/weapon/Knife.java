@@ -15,15 +15,15 @@ import weapon.gripStyle.KnifeGrip;
 public class Knife extends Equipment {
 	public Knife() {
 		super(ImageFrame.create("picture/knife.png"), NAUnit.BodyPartsTypeLibrary.MELLE_WEAPON);
-		super.setFocusPaint(ImageFrame.create("picture/sword.png"));
+		super.setFocusPaint(ImageFrame.create("picture/knifeFocus.png"));
 		super.setGripStyle(new KnifeGrip() {
 			@Override
 			public int[] handXPositions() {
-				return new int[] {-6, -5};
+				return new int[] {5, 13};
 			}
 			@Override
 			public int[] handYPositions() {
-				return new int[] {-5, -13};
+				return new int[] {6, 5};
 			}
 		});
 		super.effectiveRange = 50;
@@ -38,8 +38,6 @@ public class Knife extends Equipment {
 			}
 			@Override
 			public void setBullets(GHQObject shooter, HitGroup standpoint) {
-				System.out.println("nowFrame: " + GHQ.nowFrame());
-				//((NAUnit)shooter).body().punchFrontHand(20, shooter.angle().get());
 				if(shooter instanceof NAUnit) {
 					NAUnit unit = (NAUnit)shooter;
 					unit.body().knifeSlash.setSlash();

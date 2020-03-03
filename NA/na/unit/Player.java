@@ -17,7 +17,7 @@ public class Player extends NAUnit {
 	@Override
 	public final Player respawn(int x, int y) {
 		super.respawn(x, y);
-		equip(addItem(new ElectronShield()));
+		equip(addItem(new ElectronShield(5000)));
 		return this;
 	}
 

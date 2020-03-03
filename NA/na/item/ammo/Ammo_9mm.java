@@ -2,7 +2,7 @@ package item.ammo;
 
 import item.ItemData;
 import paint.ImageFrame;
-import weapon.ACCAR.ACCAR_AMMO;
+import weapon.Type56.ACCAR_AMMO;
 
 public class Ammo_9mm extends Ammo implements ACCAR_AMMO{
 	@Override

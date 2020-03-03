@@ -38,7 +38,9 @@ public class CircularMotion extends Animater {
 	public void resetMoveCount() {
 		movedXCount = movedYCount = 0.0;
 	}
+	@Override
 	public void resetPosition() {
+		//System.out.println("movedXCount: " + movedXCount + ",movedYCount: " + movedYCount);
 		movingObject.point().addXY(-movedXCount, -movedYCount);
 		resetMoveCount();
 	}
