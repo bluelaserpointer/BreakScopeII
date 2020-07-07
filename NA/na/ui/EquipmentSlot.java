@@ -7,9 +7,10 @@ import gui.GHQTextArea;
 import gui.GUIParts;
 import item.ItemData;
 import item.NAItem;
+import item.equipment.Equipment;
 import paint.ImageFrame;
 import unit.BodyParts;
-import weapon.Equipment;
+import unit.NAUnit;
 
 public abstract class EquipmentSlot extends GHQTextArea {
 	protected abstract BodyParts targetBodyParts();
@@ -19,7 +20,7 @@ public abstract class EquipmentSlot extends GHQTextArea {
 	protected final Equipment equipment() {
 		return (Equipment)targetBodyParts().equipment();
 	}
-	private final ImageFrame slotIF = ImageFrame.create("picture/gui/slot.png");
+	private final ImageFrame slotIF = ImageFrame.create("picture/gui/Bag_item.png");
 	@Override
 	public void paint() {
 		slotIF.rectPaint(point().intX(), point().intY(), width(), height());
@@ -46,7 +47,9 @@ public abstract class EquipmentSlot extends GHQTextArea {
 	}
 	@Override
 	public void dragIn(GUIParts sourceUI, Object dropObject) {
-		((Equipment)dropObject).equipToOwner();
+		final NAUnit unit = (NAUnit)((Equipment)dropObject).owner();
+		unit.body().equip((Equipment)dropObject, targetBodyParts());
+		unit.setBattleStance(true);
 	}
 	@Override
 	public Object peekDragObject() {

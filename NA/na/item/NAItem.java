@@ -1,14 +1,23 @@
 package item;
 
+import java.awt.Color;
+
 import core.GHQ;
+import engine.NAGame;
+import object.HasWeight;
 import paint.dot.DotPaint;
 import stage.NAStage;
-import storage.Storage;
+import storage.StorageWithSpace;
 import unit.NAUnit;
-import weapon.Equipment;
 
-public class NAItem extends ItemData implements NAUsable {
-	public static final NAItem BLANK_ITEM = new NAItem(DotPaint.BLANK_SCRIPT);
+public abstract class NAItem extends ItemData implements NAUsable, HasWeight {
+	double hitPoint = 1;
+	public static final NAItem BLANK_ITEM = new NAItem(DotPaint.BLANK_SCRIPT) {
+		@Override
+		public double weight() {
+			return 0;
+		}
+	};
 	public NAItem(DotPaint paint) {
 		super(paint);
 	}
@@ -16,26 +25,36 @@ public class NAItem extends ItemData implements NAUsable {
 		super.paintScript.dotPaint_turnAndCapSize(x, y, w, h);
 	}
 	@Override
-	public void paint() {
-		if(((NAStage)GHQ.stage()).playerSeenMark().get_stageCod(point().intX(), point().intY(), false))
-			super.paint();
+	public void idle() {
+		super.idle();
+		if(!hasOwner()) {
+			point().mulSpeed(0.8);
+		}
+		if(!hasDeleteClaimFromStage() && hitPoint <= 0)
+			claimDeleteFromStage();
 	}
-	public void reset() {}
-	public void reloadIfEquipment() {
-		if(this instanceof Equipment) {
-			((Equipment)this).weapon.startReloadIfNotDoing();
+	@Override
+	public void paint() {
+		if(((NAStage)GHQ.stage()).playerSightMark().get_stageCod(point().intX(), point().intY(), false)) {
+			super.paint();
+			if(NAGame.controllingUnit().intersects(this)) {
+				GHQ.getG2D(Color.WHITE);
+				GHQ.drawStringGHQ(name(), point().intX(), point().intY() - 20);
+			}
 		}
 	}
+	public void interact(NAUnit unit) {
+		
+	}
+	public void reset() {}
 	public final void removeFromUnit() {
 		((NAUnit)owner).removeItem(this);
 	}
-	public void removed(Storage<ItemData> storage) {}
+	public void removed(StorageWithSpace<ItemData> storage) {}
+	
+	//information
 	@Override
-	public final boolean use(boolean isHeadInput) {
-		if(isHeadInput || supportSerialUse()) {
-			use();
-			return true;
-		}
-		return false;
+	public NAUnit owner() {
+		return (NAUnit)super.owner();
 	}
 }

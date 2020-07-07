@@ -14,11 +14,4 @@ public interface NAUsable extends Usable {
 	public default boolean supportSerialUse() {
 		return false;
 	}
-	public default boolean use(boolean isHeadInput) {
-		if(isHeadInput || supportSerialUse()) {
-			use();
-			return true;
-		}
-		return false;
-	}
 }

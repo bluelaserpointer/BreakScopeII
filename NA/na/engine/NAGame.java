@@ -2,7 +2,6 @@ package engine;
 
 import static java.awt.event.KeyEvent.*;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
@@ -13,35 +12,50 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.Random;
 
 import action.ActionSource;
 import buff.Buff;
 import core.CornerNavigation;
 import core.GHQ;
-import core.GHQObjectType;
 import core.Game;
 import gui.GUIParts;
-import gui.MessageSource;
+import gui.ItemStorageViewer;
 import gui.stageEditor.DefaultStageEditor;
 import input.key.SingleKeyListener;
 import input.key.SingleNumKeyListener;
 import input.mouse.MouseListenerEx;
+import item.ArmyBox;
 import item.ItemData;
+import item.LiquidBarrel;
+import item.NAUsable;
 import item.ShieldCharger;
-import item.ammo.Ammo_45acp;
-import item.ammo.Ammo_9mm;
+import item.ammo.AmmoType;
+import item.ammo.enchant.AmmoEnchant;
+import item.equipment.weapon.ElectronShield;
+import item.equipment.weapon.Knife;
+import item.equipment.weapon.LiquidGun;
+import item.equipment.weapon.Type56;
 import item.magicChip.FireBallChip;
+import item.magicChip.WaterSplashChip;
+import liquid.Flame;
+import liquid.NALiquidState;
+import liquid.Oil;
+import liquid.PoisonusWater;
+import liquid.Water;
 import paint.ImageFrame;
 import physics.Route;
+import physics.Direction.Direction4;
 import saveLoader.SaveLoader;
 import saveLoader.SaveLoaderV1_0;
 import stage.GHQStage;
-import stage.GridBitSet;
-import stage.GridPainter;
 import stage.NAStage;
-import storage.Storage;
+import storage.TableStorage;
 import ui.Dialog;
 import ui.ESC_menu;
+import ui.HUD;
+import ui.ItemRCMenu_ground;
 import ui.DoubleInventoryViewer;
 import ui.QuickSlotViewer;
 import ui.UnitEditor;
@@ -49,16 +63,12 @@ import ui.ZoomSliderBar;
 import unit.HumanGuard2;
 import unit.NAUnit;
 import unit.Player;
-import unit.ArmyBox;
 import unit.Boss_1;
 import unit.GameInput;
 import unit.GameInputList;
 import unit.Unit;
 import vegetation.DownStair;
 import vegetation.Vegetation;
-import weapon.Type56;
-import weapon.ElectronShield;
-import weapon.Knife;
 
 /**
  * The core class for game "NA"
@@ -66,8 +76,9 @@ import weapon.Knife;
  * @version alpha1.0
  */
 
-public class NAGame extends Game implements MessageSource, ActionSource {
+public class NAGame extends Game implements ActionSource {
 	private static NAUnit controllingUnit;
+	private static boolean lockControllingUnitAction;
 	private static final CornerNavigation cornerNavi = new CornerNavigation(100);
 	
 	public String getVersion() {
@@ -88,13 +99,15 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		VK_R,
 		VK_F,
 		VK_G,
-		VK_TAB,
 		VK_SHIFT,
 		VK_SPACE,
+		VK_CONTROL,
+		VK_Z,
 		VK_ESCAPE,
 		VK_F6,
 		VK_O,
 		VK_P,
+		VK_TAB,
 		VK_COMMA,
 		VK_PERIOD,
 	};
@@ -124,7 +137,8 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		LAST_WEAPON(KeyEvent.VK_Q, true),
 		SPRINT(KeyEvent.VK_SHIFT, true),
 		ROLL(KeyEvent.VK_SPACE, true),
-		INTERACT(KeyEvent.VK_E, true);
+		INTERACT(KeyEvent.VK_E, true),
+		SWITCH_BATTLE_STANCE(KeyEvent.VK_TAB, true);
 		
 		private final GameInput input;
 		private GameInputEnum(int code, boolean isKeyOrMouse) {
@@ -137,6 +151,7 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 			return input;
 		}
 	}
+	static int mouseWheelRotation;
 	static {
 		for(GameInputEnum ver : GameInputEnum.values())
 			gameInputs.addInput(ver.input());
@@ -147,7 +162,7 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 	private final static GHQStage initialTestStage = new NAStage(STAGE_W, STAGE_H);
 	private final static GHQStage[] stages = new NAStage[15];
 	private static int nowStage;
-	//images
+	private ImageFrame[] tileIFs = new ImageFrame[5];
 	
 	//GUIParts
 	private static DefaultStageEditor editor;
@@ -158,14 +173,15 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 	private static Dialog dialog;
 	private static QuickSlotViewer quickSlotViewer;
 	private static ZoomSliderBar zoomSliderBar;
+	private static HUD hud;
 	
 	//initialization
 	@Override
 	public String getTitleName() {
 		return "NA";
 	}
-	public static void main(String args[]){
-		new GHQ(new NAGame(), 1000, 600);
+	public static void main(String args[]) {
+		new GHQ(new NAGame(), 1080, 720);
 	}
 	public NAGame() {
 		super(null);
@@ -174,7 +190,7 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 	@Override
 	public final GHQStage loadStage() {
 		//GHQ.setStage(initialTestStage);
-		try(BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("../stage/saveData1.txt")))){ //ファイル読み込み開始
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("../stage/NAStageData1.txt")))){ //ファイル読み込み開始
 			br.readLine();
 			stages[0] = NAStage.generate(this.saveLoader.load(br));
 		}catch(IOException e) {
@@ -185,6 +201,13 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 	}
 	@Override
 	public final void loadResource() {
+		tileIFs = new ImageFrame[] {
+				ImageFrame.create("picture/map/Tile_40_percent.png"),
+				ImageFrame.create("picture/map/Tile_30_percent.png"),
+				ImageFrame.create("picture/map/Tile_20_percent.png"),
+				ImageFrame.create("picture/map/Tile_minor_10_percent.png"),
+				ImageFrame.create("picture/map/Tile_a_percent.png"),
+				};
 		/////////////////////////////////
 		//items
 		/////////////////////////////////
@@ -194,11 +217,19 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		//friend
 		GHQ.stage().addUnit(Unit.initialSpawn(controllingUnit = new Player(), GHQ.screenW()/2, GHQ.screenH() - 100));
 		//utility
-		GHQ.stage().addUnit(Unit.initialSpawn(new ArmyBox(), 500, 200));
+		new ArmyBox().drop(500, 200);
+		new LiquidBarrel(stage().makeLiquid(Water.FIXED_WATER_TAG, NALiquidState.WATER_SOLUABLE, 300)).drop(500, 500);
+		new LiquidBarrel(stage().makeLiquid(Oil.FIXED_OIL_TAG, NALiquidState.OIL_SOLUABLE, 300)).drop(508, 500);
+		new LiquidBarrel(stage().makeLiquid(new PoisonusWater(5), NALiquidState.WATER_SOLUABLE, 300)).drop(517, 500);
 		//enemy
 		testUnit = 
 		GHQ.stage().addUnit(Unit.initialSpawn(new Boss_1(), 1660, 1240));
 		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1200, 300));
+		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1250, 300));
+		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1300, 300));
+		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1350, 300));
+		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1400, 300));
+		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1450, 300));
 		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1800, 700));
 		//GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(ENEMY), 400, GHQ.random2(100, 150)));
 		/////////////////////////////////
@@ -212,13 +243,18 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf3.png"),1122,815));
 		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf3.png"),822,886));
 		GHQ.stage().addVegetation(new DownStair()).point().setXY(100, 100);
-		new Ammo_9mm(10).drop(822, 886);
-		new Ammo_45acp(10).drop(862, 896);
+		AmmoType._9mm.generate(10).drop(822, 886);
+		AmmoType._45acp.generate(10).drop(862, 896);
+		AmmoType._7d62.generate(100).drop(812, 896);
+		AmmoType._7d62.generate(100).addEnchant(AmmoEnchant.Splitt, 1).addEnchant(AmmoEnchant.Scatter, 1).addEnchant(AmmoEnchant.Penetration, 1).drop(812, 796);
+		AmmoType._7d62.generate(100).addEnchant(AmmoEnchant.Poison, 1).drop(852, 796);
 		new ShieldCharger(1000).drop(600, 800);
 		new Type56().drop(702, 796);
+		new LiquidGun().drop(652, 796);
 		new Knife().drop(702, 836);
 		new ElectronShield(500).drop(702, 796);
 		new FireBallChip().drop(650, 800);
+		new WaterSplashChip().drop(750, 800);
 		//stageDataSaver.doLoad(new File("stage/saveData1.txt"));
 		/////////////////////////////////
 		//GUI
@@ -227,7 +263,7 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		GHQ.addGUIParts(new GUIParts() {
 			{
 				setName("BuffIcons");
-				setBounds(250, 500, 500 ,50);
+				setBounds(250, GHQ.screenH() - 100, 500, 50);
 				setBGColor(Color.LIGHT_GRAY);
 			}
 			@Override
@@ -251,17 +287,31 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 			}
 		});
 		//GHQ.addGUIParts(dialog = new Dialog()).setBounds(50, 375, 900, 100);
-		GHQ.addGUIParts((quickSlotViewer = new QuickSlotViewer()).setCellSize(50).setTableStorage(controllingUnit.quickSlot())).enable().point().setXY(250, 550);
+		GHQ.addGUIParts((quickSlotViewer = new QuickSlotViewer() {
+			@Override
+			public void idle() {
+				super.idle();
+				final Iterator<NAUsable> iterator = storage.iterator();
+				while(iterator.hasNext()) {
+					final NAUsable usable = iterator.next();
+					if(usable instanceof ItemData && ((ItemData)usable).owner() != controllingUnit())
+						iterator.remove();
+				}
+			}
+		}).setCellSize(50).setTableStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
+		GHQ.addGUIParts(escMenu = new ESC_menu()).disable();
 		GHQ.addGUIParts(zoomSliderBar = new ZoomSliderBar() {
 			@Override
 			public void paint() {
 				super.paint();
 				GHQ.getG2D(Color.WHITE);
 				GHQ.drawStringGHQ(GHQ.DF0_00.format(sliderValue*1.5 + 0.5), point().intX(), point().intY());
+				GHQ.setStageZoomRate(sliderValue*1.5 + 0.5);
 			}
-		}).setBounds(880, 550, 210, 50);
-		GHQ.addGUIParts(escMenu = new ESC_menu()).disable();
+		}).setBounds(880, 25, 210, 20);
 		GHQ.addGUIParts(inventoryInvester = new DoubleInventoryViewer()).disable();
+		inventoryInvester.setLeftInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));
+		inventoryInvester.setRightInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));
 		GHQ.addGUIParts(editor = new DefaultStageEditor("EDITER_GROUP") {
 			@Override
 			public void saveStage() {
@@ -276,97 +326,36 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 			}
 		}).disable();
 		editor.addFirst(unitEditor = new UnitEditor()).disable();
-		
+
+		///////////////
+		//Stage
+		///////////////
+		hud = new HUD();
 		GHQ.addGUIParts(stageFieldGUI = new GUIParts() {
+			private ItemRCMenu_ground  itemRCMenu = new ItemRCMenu_ground();
 			{
 				setName("stageFieldGUI");
+				super.addLast(itemRCMenu).disable(); //TODO: find out why this menu cannot automatically close when click on it
 			}
-			private ImageFrame cilinderIF = ImageFrame.create("picture/hud/cilinder.png");
 			@Override
 			public void idle() {
 				super.idle();
-				///////////////
-				//HUD
-				///////////////
-				final Graphics2D G2 = GHQ.getG2D();
-				//HP bars
-				G2.setFont(GHQ.basicFont);
-				G2.setColor(new Color(80, 80, 80));
-				G2.fillRect(8, 3, 375, 70);
-				G2.setColor(new Color(100, 100, 100));
-				G2.fillRect(10, 5, 370, 65);
-				G2.setStroke(new BasicStroke(3f));
-				G2.setColor(new Color(200, 200, 200));
-				G2.drawRect(10, 5, 370, 65);
-				G2.setStroke(new BasicStroke(9f));
-				int barLength;
-				barLength = (int)(120*controllingUnit.RED_BAR.getRate());
-				int shieldBarLength = (int)(120*controllingUnit.getShield()/(double)controllingUnit.getShieldSize());
-				if(barLength > 0) {
-					if(shieldBarLength > 0) {
-						G2.setColor(Color.CYAN);
-						G2.drawLine(35, 15, 35 + shieldBarLength, 15);
-						G2.setColor(Color.BLACK);
-						G2.drawString("SH: " + controllingUnit.getShield(), 285, 21);
-						G2.setColor(Color.CYAN);
-						G2.drawString("SH: " + controllingUnit.getShield(), 285, 20);
-						G2.setStroke(GHQ.stroke3);
-						G2.setColor(Color.RED);
-						G2.drawLine(35, 15, 35 + barLength, 15);
-						G2.setStroke(new BasicStroke(9f));
-					} else {
-						G2.setColor(Color.RED);
-						G2.drawLine(35, 15, 35 + barLength, 15);
-					}
-					G2.setColor(Color.BLACK);
-					G2.drawString("HP: " + GHQ.DF0_0.format(controllingUnit.RED_BAR.doubleValue()), 181, 21);
-					G2.setColor(Color.RED);
-					G2.drawString("HP: " + GHQ.DF0_0.format(controllingUnit.RED_BAR.doubleValue()), 180, 20);
-				}
-				cilinderIF.dotPaint(90, 15);
-				/*G2.setClip(90 - caseFluidIF.width()/2, 15 + caseFluidIF.height()/2 - shieldBarLength, caseFluidIF.width(), shieldBarLength);
-				caseFluidIF.dotPaint(90, 15);
-				G2.setClip(0, 0, GHQ.screenW(), GHQ.screenH());
-				caseIF.dotPaint(90, 15);*/
-				//G2.drawRect(90 - caseFluidIF.width()/2, 15 + caseFluidIF.height()/2 - shieldBarLength, caseFluidIF.width(), shieldBarLength);
-				barLength = (int)(120*controllingUnit.BLUE_BAR.getRate());
-				if(barLength > 0) {
-					G2.setColor(Color.CYAN);
-					G2.drawLine(35, 30, 35 + barLength, 30);
-					G2.setColor(Color.BLACK);
-					G2.drawString("MP: " + GHQ.DF0_0.format(controllingUnit.BLUE_BAR.doubleValue()), 181, 36);
-					G2.setColor(Color.CYAN);
-					G2.drawString("MP: " + GHQ.DF0_0.format(controllingUnit.BLUE_BAR.doubleValue()), 180, 35);
-				}
-				cilinderIF.dotPaint(90, 30);
-				barLength = (int)(120*controllingUnit.GREEN_BAR.getRate());
-				if(barLength > 0) {
-					G2.setColor(Color.GREEN);
-					G2.drawLine(35, 45, 35 + barLength, 45);
-					G2.setColor(Color.BLACK);
-					G2.drawString("ST: " + GHQ.DF0_0.format(controllingUnit.GREEN_BAR.doubleValue()), 181, 51);
-					G2.setColor(Color.GREEN);
-					G2.drawString("ST: " + GHQ.DF0_0.format(controllingUnit.GREEN_BAR.doubleValue()), 180, 50);
-				}
-				cilinderIF.dotPaint(90, 45);
-				barLength = (int)(120*controllingUnit.ENERGY.getRate());
-				if(barLength > 0) {
-					G2.setColor(Color.WHITE);
-					G2.drawLine(35, 60, 35 + barLength, 60);
-					G2.setColor(Color.BLACK);
-					G2.drawString("FO: " + GHQ.DF0_0.format(controllingUnit.ENERGY.doubleValue()), 181, 66);
-					G2.setColor(Color.WHITE);
-					G2.drawString("FO: " + GHQ.DF0_0.format(controllingUnit.ENERGY.doubleValue()), 180, 65);
-				}
-				cilinderIF.dotPaint(90, 60);
-				//playerIcon
-				int pos = 1;
-				if(controllingUnit.personalIcon != null)
-					controllingUnit.personalIcon.rectPaint(pos++*90 + 10, GHQ.screenH() - 40, 80, 30);
-				//zoomSliderBar
+				hud.rectPaint(0, 0, GHQ.screenW(), GHQ.screenH());
 			}
 			@Override
 			public boolean clicked(MouseEvent e) {
+				if(e.getButton() == MouseEvent.BUTTON3) {
+					Unit unit = GHQ.stage().units.forMouseOver();
+					if(unit != null) {
+						//TODO: open enemy right click menu
+						//return true;
+					}
+					ItemData item = GHQ.stage().items.forMouseOver();
+					if(item != null) {
+						itemRCMenu.tryOpen(item);
+						return true;
+					}
+				}
 				NAUnit.gameInputs().mousePressed(e);
 				return true;
 			}
@@ -387,13 +376,6 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 			}
 		});
 		/////////////////////////////////
-		//input
-		/////////////////////////////////
-		//for(Unit unit : GHQ.stage().units) {
-			//unit.angle().set(0.8);
-		//}
-		GHQ.addMessage(this,"Press enter key to start.");
-		/////////////////////////////////
 		//test
 		/////////////////////////////////
 		cornerNavi.defaultCornerCollect();
@@ -402,106 +384,55 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		Route route = cornerNavi.getRoot(testUnit);
 		if(route != null)
 			route.setDebugEffect(Color.RED, GHQ.stroke5);
+		/////////////////////////////////
+		//liquids
+		/////////////////////////////////
 	}
 	//idle
-	private int gameFrame;
-	private ImageFrame tileIF = ImageFrame.create("picture/map/Tile.png");
 	@Override
 	public final void idle(Graphics2D g2, int stopEventKind) {
 		if(controllingUnit == null || stageFieldGUI == null)
 			return;
-		gameFrame++;
 		final int MOUSE_X = GHQ.mouseX(), MOUSE_Y = GHQ.mouseY();
 		//////////////////////////
 		//idle
 		//////////////////////////
 		//
 		//background
-		final int TILE_SIZE = 50;
+		final int TILE_SIZE = 100;
 		final int startX = Math.max(GHQ.getScreenLeftX_stageCod()/TILE_SIZE - 2, 0);
 		final int startY = Math.max(GHQ.getScreenTopY_stageCod()/TILE_SIZE - 2, 0);
 		final int endX = startX + GHQ.getScreenW_stageCod()/TILE_SIZE + 4;
 		final int endY = startY + GHQ.getScreenH_stageCod()/TILE_SIZE + 4;
+		Random random = new Random();
+		final int rate = GHQ.stage().width()/TILE_SIZE;
 		for(int xi = startX;xi < endX;xi++) {
 			for(int yi = startY;yi < endY;yi++) {
-				tileIF.dotPaint(xi*TILE_SIZE + 50, yi*TILE_SIZE + 50);
-				//tileIF.rectPaint(xi*TILE_SIZE, yi*TILE_SIZE, TILE_SIZE);
+				random.setSeed(xi*rate + yi);
+				random.nextDouble();
+				final double value = random.nextDouble();
+
+				final double angle = random.nextInt(tileIFs.length)*Math.PI/2;
+				if(value < 0.4)
+					tileIFs[0].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+				else if(value < 0.7)
+					tileIFs[1].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+				else if(value < 0.9)
+					tileIFs[2].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+				else if(value < 0.95)
+					tileIFs[3].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+				else
+					tileIFs[4].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
 			}
 		}
-		final NAStage nowStage = (NAStage)GHQ.stage();
-		//sight marking and fog system
-		GridBitSet enemySeenMark = nowStage.enemySeenMark();
-		GridBitSet playerSeenMark = nowStage.playerSeenMark();
-		GridPainter gridPainter = nowStage.gridPainter();
 		////////////
-		//enlightVisibleArea
+		//Stage
 		////////////
-		enemySeenMark.clear();
-		playerSeenMark.clear();
-		for(Unit ver : GHQ.stage().units) {
-			NAUnit unit = (NAUnit)ver;
-			if(unit.isControllingUnit() || controllingUnit().isVisible(unit)) {
-				final int xStart = gridPainter.screenLeftXPos(), yStart = gridPainter.screenTopYPos();
-				final int xEnd = xStart + gridPainter.gridsToFillScreenWidth(), yEnd = yStart + gridPainter.gridsToFillScreenHeight();
-				for(int xPos = xStart;xPos < xEnd;++xPos) {
-					for(int yPos = yStart;yPos < yEnd;++yPos) {
-						if(unit.isControllingUnit()) {
-							if(unit.isVisible(gridPainter.getPosPoint(xPos, yPos))) {
-								nowStage.seenMark().set_cellPos(xPos, yPos);
-								nowStage.playerSeenMark().set_cellPos(xPos, yPos);
-							}
-						}else if(unit.isHostile(controllingUnit) && nowStage.seenMark().get_cellPos(xPos, yPos, false) && unit.isVisible(gridPainter.getPosPoint(xPos, yPos))) {
-							nowStage.enemySeenMark().set_cellPos(xPos, yPos);
-						}
-					}
-				}
-			}
-		}
-		//objects idle
-		GHQ.stage().idle(GHQObjectType.VEGETATION);
-		GHQ.stage().idle(GHQObjectType.ITEM);
-		GHQ.stage().idle(GHQObjectType.STRUCTURE);
-		GHQ.stage().idle(GHQObjectType.UNIT);
-		GHQ.stage().idle(GHQObjectType.BULLET);
-		GHQ.stage().idle(GHQObjectType.EFFECT);
-		//notSeenPlaceFog
-		GridBitSet seenMark = nowStage.seenMark();
-		final int xStart = gridPainter.screenLeftXPos(), yStart = gridPainter.screenTopYPos();
-		final int xEnd = xStart + gridPainter.gridsToFillScreenWidth(), yEnd = yStart + gridPainter.gridsToFillScreenHeight();
-		final Color enemySeenColor = new Color(1F, 0F, 0F, 0.5F);
-		final Color playerNotSeenColor = new Color(0F, 0F, 0F, 0.5F);
-		final Color combinedColor = new Color(170, 0, 0, 128);
-		for(int xPos = xStart;xPos < xEnd;++xPos) {
-			for(int yPos = yStart;yPos < yEnd;++yPos) {
-				if(seenMark.get_cellPos(xPos, yPos, false)) {
-					final boolean isGrayMarked = !playerSeenMark.get_cellPos(xPos, yPos, false);
-					final boolean isRedMarked = enemySeenMark.get_cellPos(xPos, yPos, false);
-					if(isRedMarked && isGrayMarked)
-						gridPainter.fillGrid(GHQ.getG2D(combinedColor), xPos, yPos);
-					else if(isRedMarked && !isGrayMarked) //fill transparent red area that in an enemy's sight
-						gridPainter.fillGrid(GHQ.getG2D(enemySeenColor), xPos, yPos);
-					else if(!isRedMarked && isGrayMarked) //fill transparent gray area that in the player's sight
-						gridPainter.fillGrid(GHQ.getG2D(playerNotSeenColor), xPos, yPos);
-				}else { //fill black area that never seen before
-					if((xPos - yPos) % 2 == 0)
-						gridPainter.fillGrid(GHQ.getG2D(Color.BLACK), xPos, yPos);
-					else
-						gridPainter.fillGrid(GHQ.getG2D(new Color(0.1F, 0.1F, 0.1F)), xPos, yPos);
-					//final int size = NAStage.SEEN_CELL_SIZE;
-					//GHQ.getG2D(Color.GRAY);
-					//GHQ.drawStringGHQ("?", xPos*size, yPos*size);
-					//GHQ.getG2D(Color.LIGHT_GRAY, GHQ.stroke1).drawLine(xPos*size, yPos*size, xPos*size + size, yPos*size + size);
-				}
-			}
-		}
+		stage().idle();
 		///////////////
-		//key test area
+		//Key test area
 		///////////////
 		if(stopEventKind == GHQ.NONE) {
-			//warp
-			if(s_keyL.hasEvent(VK_TAB)) {
-				controllingUnit.point().setXY(MOUSE_X, MOUSE_Y);
-			}
 			//changeZoomRate
 			if(s_keyL.hasEvent(VK_COMMA)) {
 				zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() - 0.015);
@@ -518,6 +449,18 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 			if(s_keyL.hasEvent(VK_P)) {
 				GHQ.setStage(initialTestStage);
 			}
+			if(s_keyL.pullEvent(VK_TAB)) {
+				stage().addLiquid(controllingUnit().point(), Water.FIXED_WATER_TAG, NALiquidState.WATER_SOLUABLE, 236);
+			}
+			if(s_keyL.pullEvent(VK_SHIFT)) {
+				stage().addLiquid(controllingUnit().point(), Oil.FIXED_OIL_TAG, NALiquidState.OIL_SOLUABLE, 236);
+			}
+			if(s_keyL.pullEvent(VK_CONTROL)) {
+				stage().addLiquid(controllingUnit().point(), new PoisonusWater(1), NALiquidState.WATER_SOLUABLE, 236);
+			}
+			if(s_keyL.pullEvent(VK_Z)) {
+				stage().addLiquid(controllingUnit().point(), Flame.FIXED_FLAME_TAG, NALiquidState.GAS, 236);
+			}
 		}
 		////////////
 		//editor
@@ -533,13 +476,16 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 			}
 		}else {
 			if(s_keyL.pullEvent(VK_ESCAPE)) {
-				if(escMenu.isEnabled()) {
+				if(inventoryInvester.isEnabled()) {
+					closeInventoryInvester();
+				}else if(escMenu.isEnabled()) {
 					escMenu.disable();
-					GHQ.clearStopEvent();
 				}else {
 					escMenu.enable();
-					GHQ.stopScreen();
 				}
+			}
+			if(inventoryInvester.isEnabled() && gameInputs.consume("INTERACT")) {
+				closeInventoryInvester();
 			}
 		}
 		///////////////
@@ -595,21 +541,28 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		super.mouseWheelMoved(e);
-		if(controllingUnit != null) {
-			if(e.getWheelRotation() > 0)
-				controllingUnit.body().changeToNextWeapon();
-			else
-				controllingUnit.body().changeToPrevWeapon();
-		}
+		mouseWheelRotation = e.getWheelRotation();
+	}
+	public static int pullMouseWheelRotation() {
+		final int rotation = NAGame.mouseWheelRotation;
+		NAGame.mouseWheelRotation = 0;
+		return rotation;
 	}
 	//////////////
 	//control
 	//////////////
-	public static void openInventoryInvester(Storage<ItemData> storage) {
+	public static void openInventoryInvester(TableStorage<ItemData> storage) {
 		inventoryInvester.enable();
+		inventoryInvester.setLeftInventory(controllingUnit);
+		inventoryInvester.setRightInventory(storage);
+		lockControllingUnitAction(true);
 	}
 	public static void closeInventoryInvester() {
 		inventoryInvester.disable();
+		lockControllingUnitAction(false);
+	}
+	public static void lockControllingUnitAction(boolean b) {
+		lockControllingUnitAction = b;
 	}
 	//stair
 	public static void downFloor() {
@@ -636,6 +589,9 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 		}
 	}
 	//information
+	public static NAStage stage() {
+		return (NAStage)GHQ.stage();
+	}
 	public static GameInputList gameInputs() {
 		return gameInputs;
 	}
@@ -647,6 +603,12 @@ public class NAGame extends Game implements MessageSource, ActionSource {
 	}
 	public static NAUnit controllingUnit() {
 		return controllingUnit;
+	}
+	public static boolean controllingUnitActionLocked() {
+		return lockControllingUnitAction;
+	}
+	public static boolean inventoryInvesterOpened() {
+		return inventoryInvester.isEnabled();
 	}
 	public static Dialog dialog() {
 		return dialog;

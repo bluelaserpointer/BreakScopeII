@@ -38,6 +38,13 @@ public class MagicChip extends NAItem {
 		currentCoolProcess = 0;
 	}
 	public double coolRate() {
-		return currentCoolProcess/coolNeeds;
+		return coolNeeds == 0.0 ? 1.0 : currentCoolProcess/coolNeeds;
+	}
+	public boolean supportSerialUse() {
+		return false;
+	}
+	@Override
+	public double weight() {
+		return 0.1; //100g per chip
 	}
 }

@@ -1,13 +1,14 @@
 package unit.action;
 
+import java.util.List;
+
 import animation.BumpAnimation;
 import core.GHQ;
-import damage.DamageMaterialType;
+import core.GHQObject;
 import damage.NADamage;
 import physics.Point;
 import unit.Body;
 import unit.NAUnit;
-import unit.Unit;
 import unit.UnitAction;
 import unit.body.HumanBody;
 
@@ -40,9 +41,10 @@ public abstract class Punch extends NAAction {
 		//stamina: -20p
 		final Point punchPoint = new Point.IntPoint(point());
 		punchPoint.addXY_DA(20, angle().get());
-		for(Unit unit : GHQ.stage().units) {
-			if(unit != owner() && unit.intersectsRect(punchPoint.intX(), punchPoint.intY(), 15, 15))
-				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3, DamageMaterialType.Phy));
+		final List<GHQObject> collisionGroup = (List<GHQObject>)GHQ.stage().bulletCollisionGroup.clone();
+		for(GHQObject object : collisionGroup) {
+			if(object != owner() && object.intersectsRect(punchPoint.intX(), punchPoint.intY(), 15, 15))
+				object.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3));
 		}
 		((NAUnit)owner()).GREEN_BAR.consume(20);
 	}

@@ -1,8 +1,8 @@
 package unit;
 
+import item.equipment.weapon.Type56;
 import paint.ImageFrame;
 import talent.AllUp;
-import weapon.Type56;
 
 public class HumanGuard2 extends NAUnit {
 	public HumanGuard2() {
@@ -13,7 +13,7 @@ public class HumanGuard2 extends NAUnit {
 	}
 	@Override
 	public final String name() {
-		return "FairyA";
+		return "HumanGuard2";
 	}
 	@Override
 	public final UnitGroup unitGroup() {
@@ -22,7 +22,7 @@ public class HumanGuard2 extends NAUnit {
 	@Override
 	public final HumanGuard2 respawn(int x, int y) {
 		super.respawn(x, y);
-		equip(addItem(new Type56()));
+		equip(addItemToStorage(new Type56()));
 		return this;
 	}
 	@Override

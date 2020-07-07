@@ -5,8 +5,9 @@ import java.util.HashMap;
 import bullet.Bullet;
 import calculate.Damage;
 import core.GHQ;
-import damage.DamageMaterialType;
+import core.GHQObject;
 import damage.NADamage;
+import item.equipment.weapon.Knife;
 import paint.ImageFrame;
 import paint.animation.SerialImageFrame;
 import paint.dot.DotPaint;
@@ -14,7 +15,6 @@ import paint.dot.DotPaintResizer;
 import physics.Angle;
 import physics.Point;
 import unit.action.NAAction;
-import weapon.Knife;
 
 public class Boss_1 extends NAUnit {
 	final StingerStrike stingerStrike = new StingerStrike(body);
@@ -61,7 +61,7 @@ public class Boss_1 extends NAUnit {
 	@Override
 	public final Boss_1 respawn(int x, int y) {
 		super.respawn(x, y);
-		equip(addItem(new Knife()));
+		equip(addItemToStorage(new Knife(), false));
 		body().arm(body().melleEquipSlot());
 		lastPerfectDodgeFrame = -1000000;
 		invisibled = true;
@@ -69,19 +69,25 @@ public class Boss_1 extends NAUnit {
 	}
 	private int lastAttackedFrame;
 	@Override
-	public void damage(Damage damage, Bullet bullet) {
+	public void damage(Damage damage) {
 		//try perfect dodge
 		if(GHQ.passedFrame(lastPerfectDodgeFrame)*GHQ.getSPF() >= 15 && this.GREEN_BAR.doubleValue() >= 20.0) {
 			lastPerfectDodgeFrame = GHQ.nowFrame();
-			final double rollingAngle;
-			if(bullet.point().isStop())
-				rollingAngle = Angle.random();
-			else
-				rollingAngle = bullet.point().moveAngle() + (Math.random() < 0.5 ? +1 : -1)*Math.PI/2;
-			body().rolling.setRolling(SPEED_PPS.doubleValue()/10, rollingAngle);
+			final Bullet attackerBullet = damage.attackerBullet();
+			if(attackerBullet != null) {
+				final Point bulletPoint = attackerBullet.point();
+				final double rollingAngle;
+				if(bulletPoint.isStop())
+					rollingAngle = Angle.random();
+				else
+					rollingAngle = bulletPoint.moveAngle() + (Math.random() < 0.5 ? +1 : -1)*Math.PI/2;
+				body().rolling.setRolling(SPEED.doubleValue()/10, rollingAngle);
+			} else {
+				System.out.println("origin lost bullet was found.");
+			}
 			return;
 		}else
-			super.damage(damage, bullet);
+			super.damage(damage);
 	}
 	@Override
 	protected void attack() {
@@ -164,7 +170,7 @@ class KnifeThrow extends NAAction {
 		GHQ.stage().addBullet(new Bullet(owner()) {
 			{
 				name = "Boss_1's knife";
-				damage = new NADamage(((NAUnit)owner()).POW_FLOAT.doubleValue() + 2*((NAUnit)owner()).AGI_FLOAT.doubleValue());
+				setDamage(new NADamage(((NAUnit)owner()).POW_FLOAT.doubleValue() + 2*((NAUnit)owner()).AGI_FLOAT.doubleValue()).setKnockbackRate(point().moveAngle()));
 				point().setSpeed(45);
 				paintScript = ImageFrame.create("picture/knife.png");
 			}
@@ -181,16 +187,17 @@ class KnifeThrow extends NAAction {
 	}
 }
 class Stinger extends NAAction {
-	NAUnit targetUnit;
+	GHQObject targetObject;
 	public Stinger(Body body) {
 		super(body, 100);
 	}
 	@Override
 	public void idle() {
 		super.stopActionIfFramePassed(5);
-		if(owner().point().distance(targetUnit) > 100)
+		if(owner().point().distance(targetObject) > 100)
 			super.stopAction();
-		targetUnit.body().damaged.set();
+		if(targetObject.isUnit())
+			((NAUnit)targetObject).body().damaged.set();
 	}
 	@Override
 	public boolean precondition() {
@@ -202,7 +209,7 @@ class Stinger extends NAAction {
 		//((HumanBody)body()).punchFrontHand(20, point().angleTo(((NAUnit)owner()).targetUnit()));
 		//dmg: POW + AGI*2
 		//stamina: -5p
-		targetUnit.damage(new NADamage(((NAUnit)owner()).POW_FLOAT.doubleValue() + 2*((NAUnit)owner()).AGI_FLOAT.doubleValue()));
+		targetObject.damage(new NADamage(((NAUnit)owner()).POW_FLOAT.doubleValue() + 2*((NAUnit)owner()).AGI_FLOAT.doubleValue()));
 		((NAUnit)owner()).GREEN_BAR.consume(5);
 	}
 	@Override
@@ -216,19 +223,19 @@ class Stinger extends NAAction {
 	}
 }
 class HookThrow extends NAAction {
-	NAUnit hookedUnit;
+	GHQObject hookedUnit;
 	private Bullet hook = new Bullet(owner()) {
 		{
 			name = "Boss1's hook";
 			paintScript = ImageFrame.create("picture/boss_1/hook.png");
-			damage = NADamage.NULL_DAMAGE;
+			setDamage(NADamage.NULL_DAMAGE);
 		}
 		@Override
 		public void idle() {
 			final double distance = point().distance(owner());
 			//destroy when distance is longer then 500px, or 
 			if(distance > 600) {
-				claimDelete();
+				claimDeleteFromStage();
 				return;
 			}
 			//if caught a unit, head to owner's position
@@ -240,17 +247,17 @@ class HookThrow extends NAAction {
 				//destroy when caught a unit and the distance is shorter then 30px
 				if(distance < 30) {
 					hookedUnit.point().stop();
-					claimDelete();
-					((Boss_1)owner()).stinger.targetUnit = hookedUnit;
+					claimDeleteFromStage();
+					((Boss_1)owner()).stinger.targetObject = hookedUnit;
 					body().action(((Boss_1)owner()).stinger);
 				}
 			}
 			super.idle();
 		}
 		@Override
-		public boolean hitUnitDeleteCheck(Unit unit) {
+		public boolean hitObjectDeleteCheck(GHQObject object) {
 			if(hookedUnit == null) {
-				hookedUnit = (NAUnit)unit;
+				hookedUnit = object;
 				point().stop();
 			}
 			return false;
@@ -270,7 +277,7 @@ class HookThrow extends NAAction {
 		hookedUnit = null;
 		GHQ.stage().addBullet(hook);
 		hook.resetInitialFrame();
-		hook.cancelDelete();
+		hook.cancelDeleteFromStage();
 		hook.point().setXY(owner());
 		hook.point().setSpeed(40);
 		hook.point().setMoveAngleToTarget(((NAUnit)owner()).targetUnit());
@@ -306,7 +313,7 @@ class BackStab extends NAAction {
 		stabPoint.addXY_DA(35, angle().get());
 		for(Unit unit : GHQ.stage().units) {
 			if(unit != owner() && unit.intersectsRect(stabPoint.intX(), stabPoint.intY(), 15, 15))
-				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3, DamageMaterialType.Phy)
+				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3)
 						.setCriticalAddition(1.0).setKnockbackRate(1.5));
 		}
 		((NAUnit)owner()).BLUE_BAR.consume(20);
@@ -335,7 +342,7 @@ class StingerStrike extends NAAction {
 		stingerPoint.addXY_DA(35, angle().get());
 		for(Unit unit : GHQ.stage().units) {
 			if(unit != owner() && unit.intersectsRect(stingerPoint.intX(), stingerPoint.intY(), 15, 15)) {
-				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3, DamageMaterialType.Phy));
+				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3));
 				if(unit == ((NAUnit)owner()).targetUnit()) {
 					super.stopAction();
 					//chain a BackStab action

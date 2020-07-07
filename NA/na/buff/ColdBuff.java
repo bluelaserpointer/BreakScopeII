@@ -2,7 +2,7 @@ package buff;
 
 import calculate.Mul;
 import calculate.Setter;
-import damage.DamageMaterialType;
+import damage.DamageMaterial;
 import paint.ImageFrame;
 import paint.rect.RectPaint;
 import unit.NAUnit;
@@ -15,7 +15,7 @@ public class ColdBuff extends NABuff {
 		super(owner, rectPaint);
 		owner.TOUGHNESS_REG.getValueWithCalculation_value().addCalculation(halfer);
 		owner.AVD.getValueWithCalculation_value().addCalculation(Setter.ZERO_SETTER);
-		owner.addDamageRes(DamageMaterialType.Heat, 0.25);
+		owner.addDamageRes(DamageMaterial.Heat, 0.25);
 	}
 	@Override
 	public void idle() {
@@ -26,7 +26,7 @@ public class ColdBuff extends NABuff {
 	public void removed() {
 		((NAUnit)owner).TOUGHNESS_REG.getValueWithCalculation_value().removeCalculation(halfer);
 		((NAUnit)owner).AVD.getValueWithCalculation_value().removeCalculation(Setter.ZERO_SETTER);
-		((NAUnit)owner).addDamageRes(DamageMaterialType.Heat, -0.25);
+		((NAUnit)owner).addDamageRes(DamageMaterial.Heat, -0.25);
 	}
 	@Override
 	public String description() {

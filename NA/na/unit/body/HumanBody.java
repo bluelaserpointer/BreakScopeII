@@ -5,6 +5,11 @@ import java.util.HashMap;
 import animation.BumpAnimation;
 import core.GHQ;
 import item.ItemData;
+import item.equipment.Equipment;
+import item.equipment.weapon.NAWeaponEquipment;
+import item.equipment.weapon.gripStyle.GripStyle;
+import item.equipment.weapon.gripStyle.KnifeGrip;
+import item.equipment.weapon.gripStyle.RifleGrip;
 import paint.HasPaint;
 import paint.ImageFrame;
 import paint.Layer;
@@ -28,10 +33,6 @@ import unit.action.KnifeSlash;
 import unit.action.Punch;
 import unit.action.Rolling;
 import unit.action.Walk;
-import weapon.Equipment;
-import weapon.gripStyle.GripStyle;
-import weapon.gripStyle.KnifeGrip;
-import weapon.gripStyle.RifleGrip;
 
 public class HumanBody extends Body {
 	//bodyParts
@@ -56,8 +57,8 @@ public class HumanBody extends Body {
 			if(!equipped)
 				return false;
 			//change hand position
-			if(currentWeaponBodyParts == this)
-				applyGripStyle(((Equipment)equipment).gripStyle());
+			if(currentWeaponBodyParts == this && equipment instanceof NAWeaponEquipment)
+				applyGripStyle(((NAWeaponEquipment)equipment).gripStyle());
 			return true;
 		}
 	}
@@ -312,10 +313,8 @@ public class HumanBody extends Body {
 			toNaturalForm();
 		}
 	}
-	public void switchLastWeapon() {
-		final BodyParts tmp = currentWeaponBodyParts;
-		currentWeaponBodyParts = lastWeaponBodyParts;
-		lastWeaponBodyParts = tmp;
+	public void armLast() {
+		arm(lastWeaponBodyParts);
 	}
 	public void arm(BodyParts itemSlot) {
 		if(currentWeaponBodyParts == itemSlot)
@@ -327,7 +326,16 @@ public class HumanBody extends Body {
 			toNaturalForm();
 			return;
 		}
-		this.applyGripStyle(((Equipment)item).gripStyle());
+		this.applyGripStyle(((NAWeaponEquipment)item).gripStyle());
+		hands().equip(item);
+	}
+	public void rearm() {
+		final ItemData item = currentWeaponBodyParts.equipment();
+		if(item == null) {
+			toNaturalForm();
+			return;
+		}
+		this.applyGripStyle(((NAWeaponEquipment)item).gripStyle());
 		hands().equip(item);
 	}
 	public void toNaturalForm() {

@@ -1,7 +1,7 @@
 package unit;
 
+import item.equipment.weapon.Type56;
 import paint.ImageFrame;
-import weapon.Type56;
 
 public class HumanGuard extends NAUnit {
 	public HumanGuard() {
@@ -18,7 +18,7 @@ public class HumanGuard extends NAUnit {
 	@Override
 	public final HumanGuard respawn(int x, int y) {
 		super.respawn(x, y);
-		body.equip(addItem(new Type56()));
+		body.equip(addItemToStorage(new Type56()));
 		return this;
 	}
 	@Override

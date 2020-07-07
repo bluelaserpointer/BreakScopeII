@@ -1,9 +1,7 @@
 package buff;
 
 import core.GHQ;
-import damage.DamageMaterialType;
-import damage.DamageResourceType;
-import damage.NADamage;
+import damage.DamageMaterial;
 import paint.ImageFrame;
 import paint.rect.RectPaint;
 import unit.NAUnit;
@@ -16,13 +14,12 @@ public class LitBuff extends NABuff {
 	public LitBuff(NAUnit owner) {
 		super(owner, rectPaint);
 		initialFrame = super.INITIAL_FRAME;
-		owner.addDamageRes(DamageMaterialType.Ice, 0.25);
+		owner.addDamageRes(DamageMaterial.Cold, 0.25);
 	}
 	@Override
 	public void idle() {
 		if(GHQ.getSPF()*GHQ.passedFrame(initialFrame) >= 1.0) {
-			owner.damage(new NADamage(((NAUnit)owner).RED_BAR.max().doubleValue()*0.2,
-					DamageMaterialType.Heat, DamageResourceType.Inner));
+			owner.damage(DamageMaterial.Heat.makeDamage(((NAUnit)owner).RED_BAR.max().doubleValue()*0.2));
 			initialFrame = GHQ.nowFrame();
 			if(++passedSeconds == 3)
 				removeFromOwner();
@@ -33,7 +30,7 @@ public class LitBuff extends NABuff {
 	}
 	@Override
 	public void removed() {
-		((NAUnit)owner).addDamageRes(DamageMaterialType.Ice, -0.25);
+		((NAUnit)owner).addDamageRes(DamageMaterial.Cold, -0.25);
 	}
 	@Override
 	public String description() {

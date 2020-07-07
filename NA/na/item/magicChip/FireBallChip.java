@@ -4,24 +4,25 @@ import java.awt.Color;
 
 import bullet.Bullet;
 import core.GHQ;
-import damage.DamageMaterialType;
-import damage.DamageResourceType;
+import core.GHQObject;
 import damage.NADamage;
-import effect.Effect;
+import engine.NAGame;
+import liquid.Flame;
+import liquid.NALiquidState;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
 import unit.NAUnit;
-import unit.Unit;
 
 public class FireBallChip extends MagicChip {
+	public static final int BLUE_BAR_COST = 50;
+	private Bullet bullet;
 	private final DotPaint CHIP_ICON = new DotPaint() {
-		private static final long serialVersionUID = 4834375862689090114L;
 		private final ImageFrame CHIP_IF = ImageFrame.create("picture/MagicChip/CHI_BET.png");
 		@Override
 		public void dotPaint(int x, int y) {
-			if(hasOwner()) {
+			final boolean hasOwner = hasOwner();
+			if(hasOwner)
 				GHQ.getG2D(new Color(0, 0, 0, (int)(255*(1.0 - coolRate())))).fillRect(x - width()/2, y - height()/2, width(), height());
-			}
 			CHIP_IF.dotPaint(x, y);
 		}
 		@Override
@@ -44,21 +45,28 @@ public class FireBallChip extends MagicChip {
 	}
 	@Override
 	public void use() {
-		if(!isReady() || ((NAUnit)owner).BLUE_BAR.intValue() < 50)
+		if(!hasOwner())
 			return;
-		((NAUnit)owner).BLUE_BAR.consume(50);
-		GHQ.stage().addBullet(new Bullet(owner) {
+		if(bullet != null && !bullet.hasDeleteClaimFromStage()) {
+			bullet.outOfRange();
+			return;
+		}
+		if(!isReady() || ((NAUnit)owner).BLUE_BAR.intValue() < BLUE_BAR_COST)
+			return;
+		((NAUnit)owner).BLUE_BAR.consume(BLUE_BAR_COST);
+		super.use(); //restart cool process
+		bullet = GHQ.stage().addBullet(new Bullet(owner) {
+			private final double fireDepth = ((NAUnit)owner).INT_FLOAT.doubleValue()*10;
 			{
 				name = "FireBall";
-				damage = NADamage.NULL_DAMAGE;
+				setDamage(NADamage.NULL_DAMAGE);
 				point().setSpeed(20);
 				point().addXY_allowsMoveAngle(0, owner.width());
 				paintScript = BULLET_PAINT;
-				limitRange = owner.point().distance(GHQ.mouseX(), GHQ.mouseY());
 			}
 			@Override
-			public void hitObject() {
-				super.hitObject();
+			public void hitObject(GHQObject object) {
+				super.hitObject(object);
 				explode();
 			}
 			@Override
@@ -68,19 +76,7 @@ public class FireBallChip extends MagicChip {
 				return true;
 			}
 			private void explode() {
-				final Effect EFFECT = GHQ.stage().addEffect(new Effect(this) {
-					@Override
-					public void paint() {
-						paintScript.dotPaint_rate(point(), 1.0 + GHQ.passedFrame(initialFrame)*1.5);
-					}
-				});
-				EFFECT.setName("explosion");
-				EFFECT.paintScript = ImageFrame.create("picture/RedExplosion2.png");
-				EFFECT.limitFrame = 6;
-				for(Unit unit : GHQ.stage().units) {
-					if(unit.point().inRange(this, 300))
-						unit.damage(new NADamage(((NAUnit)owner).INT_FLOAT.doubleValue()*60, DamageMaterialType.Heat, DamageResourceType.Bullet));
-				}
+				NAGame.stage().addLiquid(point(), Flame.FIXED_FLAME_TAG, NALiquidState.GAS, fireDepth);
 			}
 		});
 	}

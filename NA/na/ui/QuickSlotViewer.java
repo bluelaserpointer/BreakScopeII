@@ -3,13 +3,14 @@ package ui;
 import java.awt.Color;
 
 import core.GHQ;
+import gui.GUIParts;
 import gui.TableStorageViewer;
 import item.NAUsable;
 import paint.ImageFrame;
 import paint.dot.HasDotPaint;
 
 public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
-	private final ImageFrame ICON_BG = ImageFrame.create("picture/gui/slot.png");
+	private final ImageFrame ICON_BG = ImageFrame.create("picture/gui/Bag_item.png");
 	private int[] lastActivatedFrame = new int[10];
 	{
 		setName("QuickSlot");
@@ -30,6 +31,13 @@ public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 	@Override
 	public boolean doLinkDrag() {
 		return true;
+	}
+	@Override
+	public boolean checkDragIn(GUIParts sourceUI, Object dropObject) {
+		if(sourceUI instanceof EquipmentSlot)
+			return false;
+		else
+			return super.checkDragIn(sourceUI, dropObject);
 	}
 	@Override
 	public NAUsable objectToT(Object object) {

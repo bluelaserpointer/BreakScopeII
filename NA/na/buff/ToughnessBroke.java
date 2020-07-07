@@ -10,7 +10,7 @@ public class ToughnessBroke extends NABuff{
 	private static final RectPaint rectPaint = ImageFrame.create("picture/buff/ToughnessBroke.png");
 	public ToughnessBroke(NAUnit owner) {
 		super(owner, rectPaint);
-		owner.SPEED_PPS.getValueWithCalculation_value().addCalculation(Setter.ZERO_SETTER);
+		owner.SPEED.getValueWithCalculation_value().addCalculation(Setter.ZERO_SETTER);
 	}
 
 	@Override
@@ -20,7 +20,7 @@ public class ToughnessBroke extends NABuff{
 	}
 	@Override
 	public void removed() {
-		((NAUnit)owner).SPEED_PPS.getValueWithCalculation_value().removeCalculation(Setter.ZERO_SETTER);
+		((NAUnit)owner).SPEED.getValueWithCalculation_value().removeCalculation(Setter.ZERO_SETTER);
 	}
 	@Override
 	public String description() {

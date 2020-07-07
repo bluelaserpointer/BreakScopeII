@@ -6,28 +6,32 @@ import java.util.LinkedList;
 
 import buff.Buff;
 import buff.NABuff;
-import buff.ToughnessBroke;
-import bullet.Bullet;
 import calculate.Calculation;
 import calculate.ConsumableEnergy;
 import calculate.Damage;
 import core.GHQ;
-import core.GHQObject;
-import damage.DamageMaterialType;
+import damage.DamageMaterial;
 import damage.NADamage;
 import effect.Effect;
 import engine.NAGame;
-import gui.stageEditor.GHQObjectHashMap;
 import item.ItemData;
 import item.NAItem;
 import item.NAUsable;
-import item.ammo.Ammo_9mm;
+import item.ammo.Ammo;
+import item.ammo.AmmoType;
+import item.ammo.storage.AmmoStorage;
+import item.equipment.Equipment;
+import item.equipment.weapon.ElectronShield;
+import item.equipment.weapon.NAFirearms;
+import item.equipment.weapon.NAWeaponEquipment;
+import item.equipment.weapon.reloadRule.ReloadRuleSelecter;
+import object.HasWeight;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
 import physics.Angle;
 import physics.Dynam;
 import physics.HasPoint;
-import physics.HitGroup;
+import physics.HitRule;
 import physics.Point;
 import physics.Direction.Direction8;
 import physics.hitShape.Circle;
@@ -39,10 +43,9 @@ import unit.action.NAAction;
 import unit.body.HumanBody;
 import vegetation.DownStair;
 import vegetation.Vegetation;
-import weapon.ElectronShield;
-import weapon.Equipment;
+import weapon.Weapon;
 
-public abstract class NAUnit extends Unit implements Person {
+public abstract class NAUnit extends Unit implements Person, HasWeight {
 	public static final NAUnit NULL_NAUnit = new NAUnit(0) {
 		{
 			status.reset();
@@ -61,6 +64,115 @@ public abstract class NAUnit extends Unit implements Person {
 	public int charaSize;
 	public Point.IntPoint dstPoint = new Point.IntPoint();
 	
+	//status
+	private boolean openReloadRule;
+	private NADamage lastDamage;
+	private final HashMap<DamageMaterial, Double> damageResMap = new HashMap<DamageMaterial, Double>();
+	{
+		damageResMap.put(DamageMaterial.Heat, 0.0);
+		damageResMap.put(DamageMaterial.Cold, 0.0);
+		damageResMap.put(DamageMaterial.Phy, 0.0);
+		damageResMap.put(DamageMaterial.Poi, 0.0);
+	}
+	public final ConsumableEnergy
+	POW_FIXED = new ConsumableEnergy(5).setMin(1),
+	POW_FLOAT = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return (int)(POW_FIXED.doubleValue()*RED_BAR.getRate());
+		}
+	}).setMin(1),
+	INT_FIXED = new ConsumableEnergy(5).setMin(1),
+	INT_FLOAT = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return (int)(INT_FIXED.doubleValue()*RED_BAR.getRate());
+		}
+	}).setMin(1),
+	AGI_FIXED = new ConsumableEnergy(5).setMin(1),
+	AGI_FLOAT = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return (int)(AGI_FIXED.doubleValue()*RED_BAR.getRate());
+		}
+	}).setMin(1),
+	RED_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return POW_FIXED.doubleValue()*20;
+		}
+	}).setDefaultToMax(),
+	BLUE_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return INT_FIXED.doubleValue()*20;
+		}
+	}).setDefaultToMax(),
+	GREEN_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return AGI_FIXED.doubleValue()*20;
+		}
+	}).setDefaultToMax(),
+	RED_REG = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return POW_FIXED.doubleValue()*0.02;
+		}
+	}).setMin(0),
+	BLUE_REG = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return INT_FIXED.doubleValue()*0.2;
+		}
+	}).setMin(0),
+	GREEN_REG = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return AGI_FIXED.doubleValue()*4.0;
+		}
+	}).setMin(0),
+	WHITE_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return POW_FIXED.doubleValue()*200.0;
+		}
+	}).setDefaultToMax(),
+	SPEED = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return AGI_FLOAT.doubleValue()*40.0 + 100;
+		}
+	}).setMin(0),
+	SENSE = new ConsumableEnergy(5).setMin(0).setDefault(5),
+	WEIGHT = new ConsumableEnergy(60).setMin(0),
+	TOUGHNESS = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return POW_FIXED.doubleValue()*20.0 + AGI_FIXED.doubleValue()*10.0;
+		}
+	}).setDefaultToMax(),
+	TOUGHNESS_REG = new ConsumableEnergy(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return POW_FIXED.doubleValue()*5.0 + AGI_FIXED.doubleValue()*10.0;
+		}
+	}),
+	CRI = new ConsumableEnergy().setMin(0.00).setDefault(0.05),
+	CRI_EFFECT = new ConsumableEnergy().setMin(0.00).setDefault(2.0),
+	AVD = new ConsumableEnergy().setDefault(new Calculation() {
+		@Override
+		public Number calculate(Number number) {
+			return AGI_FIXED.doubleValue();
+		}
+	}),
+	REF = new ConsumableEnergy(0.00).setDefault(0.00),
+	SUCK = new ConsumableEnergy(0.00).setDefault(0.00);
+	protected final Status status = new Status(
+			POW_FIXED, POW_FLOAT, INT_FIXED, INT_FLOAT, AGI_FIXED, AGI_FLOAT,
+			RED_BAR, BLUE_BAR, GREEN_BAR, WHITE_BAR,
+			RED_REG, BLUE_REG, GREEN_REG,
+			SPEED, SENSE, WEIGHT, TOUGHNESS, TOUGHNESS_REG);
 	//body&actions
 	public enum BodyPartsTypeLibrary implements BodyPartsType {
 		HEAD, TRUNK, HAND, LEGS, FOOTS,
@@ -76,13 +188,11 @@ public abstract class NAUnit extends Unit implements Person {
 	};
 	private final void useQuickSlotByInput(int id) {
 		final String STR = "SHORTCUT" + id;
-		if(gameInputs().consumeIgnoreConsume(STR)) { 
-			final int SLOT_ID = id == 0 ? 9 : id - 1;
-			final NAUsable itemData = quickSlot.get(SLOT_ID);
-			if(itemData != null) {
-				itemData.use(gameInputs().hasSecondEvent(STR));
-				NAGame.quickSlotViewer().lit(SLOT_ID);
-			}
+		final int SLOT_ID = id == 0 ? 9 : id - 1;
+		final NAUsable itemData = quickSlot.get(SLOT_ID);
+		if(itemData != null && gameInputs().hasEvent(STR, !itemData.supportSerialUse())) {
+			itemData.use();
+			NAGame.quickSlotViewer().lit(SLOT_ID);
 		}
 	}
 	protected final LinkedList<InputProcesser> actionProcesserByBuff = new LinkedList<InputProcesser>();
@@ -91,20 +201,22 @@ public abstract class NAUnit extends Unit implements Person {
 		return new InputProcesser(this) {
 			@Override
 			public void process() {
+				if(NAGame.controllingUnitActionLocked())
+					return;
 				//judge rolling
 				boolean didLolling = false;
-				final double ROLL_STR = SPEED_PPS.doubleValue()/10;
+				final double ROLL_STR = SPEED.doubleValue()/10;
 				final Direction8 direction = Direction8.getDirectionByWASD(
 						gameInputs().hasEvent("WALK_NORTH"),
 						gameInputs().hasEvent("WALK_WEST"),
 						gameInputs().hasEvent("WALK_SOUTH"),
 						gameInputs().hasEvent("WALK_EAST"));
-				if(gameInputs().consume("ROLL") && GREEN_BAR.intValue() > 25) {
+				if(gameInputs().consume("ROLL") && GREEN_BAR.doubleValue() > 25) {
 					body.rolling.setRolling(ROLL_STR, direction);
 				}else if(gameInputs().hasEvent("SPRINT") && !GREEN_BAR.isMin()) {
-					body.directionDash.setDirection(direction, 2*GHQ.mulSPF(SPEED_PPS.doubleValue()));
+					body.directionDash.setDirection(direction, 2*GHQ.mulSPF(SPEED.doubleValue()));
 				}else
-					body.directionWalk.setDirection(direction, GHQ.mulSPF(SPEED_PPS.doubleValue()));
+					body.directionWalk.setDirection(direction, GHQ.mulSPF(SPEED.doubleValue()));
 				//reduce green bar when rolling
 				if(didLolling) {
 					//GREEN_BAR.consume(25.0);
@@ -125,25 +237,45 @@ public abstract class NAUnit extends Unit implements Person {
 				//weapon action
 				if(currentEquipment() != null) { //has weapon
 					//attack
-					if(gameInputs().hasEvent("FIRE")) {
-						currentEquipment().use(true);
+					if(isBattleStance && gameInputs().hasEvent("FIRE", !currentEquipment().supportSerialUse())) {
+						currentEquipment().use();
 						setMiniTalking("Fire.");
 					}
 					//reload
-					if(gameInputs().hasEvent("RELOAD")) {
-						if(currentEquipment() != null)
-							currentEquipment().reloadIfEquipment();
-						setMiniTalking("Reloading.");
+					if(gameInputs().hasEvent("RELOAD")) { //pressed R key
+						if(!openReloadRule) {
+							openReloadRule = true;
+						}
+						final int rolling = NAGame.pullMouseWheelRotation();
+						if(rolling != 0) {
+							reloadRuleSelecter.roll(rolling);
+						}
+					} else if(openReloadRule) { //released R key
+						openReloadRule = false;
+						if(currentEquipment() != null && currentEquipment() instanceof NAFirearms) {
+							final NAFirearms firearm = (NAFirearms)currentEquipment();
+							firearm.setReloadRule(reloadRuleSelecter.getCurrentSelection());
+							firearm.reloadWeapon();
+							setMiniTalking("Reloading.");
+						}
 					}
 				}else {
 					//attack
-					if(gameInputs().hasEvent("FIRE")) {
+					if(isBattleStance && gameInputs().hasEvent("FIRE")) {
 						body.punch.setPunch();
 						setMiniTalking("Punch.");
 					}
 				}
-				if(gameInputs().consume("LAST_WEAPON"))
-					body().switchLastWeapon();
+				if(gameInputs().consume("LAST_WEAPON")) {
+					body().armLast();
+					setBattleStance(true);
+				}
+				final int rotation = NAGame.pullMouseWheelRotation();
+				if(rotation > 0) {
+					body().changeToNextWeapon();
+				} else if(rotation < 0){
+					body().changeToPrevWeapon();
+				}
 				//itemPick & talk
 				boolean interactHappened = gameInputs().consume("INTERACT");
 				final ItemData item = GHQ.stage().items.forIntersects(UNIT);
@@ -162,25 +294,22 @@ public abstract class NAUnit extends Unit implements Person {
 				}
 				if(interactHappened) {
 					interact: {
-						final NAUnit npc = (NAUnit)GHQ.stage().units.getClosestVisible(UNIT.point());
-						if(npc.point().inRange(UNIT.point(), 240)) {
+						final NAUnit npc = (NAUnit)GHQ.stage().units.getClosestVisible(UNIT);
+						if(npc != null && npc.point().inRange(UNIT.point(), 240)) {
 							if(npc.interact((NAUnit)UNIT)) {
 								interactHappened = false;
 								break interact;
 							}
 						}
 						if(item != null) {
-							inventory.add(item.pickup(UNIT));
+							addItemToStorage(item, true);
 							interactHappened = false;
 							break interact;
 						}
 					}
 				}
-				//show item name
-				//TODO: not good to write here
-				if(item != null) {
-					GHQ.getG2D(Color.WHITE);
-					GHQ.drawStringGHQ(item.name(), item.point().intX(), item.point().intY() - 20);
+				if(gameInputs().consume(NAGame.GameInputEnum.SWITCH_BATTLE_STANCE.name())) {
+					setBattleStance(!isBattleStance);
 				}
 			}
 		};
@@ -188,7 +317,20 @@ public abstract class NAUnit extends Unit implements Person {
 	//personal information
 	protected String personalName;
 	public ImageFrame personalIcon;
-	public DotPaint charaPaint = DotPaint.BLANK_SCRIPT;
+	public DotPaint charaPaint = new DotPaint() {
+		@Override
+		public void dotPaint(int x, int y) {
+			
+		}
+		@Override
+		public int width() {
+			return 0;
+		}
+		@Override
+		public int height() {
+			return 0;
+		}
+	};
 	
 	//battle
 	protected NAUnit targetUnit;
@@ -197,6 +339,8 @@ public abstract class NAUnit extends Unit implements Person {
 	protected double suspiciousAngle;
 	protected int lastDetectedFrame;
 	protected boolean invisibled;
+	
+	protected final ReloadRuleSelecter reloadRuleSelecter = new ReloadRuleSelecter(this);
 
 	//favor
 	protected final int[] personalFavor = new int[UnitGroup.GROUP_AMOUNT];
@@ -206,149 +350,15 @@ public abstract class NAUnit extends Unit implements Person {
 			waitingDeleteBuffs = new LinkedList<NABuff>();
 	//talent
 	protected LinkedList<Talent> talents = new LinkedList<Talent>();
-	//status
-	private NADamage lastDamage;
-	private final HashMap<DamageMaterialType, Double> damageResMap = new HashMap<DamageMaterialType, Double>();
-	{
-		damageResMap.put(DamageMaterialType.Heat, 0.0);
-		damageResMap.put(DamageMaterialType.Ice, 0.0);
-		damageResMap.put(DamageMaterialType.Phy, 0.0);
-		damageResMap.put(DamageMaterialType.Poi, 0.0);
-	}
-	public final ConsumableEnergy
-		POW_FIXED = new ConsumableEnergy(5).setMin(1),
-		POW_FLOAT = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return (int)(POW_FIXED.doubleValue()*RED_BAR.getRate());
-			}
-		}).setMin(1),
-		INT_FIXED = new ConsumableEnergy(5).setMin(1),
-		INT_FLOAT = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return (int)(INT_FIXED.doubleValue()*RED_BAR.getRate());
-			}
-		}).setMin(1),
-		AGI_FIXED = new ConsumableEnergy(5).setMin(1),
-		AGI_FLOAT = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return (int)(AGI_FIXED.doubleValue()*RED_BAR.getRate());
-			}
-		}).setMin(1),
-		RED_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return POW_FIXED.doubleValue()*20;
-			}
-		}).setDefaultToMax(),
-		BLUE_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return INT_FIXED.doubleValue()*20;
-			}
-		}).setDefaultToMax(),
-		GREEN_BAR = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return AGI_FIXED.doubleValue()*20;
-			}
-		}).setDefaultToMax(),
-		RED_REG = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return POW_FIXED.doubleValue()*0.02;
-			}
-		}).setMin(0),
-		BLUE_REG = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return INT_FIXED.doubleValue()*0.2;
-			}
-		}).setMin(0),
-		GREEN_REG = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return AGI_FIXED.doubleValue()*4.0;
-			}
-		}).setMin(0),
-		ENERGY = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return POW_FIXED.doubleValue()*200.0;
-			}
-		}).setDefaultToMax(),
-		SPEED_PPS = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return AGI_FLOAT.doubleValue()*40.0 + 100;
-			}
-		}).setMin(0),
-		SENSE = new ConsumableEnergy(5).setMin(0).setDefault(5),
-		WEIGHT = new ConsumableEnergy(60).setMin(0),
-		TOUGHNESS = new ConsumableEnergy().setMin(0).setMax(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return POW_FIXED.doubleValue()*20.0 + AGI_FIXED.doubleValue()*10.0;
-			}
-		}).setDefaultToMax(),
-		TOUGHNESS_REG = new ConsumableEnergy(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return POW_FIXED.doubleValue()*5.0 + AGI_FIXED.doubleValue()*10.0;
-			}
-		}),
-		CRI = new ConsumableEnergy().setMin(0.00).setDefault(0.05),
-		CRI_EFFECT = new ConsumableEnergy().setMin(0.00).setDefault(2.0),
-		AVD = new ConsumableEnergy().setDefault(new Calculation() {
-			@Override
-			public Number calculate(Number number) {
-				return AGI_FIXED.doubleValue();
-			}
-		}),
-		REF = new ConsumableEnergy(0.00).setDefault(0.00),
-		SUCK = new ConsumableEnergy(0.00).setDefault(0.00);
-	public final Status status = new Status(RED_BAR, BLUE_BAR, GREEN_BAR, POW_FLOAT, INT_FLOAT, AGI_FLOAT, ENERGY
-			, SPEED_PPS, TOUGHNESS, TOUGHNESS_REG, CRI, CRI_EFFECT, AVD, REF, SUCK);
-	@Override
-	public GHQObjectHashMap getKindDataHashMap() {
-		return new GHQObjectHashMap()
-				.streamPut("POW_FIXED", POW_FIXED)
-				.streamPut("POW_FLOAT", POW_FLOAT)
-				.streamPut("INT_FIXED", INT_FIXED)
-				.streamPut("INT_FLOAT", INT_FLOAT)
-				.streamPut("AGI_FIXED", AGI_FIXED)
-				.streamPut("AGI_FLOAT", AGI_FLOAT)
-				.streamPut("RED_BAR", RED_BAR)
-				.streamPut("BLUE_BAR", BLUE_BAR)
-				.streamPut("GREEN_BAR", GREEN_BAR)
-				.streamPut("RED_REG", RED_REG)
-				.streamPut("BLUE_REG", BLUE_REG)
-				.streamPut("GREEN_REG", GREEN_REG)
-				.streamPut("ENERGY", ENERGY)
-				.streamPut("SPEED_PPS", SPEED_PPS)
-				.streamPut("SENSE", SENSE)
-				.streamPut("WEIGHT", WEIGHT)
-				.streamPut("TOUGHNESS", TOUGHNESS)
-				.streamPut("TOUGHNESS_REG", TOUGHNESS_REG)
-				.streamPut("CRI", CRI)
-				.streamPut("AVD", AVD)
-				.streamPut("REF", REF)
-				.streamPut("SUCK", SUCK)
-				;
-	}
-	public String getCurrentAmmoName() {
-		return new Ammo_9mm(0).name();
-	}
 	//inventory
 	public final TableStorage<NAUsable> quickSlot = new TableStorage<NAUsable>(10, 1, NAUsable.NULL_NA_USABLE);
 	public final TableStorage<ItemData> inventory = new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM);
+	public final AmmoStorage ammoStorage = new AmmoStorage(AmmoType.values());
 	
 	public NAUnit(int charaSize) {
 		physics().setPoint(new Dynam());
 		physics().setHitShape(new Circle(this, charaSize));
-		physics().setHitGroup(HitGroup.HIT_ALL);
+		physics().setHitRule(HitRule.HIT_ALL);
 	}
 	@Override
 	public NAUnit respawn(int x, int y) {
@@ -358,10 +368,11 @@ public abstract class NAUnit extends Unit implements Person {
 			((Equipment)item).reset();
 		point().stop();
 		lastDetectedFrame = 0;
+		openReloadRule = false;
 		dstPoint.setXY(point().setXY(x, y));
 		angle().set(0.0);
 		inventory.clear();
-		ItemData.add_stack(inventory, new Ammo_9mm(32));
+		ItemData.addInInventory(inventory, AmmoType._7d62.generate(32));
 		return this;
 	}
 	@Override
@@ -371,15 +382,15 @@ public abstract class NAUnit extends Unit implements Person {
 		// status
 		////////////
 		//relate to energy
-		if(!ENERGY.isMin()) {
+		if(!WHITE_BAR.isMin()) {
 			//regeneration
-			ENERGY.consume(-RED_BAR.consume(-RED_REG.doubleValue()*GHQ.getSPF())*1.0*GHQ.getSPF());
-			ENERGY.consume(-BLUE_BAR.consume(-BLUE_REG.doubleValue()*GHQ.getSPF())*0.2*GHQ.getSPF());
+			WHITE_BAR.consume(-RED_BAR.consume(-RED_REG.doubleValue()*GHQ.getSPF())*1.0*GHQ.getSPF());
+			WHITE_BAR.consume(-BLUE_BAR.consume(-BLUE_REG.doubleValue()*GHQ.getSPF())*0.2*GHQ.getSPF());
 			if(GHQ.isExpired_dynamicSeconds(GREEN_BAR.lastDecreasedFrame(), 1.0))
-				ENERGY.consume(-GREEN_BAR.consume(-GREEN_REG.doubleValue()*GHQ.getSPF())*0.1);
+				WHITE_BAR.consume(-GREEN_BAR.consume(-GREEN_REG.doubleValue()*GHQ.getSPF())*0.1);
 			//reduce energy
 			if(GHQ.checkSpan_dynamicSeconds(30.0))
-				ENERGY.consume(1);
+				WHITE_BAR.consume(1);
 		}else if(GHQ.checkSpan_dynamicSeconds(30.0)) { //reduce hp
 			RED_BAR.consume(1);
 		}
@@ -419,11 +430,10 @@ public abstract class NAUnit extends Unit implements Person {
 		////////////
 		//sight & battle
 		////////////
-		updateTargetUnit();
 		if(!isControllingUnit()) {
+			updateTargetUnit();
 			attack();
-		} else if(this instanceof Boss_1)
-			attack();
+		}
 		////////////
 		//aim
 		////////////
@@ -446,17 +456,15 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	protected void attack() {
 		if(targetUnit != null) {
-			final double targetAngle = point().angleTo(targetUnit);
-			final double angleDiff = angle().spinTo_Suddenly(targetAngle, 10);
+			final double angleDiff = angle().spinTo_Suddenly(point().angleTo(targetUnit), 10);
 			final double distance = point().distance(targetUnit);
-			if(angle().isDiffSmaller(targetAngle, Math.PI*10/18)) {
-				if(currentEquipment() == null && angleDiff < 0.30 && distance < 50
-						|| angleDiff < currentEquipment().effectiveAngleWidth &&  distance < currentEquipment().effectiveRange) {
-					if(currentEquipment() != null)
-						currentEquipment().use();
-					else
-						body().punch.setPunch();
-				}
+			final NAWeaponEquipment equipment = currentEquipment();
+			if(equipment == null) { //bear hand
+				if(angleDiff < 0.30 && distance < 50)
+					body().punch.setPunch();
+			} else { //armed
+				if(equipment.effectiveTarget(distance, angleDiff))
+					equipment.use();
 			}
 		}else if(isBattleStance) {
 			if(GHQ.nowFrame() % 80 == 0) {
@@ -493,10 +501,10 @@ public abstract class NAUnit extends Unit implements Person {
 		////////////
 		if(isControllingUnit() || NAGame.controllingUnit().isVisible(this)) {
 			if(isBattleStance) {
-				if(targetUnit != null && this.isVisible(targetUnit)) {
-					battleStanceWhenVisibleIF.dotPaint(point().intX(), point().intY() - charaPaint.height());
+				if(!isControllingUnit() && targetUnit != null && this.isVisible(targetUnit)) {
+					battleStanceWhenVisibleIF.dotPaint(point().intX(), point().intY() - height());
 				}else {
-					battleStanceIF.dotPaint(point().intX(), point().intY() - charaPaint.height());
+					battleStanceIF.dotPaint(point().intX(), point().intY() - height());
 				}
 			}
 		}
@@ -505,8 +513,9 @@ public abstract class NAUnit extends Unit implements Person {
 		paintScript.dotPaint_turn(point(), (double)GHQ.nowFrame()/35.0);
 	}
 	public void killed() {
-		for(int i = inventory.traverseFirst();i != -1;i = inventory.traverseNext(i))
+		for(int i = inventory.nextNonspaceIndex(); i != -1; i = inventory.nextNonspaceIndex(i)) {
 			GHQ.stage().addItem(inventory.remove(i).drop((int)(point().doubleX() + GHQ.random2(-50,50)), (int)(point().doubleY() + GHQ.random2(-50,50))));
+		}
 	}
 	
 	//tool
@@ -529,14 +538,17 @@ public abstract class NAUnit extends Unit implements Person {
 			//record this target and attack it
 			targetUnit = leastFriendlyUnit;
 			targetFoundFrame = GHQ.nowFrame();
-			isBattleStance = true;
+			setBattleStance(true);
+			body().rearm();
 			//say something
 			this.setMiniTalking("I found you.");
 		}else {
 			if(targetUnit != null && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*5)))
 				targetUnit = null;
-			if(isBattleStance && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*15)))
-				isBattleStance = false;
+			if(isBattleStance && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*15))) {
+				setBattleStance(false);
+				body().toNaturalForm();
+			}
 		}
 	}
 	public boolean isHostile(int favor) {
@@ -545,13 +557,14 @@ public abstract class NAUnit extends Unit implements Person {
 	public boolean isHostile(NAUnit target) {
 		return isHostile(favorTo(target));
 	}
+	public boolean isHostileToControllingUnit() {
+		return !isControllingUnit() && isHostile(NAGame.controllingUnit());
+	}
 	public boolean isVisible(HasPoint target) {
-		final double DISTANCE = this.point().distance(target);
-		return isAware(target) || !(target instanceof NAUnit && ((NAUnit)target).isInvisibled()) && DISTANCE < 800 && this.angle().isDiffSmaller(this.point().angleTo(target), Math.toRadians(60.0)) && this.point().isVisible(target);
+		return isAware(target) || !(target instanceof NAUnit && ((NAUnit)target).isInvisibled()) && inWidthOfFieldView_degree(target, 60) && point().isVisible(target, 800);
 	}
 	public boolean isVisible(Point point) {
-		final double DISTANCE = this.point().distance(point);
-		return isAware(point) || DISTANCE < 800 && this.angle().isDiffSmaller(this.point().angleTo(point), Math.toRadians(60.0)) && this.point().isVisible(point);
+		return isAware(point) || inWidthOfFieldView_degree(point, 60) && point().isVisible(point, 800);
 	}
 	public boolean isAware(HasPoint target) {
 		return isAware(target.point());
@@ -559,10 +572,10 @@ public abstract class NAUnit extends Unit implements Person {
 	public boolean isAware(Point point) {
 		return point().distance(point) < SENSE.intValue()*15;
 	}
-	protected boolean isVisibleByControllingUnit() {
+	public boolean isVisibleByControllingUnit() {
 		return this.isControllingUnit() || NAGame.controllingUnit().isVisible(this);
 	}
-	protected boolean isAwareByControllingUnit() {
+	public boolean isAwareByControllingUnit() {
 		return this.isControllingUnit() || NAGame.controllingUnit().isAware(this);
 	}
 	//control
@@ -605,9 +618,26 @@ public abstract class NAUnit extends Unit implements Person {
 			}
 		});
 	}
+	//battle stance
+	public void setBattleStance(boolean b) {
+		if(isBattleStance == b)
+			return;
+		isBattleStance = b;
+//		if(b) {
+//			body().rearm();
+//			if(this.isControllingUnit())
+//				GHQ.showCursor(false);
+//		}else {
+//			body().toNaturalForm();
+//			if(this.isControllingUnit())
+//				GHQ.showCursor(true);
+//		}
+	}
 	//weapon equip & dequip
 	public void equip(Equipment item) {
 		body.equip(item);
+		if(!item.hasOwner())
+			item.setOwner(this);
 		item.equipped();
 	}
 	public void dequip(Equipment item) {
@@ -615,13 +645,13 @@ public abstract class NAUnit extends Unit implements Person {
 		item.dequipped();
 	}
 	//damage resistance
-	public double damageRes(NADamage damage) {
+	public double damageRes(DamageMaterial material) {
 		double res = POW_FIXED.doubleValue()*0.01;
-		if(damageResMap.containsKey(damage.materialType()))
-			res += damageResMap.get(damage.materialType());
+		if(damageResMap.containsKey(material))
+			res += damageResMap.get(material);
 		return res;
 	}
-	public double addDamageRes(DamageMaterialType materialType, double value) {
+	public double addDamageRes(DamageMaterial materialType, double value) {
 		if(damageResMap.containsKey(materialType)) {
 			final double NEW_VALUE = damageResMap.get(materialType) + value;
 			damageResMap.put(materialType, NEW_VALUE);
@@ -630,13 +660,26 @@ public abstract class NAUnit extends Unit implements Person {
 		return 0.0;
 	}
 	// inventory
-	public <T extends ItemData>T addItem(T item) {
-		ItemData.add_stack(inventory, item);
-		item.setOwner(this);
+	public <T extends ItemData>T addItemToStorage(T item) {
+		return addItemToStorage(item, true);
+	}
+	public <T extends ItemData>T addItemToStorage(T item, boolean doStack) {
+		item.pickup(this);
+		if(item instanceof Ammo) {
+			ammoStorage.add((Ammo)item);
+		} else {
+			if(doStack)
+				ItemData.addInInventory(inventory, item);
+			else
+				inventory.add(item);
+		}
 		return item;
 	}
 	public final void removeItem(ItemData item) {
-		inventory.remove(item);
+		if(item instanceof Ammo) {
+			ammoStorage.removeStackable((Ammo)item);
+		} else
+			inventory.remove(item);
 		removedItem(item);
 	}
 	@Override
@@ -656,29 +699,7 @@ public abstract class NAUnit extends Unit implements Person {
 
 	// decreases
 	@Override
-	public void damagedTarget(Unit targetUnit, Bullet bullet) {}
-	@Override
-	public void damage(Damage damage, Bullet bullet) {
-		if(damage == NADamage.NULL_DAMAGE || !(damage instanceof NADamage))
-			return;
-		RED_BAR.clearLastSet();
-		lastDamage = (NADamage)damage;
-		final GHQObject shooterObject = bullet.shooter();
-		if(shooterObject instanceof NAUnit) {
-			damage.doDamage(this, ((NAUnit)shooterObject));
-			//tell this unit damaged him
-			((NAUnit)shooterObject).damagedTarget(this, bullet);
-		}else
-			damage.doDamage(this, NAUnit.NULL_NAUnit);
-		//knockback when it was physical damage
-		final double DMG = RED_BAR.lastSetDiff_underZero();
-		if(DMG > 0 && lastDamage.materialType() == DamageMaterialType.Phy) {
-			point().addSpeed_DA(lastDamage.knockbackRate()*DMG/WEIGHT.doubleValue()*(containsBuff(ToughnessBroke.class) ? 40 : 20), bullet.point().moveAngle());		
-			body.damaged.set();
-		}//judge alive
-		if(!isAlive())
-			killed();
-	}
+	public void damagedTarget(Unit targetUnit, Damage damage) {}
 	public final boolean kill(boolean force) {
 		RED_BAR.setToMin();
 		killed();
@@ -786,8 +807,12 @@ public abstract class NAUnit extends Unit implements Person {
 	protected BodyParts currentEquipmentSlot() {
 		return body().currentEquipSlot();
 	}
-	public Equipment currentEquipment() {
-		return body().currentEquipment();
+	public NAWeaponEquipment currentEquipment() {
+		return (NAWeaponEquipment)body().currentEquipment();
+	}
+	public Weapon currentWeapon() {
+		final NAWeaponEquipment equip = currentEquipment();
+		return equip == null ? null : equip.weapon();
 	}
 	public HumanBody body() {
 		return body;
@@ -808,6 +833,10 @@ public abstract class NAUnit extends Unit implements Person {
 			return 0;
 	}
 	@Override
+	public DotPaint getDotPaint() {
+		return charaPaint;
+	}
+	@Override
 	public String name() {
 		return GHQ.NOT_NAMED;
 	}
@@ -823,5 +852,52 @@ public abstract class NAUnit extends Unit implements Person {
 	}
 	public boolean hasTargetUnit() {
 		return targetUnit != null;
+	}
+	@Override
+	public double weight() {
+		return WEIGHT.doubleValue();
+	}
+	public boolean openReloadRule() {
+		return openReloadRule;
+	}
+	public NAItem changeToItem() {
+		if(!hasDeleteClaimFromStage()) {
+			claimDeleteFromStage();
+			return itemUnit;
+		}
+		return null;
+	}
+	public NAUnit changeToUnit() {
+		if(!itemUnit.hasDeleteClaimFromStage()) {
+			itemUnit.claimDeleteFromStage();
+			return this;
+		}
+		return null;
+	}
+	protected NAItem itemUnit = def_itemUnit();
+	protected NAItem def_itemUnit() {
+		return new NAItem(charaPaint) {
+			@Override
+			public double weight() {
+				return NAUnit.this.weight();
+			}
+			@Override
+			public NAUnit substantialize(int x, int y) {
+				if(hasDeleteClaimFromStage()) {
+					claimDeleteFromStage();
+					return NAUnit.this;
+				}
+				return null;
+			}
+		};
+	}
+	public NAItem itemUnit() {
+		return itemUnit;
+	}
+	public void setLastDamage(NADamage damage) {
+		lastDamage = damage;
+	}
+	public ReloadRuleSelecter reloadRuleSelecter() {
+		return reloadRuleSelecter;
 	}
 }

@@ -3,10 +3,13 @@ package ui;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 
 import core.GHQ;
 import engine.NAGame;
+import gui.ArrangedButtons;
 import gui.AutoResizeMenu;
+import gui.BasicButton;
 import gui.GHQTextArea;
 import gui.GUIParts;
 import gui.GUIPartsSwitcher;
@@ -15,9 +18,15 @@ import gui.ScrollBar;
 import gui.TableStorageViewer;
 import gui.TextButton;
 import item.ItemData;
+import item.ammo.AmmoType;
+import item.ammo.enchant.AmmoEnchant;
+import item.ammo.storage.AmmoBag;
+import math.SquareCellArranger;
+import paint.ColorFilling;
 import paint.ColorFraming;
 import paint.ImageFrame;
 import paint.dot.HasDotPaint;
+import paint.rect.RectPaint;
 import storage.TableStorage;
 import talent.Talent;
 import unit.BodyParts;
@@ -25,30 +34,113 @@ import unit.body.HumanBody;
 
 public class ESC_menu extends GUIPartsSwitcher{
 	private static final int INVENTORY = 0, STATUS = 1, CRAFT = 2, SYSTEM = 3, MEMO = 4, TALENT = 5;
+	private final ImageFrame defaultSlotPaint, buttonPaint;
+	private final RectPaint bgPaint;
 	public ESC_menu() {
 		super(6, INVENTORY);
+		defaultSlotPaint = ImageFrame.create("picture/gui/Bag_item.png");
+		buttonPaint = ImageFrame.create("picture/gui/Button_Mid_up.png");
+		bgPaint = new RectPaint() {
+			private final ImageFrame
+				bg1 = ImageFrame.create("picture/gui/Bag_background_93.png"),
+				bg2 = ImageFrame.create("picture/gui/Bag_decoration.png");
+			@Override
+			public void rectPaint(int x, int y, int w, int h) {
+				bg1.rectPaint(x, y, w, h);
+				bg2.rectPaint(x, y, w, h);
+			}
+		};
+		this.setBGPaint(bgPaint);
 		//top tab
 		this.appendLast(new AutoResizeMenu(0, 0, GHQ.screenW(), 70) {
 			final GUIParts 
-				inventoryScrBtn = getSwitcherButton(INVENTORY).setBGPaint(new ColorFraming(Color.GRAY, GHQ.stroke3)).setName("inventoryScrBtn"),
-				talentScrBtn = getSwitcherButton(TALENT).setBGPaint(new ColorFraming(Color.GRAY, GHQ.stroke3)).setName("talentScrBtn"),
-				statusScrBtn = getSwitcherButton(STATUS).setBGPaint(new ColorFraming(Color.GRAY, GHQ.stroke3)).setName("paraScrBtn"),
-				craftScrBtn = getSwitcherButton(CRAFT).setBGPaint(new ColorFraming(Color.GRAY, GHQ.stroke3)).setName("craftScrBtn"),
-				sysScrBtn = getSwitcherButton(SYSTEM).setBGPaint(new ColorFraming(Color.GRAY, GHQ.stroke3)).setName("sysScrBtn"),
-				memoScrBtn = getSwitcherButton(MEMO).setBGPaint(new ColorFraming(Color.GRAY, GHQ.stroke3)).setName("memoScrBtn");
+				inventoryScrBtn = getSwitcherButton(INVENTORY).setBGPaint(buttonPaint).setName("inventoryScrBtn"),
+				talentScrBtn = getSwitcherButton(TALENT).setBGPaint(buttonPaint).setName("talentScrBtn"),
+				statusScrBtn = getSwitcherButton(STATUS).setBGPaint(buttonPaint).setName("paraScrBtn"),
+				craftScrBtn = getSwitcherButton(CRAFT).setBGPaint(buttonPaint).setName("craftScrBtn"),
+				sysScrBtn = getSwitcherButton(SYSTEM).setBGPaint(buttonPaint).setName("sysScrBtn"),
+				memoScrBtn = getSwitcherButton(MEMO).setBGPaint(buttonPaint).setName("memoScrBtn");
 			{
 				this.addNewLine(statusScrBtn, talentScrBtn, inventoryScrBtn, craftScrBtn, sysScrBtn, memoScrBtn);
-				this.setBGColor(Color.WHITE);
 				this.setName("ESC_MENU_TOP_TAB");
 			}
 		});
 		//INVENTORY
 		set(INVENTORY, new GUIParts() {
 			final ImageFrame humanBodyIF = ImageFrame.create("picture/humanbody/FullBody.png");
+			AmmoType openedAmmoType = null;
+			TableStorageViewer<AmmoBag> ammoStorageViewer;
+			AutoResizeMenu ammoEnchantsMenu;
 			{
 				setName("INVENTORY");
-				addLast(new ItemStorageViewer().setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory).setCellPaint(ImageFrame.create("picture/gui/slot.png")).setCellSize(70))
-				.appendFirst(new ItemRCMenu().disable()).point().setXY(50, 100);
+				//item storage
+				addLast(new ItemStorageViewer().setRCMenu(new ItemRCMenu_inventory()).setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory).setCellPaint(defaultSlotPaint).setCellSize(70))
+				.point().setXY(50, 100);
+				//ammo storage
+				addLast(new ArrangedButtons<AmmoType>(425, 100, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)) {
+					{
+						final AmmoType types[] = AmmoType.values();
+						for(int i = 0; i < types.length; ++i) {
+							super.appendButton(types[i], defaultSlotPaint, 0, types.length - 1 - i);
+						}
+					}
+					@Override
+					protected void buttonClicked(AmmoType buttonValue) { //TODO: open UI info about the ammoBagList
+						if(openedAmmoType != buttonValue) {
+							openedAmmoType = buttonValue;
+							ammoStorageViewer.setTableStorage(new TableStorage<AmmoBag>(NAGame.controllingUnit().ammoStorage.ammoBagList(buttonValue), 5, AmmoBag.EMPTY_BAG));
+							ammoStorageViewer.enable();
+						} else {
+							ammoStorageViewer.disable();
+						}
+					}
+					@Override
+					protected void buttonExtendPaint(AmmoType buttonValue, BasicButton button) {
+						buttonValue.paint.dotPaint(button.point().intX(), button.point().intY());
+						GHQ.getG2D(Color.GRAY);
+						GHQ.drawStringGHQ(String.valueOf(NAGame.controllingUnit().ammoStorage.countByType(buttonValue)), button.point().intX() + 20, button.point().intY() + 40);
+					}
+				});
+				addLast(ammoStorageViewer = new TableStorageViewer<AmmoBag>() {
+					{
+						point().setXY(500, 100);
+						this.backGroundPaint = new ColorFilling(Color.WHITE);
+						this.cellPaint = new ColorFraming(Color.GRAY, GHQ.stroke1);
+						addLast(ammoEnchantsMenu = new AutoResizeMenu(300, 20)).disable();
+					}
+					@Override
+					public void mouseOver() {
+						final AmmoBag ammoBag = this.getMouseHoveredElement();
+						if(ammoBag != null) {
+							ammoEnchantsMenu.enable();
+							ammoEnchantsMenu.removeAll();
+							final HashMap<AmmoEnchant, Integer> enchantLv = ammoBag.enchants().enchants();
+							for(AmmoEnchant enchant : enchantLv.keySet()) {
+								ammoEnchantsMenu.addNewLine(new GUIParts() {
+									@Override
+									public void paint() {
+										super.paint();
+										GHQ.getG2D(Color.GRAY);
+										GHQ.drawStringGHQ(enchant.name, point().intX(), point().intY());
+									}
+								}).setBGColor(Color.LIGHT_GRAY);
+							}
+						}
+					}
+					@Override
+					public void mouseOut() {
+						super.mouseOut();
+						ammoEnchantsMenu.disable();
+					}
+					@Override
+					public AmmoBag objectToT(Object object) {
+						if(object instanceof AmmoBag)
+							return (AmmoBag)object;
+						return null;
+					}
+					
+				}).disable();
+				//equipments
 				//left 5 slot (main, sub, melee, shield, exoskeleton)
 				addLast(new EquipmentSlot() {
 					@Override
@@ -132,7 +224,7 @@ public class ESC_menu extends GUIPartsSwitcher{
 		//Talent
 		set(TALENT, new GUIParts() {
 			private TableStorageViewer<Talent> talentList;
-			private final ImageFrame ICON_BG = ImageFrame.create("picture/gui/slot.png");
+			private final ImageFrame ICON_BG = defaultSlotPaint;
 			private final GHQTextArea talentDescriptionTextArea = new GHQTextArea() {
 				{
 					setName("TalentDescription");
@@ -264,10 +356,10 @@ public class ESC_menu extends GUIPartsSwitcher{
 				G2.setColor(Color.GREEN);
 				G2.drawString("STAMINA: " + NAGame.controllingUnit().GREEN_BAR.intValue() + "/" + NAGame.controllingUnit().GREEN_BAR.max().intValue(), 545, 250);
 				G2.setColor(Color.WHITE);
-				G2.drawString("FOOD: " + NAGame.controllingUnit().ENERGY.intValue() + "/" + NAGame.controllingUnit().ENERGY.max().intValue(), 545, 275);
+				G2.drawString("FOOD: " + NAGame.controllingUnit().WHITE_BAR.intValue() + "/" + NAGame.controllingUnit().WHITE_BAR.max().intValue(), 545, 275);
 			
 				G2.setColor(Color.WHITE);
-				G2.drawString("SPD: " + NAGame.controllingUnit().SPEED_PPS.intValue(), 545, 310);
+				G2.drawString("SPD: " + NAGame.controllingUnit().SPEED.intValue(), 545, 310);
 				G2.drawString("SENSE: " + NAGame.controllingUnit().SENSE.intValue(), 545, 335);
 				G2.drawString("TOUGHNESS: " + NAGame.controllingUnit().TOUGHNESS.intValue(), 545, 360);
 				G2.drawString("TOUGHNESS_REG: " + NAGame.controllingUnit().TOUGHNESS_REG.intValue(), 545, 385);

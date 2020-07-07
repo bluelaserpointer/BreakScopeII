@@ -42,7 +42,7 @@ public class UnitEditor extends ClickMenu<Unit>{
 					GENERATED_UNIT = null;
 					return;
 				}
-				targetObject.claimDelete();
+				targetObject.claimDeleteFromStage();
 				targetObject = GENERATED_UNIT;
 			}
 		});

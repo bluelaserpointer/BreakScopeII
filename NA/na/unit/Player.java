@@ -3,21 +3,24 @@ package unit;
 import static java.awt.event.KeyEvent.*;
 
 import engine.NAGame;
+import item.equipment.weapon.ElectronShield;
 import paint.ImageFrame;
 import paint.dot.DotPaintMultiple;
 import talent.AllUp;
-import weapon.ElectronShield;
 
 public class Player extends NAUnit {
 	
 	public Player() {
 		super(20);
 		this.addTalent(new AllUp(this));
+		this.addTalent(new AllUp(this));
+		this.addTalent(new AllUp(this));
+		this.addTalent(new AllUp(this));
 	}
 	@Override
 	public final Player respawn(int x, int y) {
 		super.respawn(x, y);
-		equip(addItem(new ElectronShield(5000)));
+		equip(addItemToStorage(new ElectronShield(5000)));
 		return this;
 	}
 
