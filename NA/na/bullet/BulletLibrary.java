@@ -1,6 +1,5 @@
 package bullet;
 
-import java.awt.Color;
 
 import bullet.Bullet;
 import core.GHQ;
@@ -9,7 +8,6 @@ import damage.NADamage;
 import effect.EffectLibrary;
 import item.ammo.enchant.AmmoEnchants;
 import paint.ImageFrame;
-import paint.dot.DotPaint;
 import physics.HitRule;
 import physics.hitShape.Circle;
 import unit.NAUnit;

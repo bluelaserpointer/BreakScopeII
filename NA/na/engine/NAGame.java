@@ -46,7 +46,6 @@ import liquid.PoisonusWater;
 import liquid.Water;
 import paint.ImageFrame;
 import physics.Route;
-import physics.Direction.Direction4;
 import saveLoader.SaveLoader;
 import saveLoader.SaveLoaderV1_0;
 import stage.GHQStage;

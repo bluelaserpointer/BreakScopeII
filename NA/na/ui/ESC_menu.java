@@ -32,7 +32,7 @@ import talent.Talent;
 import unit.BodyParts;
 import unit.body.HumanBody;
 
-public class ESC_menu extends GUIPartsSwitcher{
+public class ESC_menu extends GUIPartsSwitcher {
 	private static final int INVENTORY = 0, STATUS = 1, CRAFT = 2, SYSTEM = 3, MEMO = 4, TALENT = 5;
 	private final ImageFrame defaultSlotPaint, buttonPaint;
 	private final RectPaint bgPaint;

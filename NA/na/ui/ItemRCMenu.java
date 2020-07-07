@@ -9,7 +9,7 @@ import gui.TextButton;
 import item.ItemData;
 import paint.ColorFilling;
 import paint.ColorFraming;
-import weapon.Equipment;
+import item.equipment.Equipment;
 
 public class ItemRCMenu extends ClickMenu<ItemData>{
 	public ItemRCMenu() {
