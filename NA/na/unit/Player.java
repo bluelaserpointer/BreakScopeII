@@ -21,6 +21,7 @@ public class Player extends NAUnit {
 	public final Player respawn(int x, int y) {
 		super.respawn(x, y);
 		equip(addItemToStorage(new ElectronShield(5000)));
+		this.setBattleStance(true);
 		return this;
 	}
 

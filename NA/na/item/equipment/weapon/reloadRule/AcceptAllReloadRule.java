@@ -1,5 +1,6 @@
 package item.equipment.weapon.reloadRule;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import item.ammo.Ammo;
@@ -18,19 +19,22 @@ public class AcceptAllReloadRule extends ReloadRule {
 		this.arm = arm;
 	}
 	@Override
-	public int reloadAmmo(NAFirearms firearm) {
-		int needReload = firearm.magazineSize() - firearm.magazineFilledAmount();
-		final int initialNeedReload = needReload;
-		for(AmmoBag bag : arm.owner().ammoStorage.ammoBagList(arm.usingAmmoType())) {
-			final int filled = bag.consume(needReload);
+	public int reloadAmmo(NAFirearms firearm, int amount) {
+		final int initialNeedReload = amount;
+		final Iterator<AmmoBag> iterator = arm.owner().ammoStorage.ammoBagList(arm.usingAmmoType()).iterator();
+		while(iterator.hasNext()) {
+			final AmmoBag bag = iterator.next();
+			final int filled = bag.consume(amount);
+			if(bag.isEmpty())
+				iterator.remove();
 			final AmmoEnchants enchants = bag.enchants();
 			for(int i = 0; i < filled; ++i) {
 				firearm.pushAmmoToMagazine(enchants);
 			}
-			if((needReload -= filled) == 0)
+			if((amount -= filled) == 0)
 				break;
 		}
-		return initialNeedReload - needReload;
+		return initialNeedReload - amount;
 	}
 	@Override
 	public DotPaint getDotPaint() {

@@ -12,9 +12,7 @@ import calculate.Damage;
 import core.GHQ;
 import damage.DamageMaterial;
 import damage.NADamage;
-import effect.Effect;
 import engine.NAGame;
-import item.ItemData;
 import item.NAItem;
 import item.NAUsable;
 import item.ammo.Ammo;
@@ -31,18 +29,25 @@ import paint.dot.DotPaint;
 import physics.Angle;
 import physics.Dynam;
 import physics.HasPoint;
-import physics.HitRule;
+import physics.HitGroup;
 import physics.Point;
-import physics.Direction.Direction8;
+import physics.direction.Direction8;
 import physics.hitShape.Circle;
+import preset.effect.Effect;
+import preset.item.ItemData;
+import preset.unit.BodyParts;
+import preset.unit.BodyPartsType;
+import preset.unit.GameInputList;
+import preset.unit.InputProcesser;
+import preset.unit.Unit;
+import preset.unit.UnitAction;
+import preset.vegetation.Vegetation;
 import status.Status;
 import storage.TableStorage;
 import talent.Talent;
-import unit.Unit;
 import unit.action.NAAction;
 import unit.body.HumanBody;
 import vegetation.DownStair;
-import vegetation.Vegetation;
 import weapon.Weapon;
 
 public abstract class NAUnit extends Unit implements Person, HasWeight {
@@ -278,7 +283,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 				}
 				//itemPick & talk
 				boolean interactHappened = gameInputs().consume("INTERACT");
-				final ItemData item = GHQ.stage().items.forIntersects(UNIT);
+				final ItemData item = GHQ.stage().items.forShapeIntersects(UNIT);
 				for(Vegetation structure : GHQ.stage().vegetations) {
 					if(structure instanceof DownStair) {
 						if(point().inRangeXY(structure.point(), (width() + structure.width())/2, (height() + structure.height())/2)) {
@@ -358,7 +363,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 	public NAUnit(int charaSize) {
 		physics().setPoint(new Dynam());
 		physics().setHitShape(new Circle(this, charaSize));
-		physics().setHitRule(HitRule.HIT_ALL);
+		physics().setHitRule(HitGroup.HIT_ALL);
 	}
 	@Override
 	public NAUnit respawn(int x, int y) {
@@ -372,7 +377,6 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 		dstPoint.setXY(point().setXY(x, y));
 		angle().set(0.0);
 		inventory.clear();
-		ItemData.addInInventory(inventory, AmmoType._7d62.generate(32));
 		return this;
 	}
 	@Override
@@ -439,7 +443,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 		////////////
 		if(isControllingUnit()) {
 			fixAimAngle: {
-				for(UnitAction action : body().doingActions) {
+				for(UnitAction action : body().doingActions()) {
 					if(((NAAction)action).needFixAimAngle()) {
 						break fixAimAngle;
 					}
@@ -455,24 +459,30 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 		body.idle(true, false);
 	}
 	protected void attack() {
+		final NAWeaponEquipment equipment = currentEquipment();
 		if(targetUnit != null) {
 			final double angleDiff = angle().spinTo_Suddenly(point().angleTo(targetUnit), 10);
 			final double distance = point().distance(targetUnit);
-			final NAWeaponEquipment equipment = currentEquipment();
 			if(equipment == null) { //bear hand
 				if(angleDiff < 0.30 && distance < 50)
 					body().punch.setPunch();
 			} else { //armed
-				if(equipment.effectiveTarget(distance, angleDiff))
+				if(equipment.weapon().magazine() == 0) {
+					equipment.weapon().startReloadIfNotDoing();
+				} else if(equipment.effectiveTarget(distance, angleDiff))
 					equipment.use();
 			}
-		}else if(isBattleStance) {
-			if(GHQ.nowFrame() % 80 == 0) {
-				suspiciousAngle = Angle.random();
-			}
-			angle().spinTo_Suddenly(suspiciousAngle, 10);
-		}else
-			angle().spinTo_Suddenly(point().moveAngle(), 10);
+		} else {
+			if(equipment != null)
+				equipment.reloadWeapon();
+			if(isBattleStance) {
+				if(GHQ.nowFrame() % 80 == 0) {
+					suspiciousAngle = Angle.random();
+				}
+				angle().spinTo_Suddenly(suspiciousAngle, 10);
+			} else
+				angle().spinTo_Suddenly(point().moveAngle(), 10);
+		}
 	}
 	@Override
 	public void paint() {

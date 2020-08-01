@@ -6,9 +6,9 @@ import java.awt.event.MouseEvent;
 import core.GHQ;
 import gui.ClickMenu;
 import gui.TextButton;
-import item.ItemData;
 import paint.ColorFilling;
 import paint.ColorFraming;
+import preset.item.ItemData;
 import item.equipment.Equipment;
 
 public class ItemRCMenu extends ClickMenu<ItemData>{

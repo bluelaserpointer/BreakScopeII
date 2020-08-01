@@ -1,6 +1,7 @@
 package item;
 
 import paint.dot.DotPaint;
+import preset.item.Usable;
 
 public interface NAUsable extends Usable {
 	public static final NAUsable NULL_NA_USABLE = new NAUsable() {

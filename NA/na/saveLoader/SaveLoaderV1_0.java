@@ -6,18 +6,18 @@ import java.io.IOException;
 import core.GHQ;
 import engine.NAGame;
 import paint.ImageFrame;
-import stage.GHQStage;
+import physics.stage.GHQStage;
+import preset.structure.Structure;
+import preset.structure.Terrain;
+import preset.structure.Tile;
+import preset.unit.Unit;
+import preset.vegetation.Vegetation;
 import structure.NATile;
-import structure.Structure;
-import structure.Terrain;
-import structure.Tile;
 import unit.Boss_1;
 import unit.HumanGuard;
 import unit.HumanGuard2;
 import unit.NAUnit;
 import unit.Player;
-import unit.Unit;
-import vegetation.Vegetation;
 
 public class SaveLoaderV1_0 extends SaveLoader {
 	final StringBuilder sb = new StringBuilder();

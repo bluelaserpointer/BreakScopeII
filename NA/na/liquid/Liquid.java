@@ -3,16 +3,16 @@ package liquid;
 import calculate.Damage;
 import core.GHQ;
 import core.GHQObject;
-import item.ItemData;
 import objectAffect.ObjectAffect;
 import physics.GridPoint;
 import physics.HasGridPoint;
 import physics.Point;
-import physics.Direction.Direction4;
-import stage.GridArrayList;
-import structure.HasVisibility;
+import physics.direction.Direction4;
+import physics.stage.GridArrayList;
+import preset.item.ItemData;
+import preset.structure.HasVisibility;
+import preset.unit.Unit;
 import unit.NAUnit;
-import unit.Unit;
 
 public abstract class Liquid implements HasGridPoint, ObjectAffect, HasVisibility {
 	protected GridArrayList<Liquid> grids;
@@ -40,7 +40,7 @@ public abstract class Liquid implements HasGridPoint, ObjectAffect, HasVisibilit
 		int flowCount = 0;
 		for(Direction4 direction : Direction4.values()) {
 			final int sideXPos = gridPoint().xPos() + direction.x(), sideYPos = gridPoint().yPos() + direction.y();
-			if(!grids.inBounds(sideXPos, sideYPos) || GHQ.stage().structures.intersected_dot(point()))
+			if(!grids.inBounds(sideXPos, sideYPos) || GHQ.stage().structures.shapeIntersected_dot(point()))
 				continue;
 			Liquid sideLiquid = grids.get_cellPos(sideXPos, sideYPos);
 			if(this.sameKind(sideLiquid)){ //same kind
@@ -54,13 +54,13 @@ public abstract class Liquid implements HasGridPoint, ObjectAffect, HasVisibilit
 					continue;
 				sideLiquid = grids.get_cellPos(sideXPos, sideYPos);
 			}
-			sideLiquids[direction.id()] = sideLiquid;
+			sideLiquids[direction.ordinal()] = sideLiquid;
 			++flowCount;
 		}
 		//average surrounding liquids depth
 		final double averageDepth = totalDepth/(flowCount + 1);
 		for(Direction4 direction : Direction4.values()) {
-			final Liquid sideLiquid = sideLiquids[direction.id()];
+			final Liquid sideLiquid = sideLiquids[direction.ordinal()];
 			if(sideLiquid == null)
 				continue;
 			final double change = averageDepth - sideLiquid.depth;
@@ -100,13 +100,13 @@ public abstract class Liquid implements HasGridPoint, ObjectAffect, HasVisibilit
 	public void depthChanged(Direction4 direction, double change) {
 		if(Math.abs(change) > 0.05) {
 			for(Unit unit : GHQ.stage().units) {
-				if(unit.intersectsDot(point())) {
+				if(unit.boundingBoxIntersectsDot(point())) {
 					final double weight = ((NAUnit)unit).weight();
 					unit.point().addSpeed(direction.x()*change/weight, direction.y()*change/weight);
 				}
 			}
 			for(ItemData item : GHQ.stage().items) {
-				if(item.intersectsDot(point())) {
+				if(item.boundingBoxIntersectsDot(point())) {
 					final double weight = 1; //TODO: real weight upon each item
 					item.point().addSpeed(direction.x()*change/weight, direction.y()*change/weight);
 				}

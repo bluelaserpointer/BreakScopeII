@@ -27,12 +27,13 @@ import input.key.SingleKeyListener;
 import input.key.SingleNumKeyListener;
 import input.mouse.MouseListenerEx;
 import item.ArmyBox;
-import item.ItemData;
 import item.LiquidBarrel;
 import item.NAUsable;
 import item.ShieldCharger;
 import item.ammo.AmmoType;
-import item.ammo.enchant.AmmoEnchant;
+import item.ammo.enchant.Penetration;
+import item.ammo.enchant.Poison;
+import item.ammo.enchant.Scatter;
 import item.equipment.weapon.ElectronShield;
 import item.equipment.weapon.Knife;
 import item.equipment.weapon.LiquidGun;
@@ -46,13 +47,18 @@ import liquid.PoisonusWater;
 import liquid.Water;
 import paint.ImageFrame;
 import physics.Route;
+import physics.stage.GHQStage;
+import preset.item.ItemData;
+import preset.unit.GameInput;
+import preset.unit.GameInputList;
+import preset.unit.Unit;
 import saveLoader.SaveLoader;
 import saveLoader.SaveLoaderV1_0;
-import stage.GHQStage;
 import stage.NAStage;
 import storage.TableStorage;
+import structure.NATile;
 import ui.Dialog;
-import ui.ESC_menu;
+import ui.EscMenu;
 import ui.HUD;
 import ui.ItemRCMenu_ground;
 import ui.DoubleInventoryViewer;
@@ -63,11 +69,7 @@ import unit.HumanGuard2;
 import unit.NAUnit;
 import unit.Player;
 import unit.Boss_1;
-import unit.GameInput;
-import unit.GameInputList;
-import unit.Unit;
 import vegetation.DownStair;
-import vegetation.Vegetation;
 
 /**
  * The core class for game "NA"
@@ -157,11 +159,12 @@ public class NAGame extends Game implements ActionSource {
 	}
 	
 	//stages
-	public static final int STAGE_W = 15000, STAGE_H = 15000;
+	public static final int STAGE_W = 2500, STAGE_H = 2500;
 	private final static GHQStage initialTestStage = new NAStage(STAGE_W, STAGE_H);
 	private final static GHQStage[] stages = new NAStage[15];
 	private static int nowStage;
 	private ImageFrame[] tileIFs = new ImageFrame[5];
+	private ImageFrame[] tileIFs_normal = new ImageFrame[2];
 	
 	//GUIParts
 	private static DefaultStageEditor editor;
@@ -185,14 +188,13 @@ public class NAGame extends Game implements ActionSource {
 	public NAGame() {
 		super(null);
 	}
-	static Unit testUnit = null;
 	@Override
 	public final GHQStage loadStage() {
 		//GHQ.setStage(initialTestStage);
 		try(BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("../stage/NAStageData1.txt")))){ //ファイル読み込み開始
 			br.readLine();
 			stages[0] = NAStage.generate(this.saveLoader.load(br));
-		}catch(IOException e) {
+		}catch(Exception e) {
 		}
 		for(int i = 1;i < stages.length; ++i)
 			stages[i] = new NAStage(STAGE_W, STAGE_H);
@@ -207,6 +209,10 @@ public class NAGame extends Game implements ActionSource {
 				ImageFrame.create("picture/map/Tile_minor_10_percent.png"),
 				ImageFrame.create("picture/map/Tile_a_percent.png"),
 				};
+		tileIFs_normal = new ImageFrame[] {
+				ImageFrame.create("picture/map/Tile_empty.png"),
+				ImageFrame.create("picture/map/Tile_empty_dark.png"),
+		};
 		/////////////////////////////////
 		//items
 		/////////////////////////////////
@@ -221,7 +227,6 @@ public class NAGame extends Game implements ActionSource {
 		new LiquidBarrel(stage().makeLiquid(Oil.FIXED_OIL_TAG, NALiquidState.OIL_SOLUABLE, 300)).drop(508, 500);
 		new LiquidBarrel(stage().makeLiquid(new PoisonusWater(5), NALiquidState.WATER_SOLUABLE, 300)).drop(517, 500);
 		//enemy
-		testUnit = 
 		GHQ.stage().addUnit(Unit.initialSpawn(new Boss_1(), 1660, 1240));
 		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1200, 300));
 		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1250, 300));
@@ -234,19 +239,16 @@ public class NAGame extends Game implements ActionSource {
 		/////////////////////////////////
 		//vegetation
 		/////////////////////////////////
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf.png"),1172,886));
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_flower.png"),1200,800));
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf2.png"),1800,350));
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_stone.png"),1160,870));
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf3.png"),1102,830));
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf3.png"),1122,815));
-		GHQ.stage().addVegetation(new Vegetation(ImageFrame.create("thhimage/veg_leaf3.png"),822,886));
 		GHQ.stage().addVegetation(new DownStair()).point().setXY(100, 100);
 		AmmoType._9mm.generate(10).drop(822, 886);
 		AmmoType._45acp.generate(10).drop(862, 896);
 		AmmoType._7d62.generate(100).drop(812, 896);
-		AmmoType._7d62.generate(100).addEnchant(AmmoEnchant.Splitt, 1).addEnchant(AmmoEnchant.Scatter, 1).addEnchant(AmmoEnchant.Penetration, 1).drop(812, 796);
-		AmmoType._7d62.generate(100).addEnchant(AmmoEnchant.Poison, 1).drop(852, 796);
+		AmmoType._7d62.generate(1).addEnchant(new Scatter(), 1).addEnchant(new Penetration(1), 1).drop(812, 796);
+		AmmoType._7d62.generate(29).addEnchant(new Poison(), 1).drop(852, 796);
+		GHQ.stage().addStructure(new NATile(0, 0, 1, 10));
+		GHQ.stage().addStructure(new NATile(25, 0, 9, 1));
+		GHQ.stage().addStructure(new NATile(25, 250, 9, 1));
+		GHQ.stage().addStructure(new NATile(250, 25, 1, 9));
 		new ShieldCharger(1000).drop(600, 800);
 		new Type56().drop(702, 796);
 		new LiquidGun().drop(652, 796);
@@ -298,7 +300,7 @@ public class NAGame extends Game implements ActionSource {
 				}
 			}
 		}).setCellSize(50).setTableStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
-		GHQ.addGUIParts(escMenu = new ESC_menu()).disable();
+		GHQ.addGUIParts(escMenu = new EscMenu()).disable();
 		GHQ.addGUIParts(zoomSliderBar = new ZoomSliderBar() {
 			@Override
 			public void paint() {
@@ -307,7 +309,7 @@ public class NAGame extends Game implements ActionSource {
 				GHQ.drawStringGHQ(GHQ.DF0_00.format(sliderValue*1.5 + 0.5), point().intX(), point().intY());
 				GHQ.setStageZoomRate(sliderValue*1.5 + 0.5);
 			}
-		}).setBounds(880, 25, 210, 20);
+		}).setBounds(GHQ.screenW() - 100, 200, 200, 20);
 		GHQ.addGUIParts(inventoryInvester = new DoubleInventoryViewer()).disable();
 		inventoryInvester.setLeftInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));
 		inventoryInvester.setRightInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));
@@ -377,12 +379,12 @@ public class NAGame extends Game implements ActionSource {
 		/////////////////////////////////
 		//test
 		/////////////////////////////////
-		cornerNavi.defaultCornerCollect();
-		cornerNavi.startCornerLink();
-		cornerNavi.setGoalPoint(controllingUnit);
-		Route route = cornerNavi.getRoot(testUnit);
-		if(route != null)
-			route.setDebugEffect(Color.RED, GHQ.stroke5);
+//		cornerNavi.defaultCornerCollect();
+//		cornerNavi.startCornerLink();
+//		cornerNavi.setGoalPoint(controllingUnit);
+//		Route route = cornerNavi.getRoot(testUnit);
+//		if(route != null)
+//			route.setDebugEffect(Color.RED, GHQ.stroke5);
 		/////////////////////////////////
 		//liquids
 		/////////////////////////////////
@@ -398,7 +400,7 @@ public class NAGame extends Game implements ActionSource {
 		//////////////////////////
 		//
 		//background
-		final int TILE_SIZE = 100;
+		final int TILE_SIZE = 25;
 		final int startX = Math.max(GHQ.getScreenLeftX_stageCod()/TILE_SIZE - 2, 0);
 		final int startY = Math.max(GHQ.getScreenTopY_stageCod()/TILE_SIZE - 2, 0);
 		final int endX = startX + GHQ.getScreenW_stageCod()/TILE_SIZE + 4;
@@ -409,19 +411,19 @@ public class NAGame extends Game implements ActionSource {
 			for(int yi = startY;yi < endY;yi++) {
 				random.setSeed(xi*rate + yi);
 				random.nextDouble();
-				final double value = random.nextDouble();
-
-				final double angle = random.nextInt(tileIFs.length)*Math.PI/2;
-				if(value < 0.4)
-					tileIFs[0].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-				else if(value < 0.7)
-					tileIFs[1].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-				else if(value < 0.9)
-					tileIFs[2].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-				else if(value < 0.95)
-					tileIFs[3].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-				else
-					tileIFs[4].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+				//final double value = random.nextDouble();
+				tileIFs_normal[(xi + yi) % 2].dotPaint_capSize(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, TILE_SIZE);
+//				final double angle = random.nextInt(tileIFs.length)*Math.PI/2;
+//				if(value < 0.4)
+//					tileIFs[0].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//				else if(value < 0.7)
+//					tileIFs[1].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//				else if(value < 0.9)
+//					tileIFs[2].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//				else if(value < 0.95)
+//					tileIFs[3].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//				else
+//					tileIFs[4].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
 			}
 		}
 		////////////
@@ -501,6 +503,7 @@ public class NAGame extends Game implements ActionSource {
 		//test
 		//////////////////////////
 		cornerNavi.debugPreview();
+		Game.viewScrollFromStack();
 	}
 	//drag
 	@Override

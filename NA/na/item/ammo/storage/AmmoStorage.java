@@ -28,12 +28,10 @@ public class AmmoStorage {
 	public void add(Ammo ammo) {
 		final AmmoBag correspondingBag = getBag(ammo);
 		if(correspondingBag != null) {
-			System.out.println("found corresponding bag");
 			correspondingBag.add(ammo.getAmount());
 		} else {
 			final LinkedList<AmmoBag> bagList = ammoBagList(ammo);
 			bagList.add(new AmmoBag(bagList, ammo));
-			System.out.println("created a new bag. initialSize: " + getBag(ammo).getAmount());
 		}
 	}
 	public void removeStackable(Ammo ammo) { //TODO: implement

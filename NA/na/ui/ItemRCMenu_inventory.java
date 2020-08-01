@@ -6,10 +6,10 @@ import java.awt.event.MouseEvent;
 import core.GHQ;
 import gui.ClickMenu;
 import gui.TextButton;
-import item.ItemData;
 import item.equipment.Equipment;
 import paint.ColorFilling;
 import paint.ColorFraming;
+import preset.item.ItemData;
 
 public class ItemRCMenu_inventory extends ClickMenu<ItemData> {
 	public ItemRCMenu_inventory() {

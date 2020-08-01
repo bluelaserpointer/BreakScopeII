@@ -63,6 +63,6 @@ public abstract class NAWeaponEquipment extends Equipment {
 		return effectiveRange() > distance && effectiveAngleWidth() > angleDiff;
 	}
 	public boolean effectiveTarget(HasPoint target) {
-		return effectiveTarget(owner().point().distance(target), owner().angle().getDiff(point().angleTo(target)));
+		return effectiveTarget(owner().point().distance(target), owner().angle().diff(point().angleTo(target)));
 	}
 }

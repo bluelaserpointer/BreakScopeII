@@ -7,9 +7,9 @@ import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
 import physics.Point;
-import unit.Body;
+import preset.unit.Body;
+import preset.unit.UnitAction;
 import unit.NAUnit;
-import unit.UnitAction;
 import unit.body.HumanBody;
 
 public abstract class Punch extends NAAction {
@@ -43,7 +43,7 @@ public abstract class Punch extends NAAction {
 		punchPoint.addXY_DA(20, angle().get());
 		final List<GHQObject> collisionGroup = (List<GHQObject>)GHQ.stage().bulletCollisionGroup.clone();
 		for(GHQObject object : collisionGroup) {
-			if(object != owner() && object.intersectsRect(punchPoint.intX(), punchPoint.intY(), 15, 15))
+			if(object != owner() && object.intersectsRect(object.hitGroup(), punchPoint.intX(), punchPoint.intY(), 15, 15))
 				object.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3));
 		}
 		((NAUnit)owner()).GREEN_BAR.consume(20);

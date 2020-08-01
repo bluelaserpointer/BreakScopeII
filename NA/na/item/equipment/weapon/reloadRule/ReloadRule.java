@@ -30,7 +30,7 @@ public abstract class ReloadRule implements HasDotPaint {
 	 * @param firearm
 	 * @return Reloaded amount
 	 */
-	public abstract int reloadAmmo(NAFirearms firearm);
+	public abstract int reloadAmmo(NAFirearms firearm, int amount);
 	@Override
 	public DotPaint getDotPaint() {
 		return iconPaint;

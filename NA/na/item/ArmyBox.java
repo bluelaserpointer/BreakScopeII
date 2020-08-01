@@ -2,9 +2,9 @@ package item;
 
 import core.GHQ;
 import damage.NADamage;
-import item.ItemData;
 import paint.ImageFrame;
 import paint.dot.DotPaintResizer;
+import preset.item.ItemData;
 import storage.TableStorage;
 
 public class ArmyBox extends NACollisionableItem {

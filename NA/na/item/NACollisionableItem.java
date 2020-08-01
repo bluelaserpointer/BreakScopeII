@@ -3,7 +3,7 @@ package item;
 import damage.HasDamageRes;
 import damage.NADamage;
 import paint.dot.DotPaint;
-import stage.GHQStage;
+import physics.stage.GHQStage;
 
 public abstract class NACollisionableItem extends NAItem implements HasDamageRes {
 	protected double healthPoint;

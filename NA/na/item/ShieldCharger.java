@@ -3,6 +3,7 @@ package item;
 import item.equipment.Equipment;
 import item.equipment.weapon.ElectronShield;
 import paint.ImageFrame;
+import preset.item.ItemData;
 import unit.NAUnit;
 
 public class ShieldCharger extends NAItem {

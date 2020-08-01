@@ -2,7 +2,6 @@ package unit;
 
 import java.util.HashMap;
 
-import bullet.Bullet;
 import calculate.Damage;
 import core.GHQ;
 import core.GHQObject;
@@ -14,6 +13,10 @@ import paint.dot.DotPaint;
 import paint.dot.DotPaintResizer;
 import physics.Angle;
 import physics.Point;
+import preset.bullet.Bullet;
+import preset.unit.Body;
+import preset.unit.BodyParts;
+import preset.unit.Unit;
 import unit.action.NAAction;
 
 public class Boss_1 extends NAUnit {
@@ -312,7 +315,7 @@ class BackStab extends NAAction {
 		final Point stabPoint = new Point.IntPoint(point());
 		stabPoint.addXY_DA(35, angle().get());
 		for(Unit unit : GHQ.stage().units) {
-			if(unit != owner() && unit.intersectsRect(stabPoint.intX(), stabPoint.intY(), 15, 15))
+			if(unit != owner() && unit.intersectsRect(unit.hitGroup(), stabPoint.intX(), stabPoint.intY(), 15, 15))
 				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3)
 						.setCriticalAddition(1.0).setKnockbackRate(1.5));
 		}
@@ -341,7 +344,7 @@ class StingerStrike extends NAAction {
 		final Point stingerPoint = new Point.IntPoint(point());
 		stingerPoint.addXY_DA(35, angle().get());
 		for(Unit unit : GHQ.stage().units) {
-			if(unit != owner() && unit.intersectsRect(stingerPoint.intX(), stingerPoint.intY(), 15, 15)) {
+			if(unit != owner() && unit.intersectsRect(unit.hitGroup(), stingerPoint.intX(), stingerPoint.intY(), 15, 15)) {
 				unit.damage(new NADamage((((NAUnit)owner()).POW_FLOAT.doubleValue() - 3)*3));
 				if(unit == ((NAUnit)owner()).targetUnit()) {
 					super.stopAction();

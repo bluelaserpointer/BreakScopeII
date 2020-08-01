@@ -1,12 +1,13 @@
 package unit;
 
+import item.ammo.AmmoType;
 import item.equipment.weapon.Type56;
 import paint.ImageFrame;
 import talent.AllUp;
 
 public class HumanGuard2 extends NAUnit {
 	public HumanGuard2() {
-		super(70);
+		super(25);
 		POW_FIXED.setMax(15).setToMax();
 		this.addTalent(new AllUp(this));
 		this.addTalent(new AllUp(this));
@@ -23,6 +24,7 @@ public class HumanGuard2 extends NAUnit {
 	public final HumanGuard2 respawn(int x, int y) {
 		super.respawn(x, y);
 		equip(addItemToStorage(new Type56()));
+		addItemToStorage(AmmoType._7d62.generate(100));
 		return this;
 	}
 	@Override

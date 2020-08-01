@@ -1,8 +1,8 @@
 package unit.action;
 
 import core.GHQ;
-import unit.Body;
-import unit.UnitAction;
+import preset.unit.Body;
+import preset.unit.UnitAction;
 
 /**
  * Adds overWriteLevel and doAppointment to original UnitAction.

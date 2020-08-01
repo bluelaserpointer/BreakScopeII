@@ -2,7 +2,6 @@ package item.magicChip;
 
 import java.awt.Color;
 
-import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
@@ -11,6 +10,9 @@ import liquid.Flame;
 import liquid.NALiquidState;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
+import physics.HitGroup;
+import physics.hitShape.Circle;
+import preset.bullet.Bullet;
 import unit.NAUnit;
 
 public class FireBallChip extends MagicChip {
@@ -36,7 +38,7 @@ public class FireBallChip extends MagicChip {
 	};
 	private static final ImageFrame BULLET_PAINT = ImageFrame.create("picture/FireScatt.png");
 	public FireBallChip() {
-		super(DotPaint.BLANK_SCRIPT, 10, 1);
+		super(DotPaint.BLANK_SCRIPT, 1, 1);
 		super.setDotPaint(CHIP_ICON);
 	}
 	@Override
@@ -45,21 +47,25 @@ public class FireBallChip extends MagicChip {
 	}
 	@Override
 	public void use() {
-		if(!hasOwner())
-			return;
 		if(bullet != null && !bullet.hasDeleteClaimFromStage()) {
 			bullet.outOfRange();
 			return;
+		} else {
+			super.use();
 		}
-		if(!isReady() || ((NAUnit)owner).BLUE_BAR.intValue() < BLUE_BAR_COST)
+	}
+	@Override
+	public void start() {
+		if(((NAUnit)owner).BLUE_BAR.intValue() < BLUE_BAR_COST)
 			return;
 		((NAUnit)owner).BLUE_BAR.consume(BLUE_BAR_COST);
-		super.use(); //restart cool process
 		bullet = GHQ.stage().addBullet(new Bullet(owner) {
 			private final double fireDepth = ((NAUnit)owner).INT_FLOAT.doubleValue()*10;
 			{
 				name = "FireBall";
 				setDamage(NADamage.NULL_DAMAGE);
+				physics().setHitShape(new Circle(this, 10));
+				physics().setHitRule(HitGroup.HIT_ALL);
 				point().setSpeed(20);
 				point().addXY_allowsMoveAngle(0, owner.width());
 				paintScript = BULLET_PAINT;

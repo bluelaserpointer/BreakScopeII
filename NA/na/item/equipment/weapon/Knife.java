@@ -3,15 +3,15 @@ package item.equipment.weapon;
 import java.util.LinkedList;
 import java.util.List;
 
-import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
 import item.equipment.weapon.gripStyle.KnifeGrip;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
-import physics.HitRule;
+import physics.HitGroup;
 import physics.hitShape.RectShape;
+import preset.bullet.Bullet;
 import unit.NAUnit;
 import weapon.Weapon;
 
@@ -39,7 +39,7 @@ public class Knife extends NASubWeapon {
 				setCoolTime(5);
 			}
 			@Override
-			public List<Bullet> setBullets(GHQObject shooter, HitRule standpoint) {
+			public List<Bullet> setBullets(GHQObject shooter, HitGroup standpoint) {
 				if(shooter instanceof NAUnit) {
 					NAUnit unit = (NAUnit)shooter;
 					unit.body().knifeSlash.setSlash();

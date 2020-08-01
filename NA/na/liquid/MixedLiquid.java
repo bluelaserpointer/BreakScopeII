@@ -9,8 +9,8 @@ import core.GHQObject;
 import damage.DamageComposition;
 import damage.NADamage;
 import engine.NAGame;
-import physics.Direction.Direction4;
-import stage.GridArrayList;
+import physics.direction.Direction4;
+import physics.stage.GridArrayList;
 
 public class MixedLiquid extends Liquid {
 	protected LinkedList<LiquidTag> liquidTags;
@@ -31,15 +31,16 @@ public class MixedLiquid extends Liquid {
 	@Override
 	public void rectPaint(int x, int y, int size) {
 		//paint mixed color
-		int sumR = 0, sumG = 0, sumB = 0;
+		int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
 		for(LiquidTag tag : liquidTags) {
 			final Color color = tag.mainColor(state, depth, x, y);
 			sumR += color.getRed();
 			sumG += color.getGreen();
 			sumB += color.getBlue();
+			sumA += color.getAlpha();
 		}
 		final int total = liquidTags.size();
-		paintMixedColor(new Color(sumR/total, sumG/total, sumB/total), x, y, size);
+		paintMixedColor(new Color(sumR/total, sumG/total, sumB/total, sumA/total), x, y, size);
 		//paint additional components
 		for(LiquidTag action : liquidTags) {
 			action.additionalPaint(depth, x, y, size);

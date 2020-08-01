@@ -5,11 +5,11 @@ import java.awt.event.MouseEvent;
 import core.GHQ;
 import gui.GHQTextArea;
 import gui.GUIParts;
-import item.ItemData;
 import item.NAItem;
 import item.equipment.Equipment;
 import paint.ImageFrame;
-import unit.BodyParts;
+import preset.item.ItemData;
+import preset.unit.BodyParts;
 import unit.NAUnit;
 
 public abstract class EquipmentSlot extends GHQTextArea {

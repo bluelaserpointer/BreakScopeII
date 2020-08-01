@@ -1,7 +1,7 @@
 package unit.action;
 
-import physics.Direction.Direction8;
-import unit.Body;
+import physics.direction.Direction8;
+import preset.unit.Body;
 import unit.NAUnit;
 
 public class Rolling extends NAAction {

@@ -2,16 +2,19 @@ package effect;
 
 import static java.lang.Math.PI;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 
 import core.GHQ;
 import core.GHQObject;
-import effect.Effect;
-import paint.ImageFrame;
+import engine.NAGame;
+import liquid.Blood;
+import liquid.NALiquidState;
 import paint.animation.SerialImageFrame;
 import paint.dot.DotPaint;
 import paint.text.StringPaint;
+import preset.effect.Effect;
 
 public abstract class EffectLibrary extends Effect{
 	
@@ -47,6 +50,134 @@ public abstract class EffectLibrary extends Effect{
 		@Override
 		public SparkHitEF getOriginal() {
 			return new SparkHitEF(shooter);
+		}
+	}
+	/////////////////
+	//BulletLineEF
+	/////////////////
+	public static class BulletLineEF extends EffectLibrary {
+		final int delay, x1, y1, x2, y2;
+		private static final int ANIMATION_LENGTH = 10, STROKE = 3;
+		final Color alphaWhite = new Color(255, 255, 255, 100);
+		public BulletLineEF(GHQObject shooter, int delay, int x1, int y1, int x2, int y2) {
+			super(shooter);
+			point().stop();
+			point().setXY(x1, y1);
+			this.delay = delay;
+			this.limitFrame = delay + ANIMATION_LENGTH;
+			this.x1 = x1;this.y1 = y1;
+			this.x2 = x2;this.y2 = y2;
+		}
+		@Override
+		public void paint() {
+			if(super.passedFrame() < delay) {
+				GHQ.getG2D(Color.WHITE, new BasicStroke(STROKE)).drawLine(x1, y1, x2, y2);
+			} else {
+				GHQ.getG2D(Color.WHITE, new BasicStroke((int)(STROKE*(1.0 - (double)(super.passedFrame() - delay)/(double)ANIMATION_LENGTH)))).drawLine(x1, y1, x2, y2);
+			}
+		}
+	}
+	/////////////////
+	//FireEF
+	/////////////////
+	public static class FireEF extends EffectLibrary {
+		private double angleSpeed;
+		public FireEF(GHQObject source, double angleSpeed, double initialSpeed) {
+			super(source);
+			point().addXY_allowsAngle(0, 40, source.angle().get());
+			angle().set(source.angle().get() + 0.1*(Math.random() - 0.5));
+			this.angleSpeed = angleSpeed;
+			point().setSpeed(initialSpeed);
+			this.limitFrame = 20;
+		}
+		@Override
+		public void paint() {
+			GHQ.getG2D(Color.WHITE).fillOval(point().intX() - 2, point().intY() - 2, 4, 4);
+			point().mulSpeed(0.76);
+			angle().set(angle().get() + angleSpeed);
+			angleSpeed *= 1.1;
+			point().setMoveAngle(angle());
+		}
+	}
+	/////////////////
+	//FiredSmokeEF
+	/////////////////
+	public static class FiredSmokeEF extends EffectLibrary {
+		public FiredSmokeEF(GHQObject source) {
+			super(source);
+			point().addXY_allowsAngle(0, 40, source.angle().get());
+			angle().set(source.angle().get() + 0.1*(Math.random() - 0.5));
+			point().setSpeed(5.0*(Math.random() - 0.5));
+			this.limitFrame = 20;
+		}
+		@Override
+		public void paint() {
+			GHQ.getG2D(Color.WHITE).drawOval(point().intX() - 1, point().intY() - 1, 2, 2);
+			point().mulSpeed(0.76);
+		}
+	}
+	/////////////////
+	//HitWallEF
+	/////////////////
+	public static class HitWallEF extends EffectLibrary {
+		private double angleSpeed;
+		public HitWallEF(GHQObject source, double targetAngle) {
+			super(source);
+			angle().set(targetAngle + 0.1*(Math.random() - 0.5));
+			this.angleSpeed = Math.toRadians(10.0)*(Math.random() - 0.5);
+			point().setSpeed(10 + Math.random()*15);
+			this.limitFrame = 20;
+		}
+		@Override
+		public void paint() {
+			GHQ.getG2D(Color.YELLOW).fillOval(point().intX() - 1, point().intY() - 1, 2, 2);
+			point().mulSpeed(0.76);
+			angle().set(angle().get() + angleSpeed);
+			angleSpeed *= 1.1;
+			point().setMoveAngle(angle());
+		}
+	}
+	/////////////////
+	//HitCreatureEF
+	/////////////////
+	public static class HitCreatureEF extends EffectLibrary {
+		private double angleSpeed;
+		public HitCreatureEF(GHQObject source, double targetAngle) {
+			super(source);
+			angle().set(targetAngle + 0.1*(Math.random() - 0.5));
+			this.angleSpeed = Math.toRadians(10.0)*(Math.random() - 0.5);
+			point().setSpeed(10 + Math.random()*15);
+			this.limitFrame = 20;
+		}
+		@Override
+		public void paint() {
+			GHQ.getG2D(Color.RED).fillOval(point().intX() - 1, point().intY() - 1, 2, 2);
+			point().mulSpeed(0.76);
+			angle().set(angle().get() + angleSpeed);
+			angleSpeed *= 1.1;
+			point().setMoveAngle(angle());
+		}
+		@Override
+		public boolean outOfLifeSpanProcess() {
+			if(Math.random() < 0.005)
+				NAGame.stage().addLiquid(point(), Blood.FIXED_BLOOD_TAG, NALiquidState.WATER_SOLUABLE, 0.1);
+			return super.outOfLifeSpanProcess();
+		}
+	}
+	/////////////////
+	//PenetratedEF
+	/////////////////
+	public static class PenetratedEF extends EffectLibrary {
+		public PenetratedEF(GHQObject source) {
+			super(source);
+			this.limitFrame = 15;
+			point().setSpeed_DA(15.0 + 5.0*Math.random(), source.point().moveAngle() - Math.PI + 0.5*(Math.random() - 0.5));
+		}
+		@Override
+		public void paint() {
+			final double rate = 1.0 - (double)super.passedFrame()/limitFrame;
+			GHQ.getG2D(new Color(255, 255, 0, (int)(255*rate)), GHQ.stroke1).drawLine(point().intX(), point().intY(),
+					point().intX() + (int)(point().xSpeed()*3*rate), point().intY() + (int)(point().ySpeed()*3*rate));
 		}
 	}
 	/////////////////

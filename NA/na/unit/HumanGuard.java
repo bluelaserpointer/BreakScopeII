@@ -5,7 +5,7 @@ import paint.ImageFrame;
 
 public class HumanGuard extends NAUnit {
 	public HumanGuard() {
-		super(120);
+		super(25);
 	}
 	@Override
 	public final String name() {
@@ -41,6 +41,6 @@ public class HumanGuard extends NAUnit {
 				angle().spinTo_Suddenly(point().moveAngle(), 10);
 		}else
 			angle().spinTo_Suddenly(point().moveAngle(), 10);*/
-		point().approachIfNoObstacles(this, dstPoint, 6);
+		approachIfNoObstacles(dstPoint, 6);
 	}
 }

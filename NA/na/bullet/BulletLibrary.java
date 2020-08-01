@@ -1,17 +1,19 @@
 package bullet;
 
-
-import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
 import effect.EffectLibrary;
+import effect.EffectLibrary.BulletLineEF;
+import engine.NAGame;
 import item.ammo.enchant.AmmoEnchants;
 import paint.ImageFrame;
-import physics.HitRule;
+import physics.HitGroup;
 import physics.hitShape.Circle;
+import preset.bullet.Bullet;
+import preset.unit.Unit;
+import preset.unit.UnitAction;
 import unit.NAUnit;
-import unit.UnitAction;
 import weapon.Weapon;
 
 public abstract class BulletLibrary extends Bullet {
@@ -24,6 +26,7 @@ public abstract class BulletLibrary extends Bullet {
 		this.enchants = enchants;
 		((NADamage)damage).addDamageComposition(enchants.damageAdd());
 	}
+	public boolean suspendSparkEF = false;
 	@Override
 	public void hitObject(GHQObject object) {
 		enchants.applyHitObjectEffect(this, object);
@@ -55,32 +58,32 @@ public abstract class BulletLibrary extends Bullet {
 	//ACCAR
 	/////////////////
 	public static class BaseBullet extends BulletLibrary {
-		public BaseBullet(Weapon originWeapon, GHQObject shooter, HitRule hitGroup) {
+		public BaseBullet(Weapon originWeapon, GHQObject shooter, HitGroup hitGroup) {
 			super(shooter);
 			this.originWeapon = originWeapon;
 			physics().setHitRule(hitGroup);
-			physics().setHitShape(new Circle(this, 3));
-			point().setSpeed(2);
-			point().setMoveAngle(point().moveAngle() - 0.05 + Math.random()*0.1);
-			name = "ACCAR";
-			limitFrame = 50;
-			paintScript = ImageFrame.create(this, "picture/animations/1_fire.png");
+			init();
 		}
-		public BaseBullet(Weapon originWeapon, GHQObject shooter, HitRule hitGroup, BaseBullet sample) {
-			super(shooter);
-			this.originWeapon = originWeapon;
-			physics().setHitRule(hitGroup);
-			physics().setHitShape(new Circle(this, 3));
-			point().setSpeed(2);
-			point().setMoveAngle(point().moveAngle() - 0.05 + Math.random()*0.1);
+		public BaseBullet(BaseBullet sample) {
+			super(sample.shooter);
+			this.originWeapon = sample.originWeapon;
+			physics().setHitRule(sample.hitGroup());
+			init();
+			point().setAll(sample);
 			setDamage(sample.damage);
-			this.setEnchants(sample.enchants);
+			this.setEnchants(sample.enchants.clone());
+		}
+		private void init() {
+			physics().setHitShape(new Circle(this, 3));
+			point().setSpeed(2);
+			point().setMoveAngle(point().moveAngle() - 0.05 + Math.random()*0.1);
 			name = "ACCAR";
 			limitFrame = 50;
 			paintScript = ImageFrame.create(this, "picture/animations/1_fire.png");
 		}
-		public BaseBullet getOriginal() {
-			return new BaseBullet(originWeapon, shooter, hitGroup(), this);
+		@Override
+		public BaseBullet clone() {
+			return new BaseBullet(this);
 		}
 		@Override
 		public void idle() {
@@ -89,7 +92,9 @@ public abstract class BulletLibrary extends Bullet {
 				return;
 			}
 			boolean alive;
-			int loops = 50;
+			final int LOOP_AMOUNT = 3000;
+			int loops = LOOP_AMOUNT;
+			int xTmp = point().intX(), yTmp = point().intY();
 			while(point().inStage() && --loops > 0) {
 				alive = dynamIdle();
 //				if(loops > 5) {
@@ -97,14 +102,37 @@ public abstract class BulletLibrary extends Bullet {
 //				} else {
 //					paint();
 //				}
-				if(!alive)
-					return;
+				if(point().inRangeXY(NAGame.controllingUnit().point(), GHQ.getScreenW_stageCod(), GHQ.getScreenH_stageCod())) {
+					final int passedLoops = LOOP_AMOUNT - loops;
+					if(passedLoops % 25 == 0 || !alive) {
+						GHQ.stage().addEffect(new BulletLineEF(this, passedLoops/25, xTmp, yTmp, point().intX(), point().intY()));
+						xTmp = point().intX();yTmp = point().intY();
+					}
+					if(!alive) {
+						claimDeleteFromStage();
+						return;
+					}
+				}
 			}
-			paint();
+			//DebugEffect.setDot(Color.RED, point());
+			//paint();
 		}
 		@Override
 		public final void hitObject(GHQObject object) {
 			super.hitObject(object);
+			if(object instanceof Unit) {
+				for(int i = 0; i < 100; ++i) {
+					GHQ.stage().addEffect(new EffectLibrary.HitCreatureEF(this, point().moveAngle()));
+				}
+			} else {
+				if(suspendSparkEF)
+					suspendSparkEF = false;
+				else {
+					for(int i = 0; i < 100; ++i) {
+						GHQ.stage().addEffect(new EffectLibrary.HitWallEF(this, point().moveAngle() + Math.PI));
+					}
+				}
+			}
 			GHQ.stage().addEffect(new EffectLibrary.SparkHitEF(this));
 		}
 	}

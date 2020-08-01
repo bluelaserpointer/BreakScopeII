@@ -3,9 +3,9 @@ package item.magicChip;
 import core.GHQ;
 import item.NAItem;
 import paint.dot.DotPaint;
-import unit.Unit;
+import preset.unit.Unit;
 
-public class MagicChip extends NAItem {
+public abstract class MagicChip extends NAItem {
 	private int coolNeeds;
 	private int coolRatePerSecond;
 	private double currentCoolProcess;
@@ -35,8 +35,12 @@ public class MagicChip extends NAItem {
 	}
 	@Override
 	public void use() {
+		if(!hasOwner() || !isReady())
+			return;
 		currentCoolProcess = 0;
+		start();
 	}
+	public abstract void start();
 	public double coolRate() {
 		return coolNeeds == 0.0 ? 1.0 : currentCoolProcess/coolNeeds;
 	}

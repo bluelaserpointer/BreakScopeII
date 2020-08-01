@@ -2,17 +2,16 @@ package item.equipment.weapon;
 
 import java.util.LinkedList;
 
-import bullet.Bullet;
 import bullet.BulletLibrary;
 import core.GHQ;
 import core.GHQObject;
 import damage.DamageMaterial;
-import item.ItemData;
 import item.ammo.AmmoType;
 import item.equipment.weapon.gripStyle.RifleGrip;
 import paint.ImageFrame;
 import paint.dot.DotPaintResizer;
-import physics.HitRule;
+import physics.HitGroup;
+import preset.bullet.Bullet;
 import unit.NAUnit;
 import weapon.Weapon;
 
@@ -41,7 +40,7 @@ public class Type56 extends NAFirearms {
 				//original is semi-automatic
 			}
 			@Override
-			public LinkedList<Bullet> setBullets(GHQObject shooter, HitRule standpoint) {
+			public LinkedList<Bullet> setBullets(GHQObject shooter, HitGroup standpoint) {
 				final Bullet bullet = GHQ.stage().addBullet(new BulletLibrary.BaseBullet(this, shooter, standpoint));
 				bullet.setDamage(DamageMaterial.Phy.makeDamage(AmmoType._7d62.weight*50*50).setKnockbackRate(0.3));
 				bullet.point().addXY_allowsMoveAngle(0, shooter.width());
@@ -54,16 +53,11 @@ public class Type56 extends NAFirearms {
 			public double getLeftAmmo() {
 				if(!hasOwner())
 					return 0;
-				return ((NAUnit)owner).ammoStorage.countByType(usingAmmoType());
-			}
-			@Override
-			public double reloadEnd() {
-				currentReloadRule.reloadAmmo(Type56.this);
-				return super.reloadEnd();
+				return currentReloadRule.reloadableAmmoAmount(((NAUnit)owner).ammoStorage);
 			}
 			@Override
 			public void consumeAmmo(double value) {
-				ItemData.removeInInventory(((NAUnit)owner).inventory, AmmoType._7d62.filter, (int)value);
+				currentReloadRule.reloadAmmo(Type56.this, (int)value);
 			}
 		};
 	}

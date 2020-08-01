@@ -10,9 +10,8 @@ public class AcceptOneReloadRule extends ReloadRule {
 		this.ammoBag = ammoBag;
 	}
 	@Override
-	public int reloadAmmo(NAFirearms firearm) {
-		final int need = firearm.magazineSize() - firearm.magazineFilledAmount();
-		final int filled = ammoBag.consume(need);
+	public int reloadAmmo(NAFirearms firearm, int amount) {
+		final int filled = ammoBag.consumeWithAutoRemoveIfEmpty(amount);
 		for(int i = 0; i < filled; ++i) {
 			firearm.pushAmmoToMagazine(ammoBag.enchants());
 		}

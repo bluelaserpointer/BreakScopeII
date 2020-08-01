@@ -1,6 +1,6 @@
 package unit.action;
 
-import unit.Body;
+import preset.unit.Body;
 
 public class Damaged extends NAAction {
 	public Damaged(Body body) {

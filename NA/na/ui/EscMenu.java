@@ -17,7 +17,6 @@ import gui.ItemStorageViewer;
 import gui.ScrollBar;
 import gui.TableStorageViewer;
 import gui.TextButton;
-import item.ItemData;
 import item.ammo.AmmoType;
 import item.ammo.enchant.AmmoEnchant;
 import item.ammo.storage.AmmoBag;
@@ -27,16 +26,17 @@ import paint.ColorFraming;
 import paint.ImageFrame;
 import paint.dot.HasDotPaint;
 import paint.rect.RectPaint;
+import preset.item.ItemData;
+import preset.unit.BodyParts;
 import storage.TableStorage;
 import talent.Talent;
-import unit.BodyParts;
 import unit.body.HumanBody;
 
-public class ESC_menu extends GUIPartsSwitcher {
+public class EscMenu extends GUIPartsSwitcher {
 	private static final int INVENTORY = 0, STATUS = 1, CRAFT = 2, SYSTEM = 3, MEMO = 4, TALENT = 5;
 	private final ImageFrame defaultSlotPaint, buttonPaint;
 	private final RectPaint bgPaint;
-	public ESC_menu() {
+	public EscMenu() {
 		super(6, INVENTORY);
 		defaultSlotPaint = ImageFrame.create("picture/gui/Bag_item.png");
 		buttonPaint = ImageFrame.create("picture/gui/Button_Mid_up.png");
@@ -75,9 +75,9 @@ public class ESC_menu extends GUIPartsSwitcher {
 				setName("INVENTORY");
 				//item storage
 				addLast(new ItemStorageViewer().setRCMenu(new ItemRCMenu_inventory()).setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory).setCellPaint(defaultSlotPaint).setCellSize(70))
-				.point().setXY(50, 100);
+				.point().setXY(145, 185);
 				//ammo storage
-				addLast(new ArrangedButtons<AmmoType>(425, 100, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)) {
+				addLast(new ArrangedButtons<AmmoType>(530, 200, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)) {
 					{
 						final AmmoType types[] = AmmoType.values();
 						for(int i = 0; i < types.length; ++i) {
@@ -147,77 +147,74 @@ public class ESC_menu extends GUIPartsSwitcher {
 					public BodyParts targetBodyParts() {
 						return NAGame.controllingUnit().body().mainEquipSlot();
 					}
-				}).setName("主武器").setBounds(550, 100, 80, 80);
+				}).setName("主武器").setBounds(660, 170, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return NAGame.controllingUnit().body().subEquipSlot();
 					}
-				}).setName("副武器").setBounds(550, 180, 80, 80);
+				}).setName("副武器").setBounds(660, 250, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return NAGame.controllingUnit().body().melleEquipSlot();
 					}
-				}).setName("近战武器").setBounds(550, 260, 80, 80);
+				}).setName("近战武器").setBounds(660, 330, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return NAGame.controllingUnit().body().shieldSlot();
 					}
-				}).setName("盾牌").setBounds(550, 340, 80, 80);
+				}).setName("盾牌").setBounds(660, 410, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return NAGame.controllingUnit().body().exoskeletonSlot();
 					}
-				}).setName("外骨骼").setBounds(550, 420, 80, 80);
+				}).setName("外骨骼").setBounds(660, 490, 80, 80);
 				//right 5 slot (head, trunk, hands, legs, foots)
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return ((HumanBody)NAGame.controllingUnit().body()).head();
 					}
-				}).setName("帽子").setBounds(865, 100, 80, 80);
+				}).setName("帽子").setBounds(955, 170, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return ((HumanBody)NAGame.controllingUnit().body()).trunk();
 					}
-				}).setName("衣服").setBounds(865, 180, 80, 80);
+				}).setName("衣服").setBounds(955, 250, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return ((HumanBody)NAGame.controllingUnit().body()).hands();
 					}
-				}).setName("手套").setBounds(865, 260, 80, 80);
+				}).setName("手套").setBounds(955, 330, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return ((HumanBody)NAGame.controllingUnit().body()).legs();
 					}
-				}).setName("裤子").setBounds(865, 340, 80, 80);
+				}).setName("裤子").setBounds(955, 410, 80, 80);
 				addLast(new EquipmentSlot() {
 					@Override
 					public BodyParts targetBodyParts() {
 						return ((HumanBody)NAGame.controllingUnit().body()).foots();
 					}
-				}).setName("鞋").setBounds(865, 420, 80, 80);
+				}).setName("鞋").setBounds(955, 490, 80, 80);
 			}
 			@Override
 			public void idle() {
-				//framing
 				final Graphics2D G2 = GHQ.getG2D(Color.GRAY, GHQ.stroke3);
-				G2.drawRect(30, 80, 400, 450);
-				G2.drawRect(520, 80, 450, 450);
 				//center (a human body)
-				humanBodyIF.dotPaint_rate(745, 300, 1.2);
+				humanBodyIF.dotPaint_rate(845, 345, 1.2);
 				//item description
 				G2.setColor(Color.GRAY);
 				G2.setStroke(GHQ.stroke3);
-				G2.drawRect(50, 325, 350, 180);
+				G2.drawRect(145, 400, 350, 180);
 				G2.setColor(Color.WHITE);
-				G2.fillRect(50, 325, 350, 180);
+				G2.fillRect(145, 400, 350, 180);
 				super.idle();
 			}
 		});

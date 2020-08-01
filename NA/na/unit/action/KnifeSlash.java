@@ -2,14 +2,14 @@ package unit.action;
 
 import animation.CircularMotion;
 import core.GHQ;
-import effect.Effect;
 import paint.animation.SerialImageFrame;
 import paint.dot.DotPaint;
 import paint.dot.DotPaintParameter;
 import physics.Dynam;
 import physics.RelativePoint;
-import unit.Body;
-import unit.BodyParts;
+import preset.effect.Effect;
+import preset.unit.Body;
+import preset.unit.BodyParts;
 
 public abstract class KnifeSlash extends NAAction {
 	private final DotPaint slashAnimation = new SerialImageFrame(1,

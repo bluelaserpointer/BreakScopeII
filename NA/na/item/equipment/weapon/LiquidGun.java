@@ -3,7 +3,6 @@ package item.equipment.weapon;
 import java.util.LinkedList;
 import java.util.List;
 
-import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
@@ -14,7 +13,8 @@ import liquid.Liquid;
 import liquid.NALiquidState;
 import liquid.Water;
 import paint.ImageFrame;
-import physics.HitRule;
+import physics.HitGroup;
+import preset.bullet.Bullet;
 import unit.NAUnit;
 import weapon.Weapon;
 
@@ -44,7 +44,7 @@ public class LiquidGun extends NAMainWeapon {
 				name = "LiquidGun";
 			}
 			@Override
-			public List<Bullet> setBullets(GHQObject shooter, HitRule standpoint) {
+			public List<Bullet> setBullets(GHQObject shooter, HitGroup standpoint) {
 				liquidSource.divideLiquid(FLOW_SPEED);
 				final int splashAmount = 10;
 				final double waterDepth = FLOW_SPEED/splashAmount;

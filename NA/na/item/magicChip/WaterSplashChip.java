@@ -2,7 +2,6 @@ package item.magicChip;
 
 import java.awt.Color;
 
-import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
@@ -11,6 +10,7 @@ import liquid.NALiquidState;
 import liquid.Water;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
+import preset.bullet.Bullet;
 import unit.NAUnit;
 
 public class WaterSplashChip extends MagicChip {
@@ -43,8 +43,8 @@ public class WaterSplashChip extends MagicChip {
 		return "WaterSplashChip";
 	}
 	@Override
-	public void use() {
-		if(!hasOwner() || !isReady() || ((NAUnit)owner).BLUE_BAR.intValue() < BLUE_BAR_COST)
+	public void start() {
+		if(((NAUnit)owner).BLUE_BAR.intValue() < BLUE_BAR_COST)
 			return;
 		((NAUnit)owner).BLUE_BAR.consume(BLUE_BAR_COST);
 		super.use(); //restart cool process

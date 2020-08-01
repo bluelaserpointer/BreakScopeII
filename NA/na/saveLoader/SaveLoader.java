@@ -3,7 +3,7 @@ package saveLoader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import stage.GHQStage;
+import physics.stage.GHQStage;
 
 public abstract class SaveLoader {
 	public abstract String save();

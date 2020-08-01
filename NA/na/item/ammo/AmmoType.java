@@ -1,9 +1,9 @@
 package item.ammo;
 
 import calculate.Filter;
-import item.ItemData;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
+import preset.item.ItemData;
 
 public enum AmmoType {
 	_45acp	("Ammo_45acp"		, 0.015		, ImageFrame.create("picture/HandgunBullet.png")),

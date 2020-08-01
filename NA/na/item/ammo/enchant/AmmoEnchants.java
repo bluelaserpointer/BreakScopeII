@@ -3,13 +3,13 @@ package item.ammo.enchant;
 import java.awt.Color;
 import java.util.HashMap;
 
-import bullet.Bullet;
 import core.GHQ;
 import core.GHQObject;
 import damage.NADamage;
 import paint.ImageFrame;
 import paint.dot.DotPaint;
 import paint.dot.HasDotPaint;
+import preset.bullet.Bullet;
 
 public class AmmoEnchants implements HasDotPaint {
 	public static final AmmoEnchants NO_ENCHANTS = new AmmoEnchants();
@@ -18,7 +18,7 @@ public class AmmoEnchants implements HasDotPaint {
 	Color enchantsColor = Color.WHITE;
 	public AmmoEnchants(AmmoEnchants sample) {
 		for(AmmoEnchant enchant : sample.enchants.keySet())
-			enchants.put(enchant, sample.enchants.get(enchant));
+			enchants.put(enchant.clone(), sample.enchants.get(enchant));
 		damageAdd = sample.damageAdd.clone();
 		enchantsColor = sample.enchantsColor;
 	}
@@ -49,9 +49,8 @@ public class AmmoEnchants implements HasDotPaint {
 		}
 	}
 	public void applyHitObjectEffect(Bullet bullet, GHQObject target) {
-		for(AmmoEnchant enchant : enchants.keySet()) {
+		for(AmmoEnchant enchant : enchants.keySet())
 			enchant.whenHit(bullet, target, enchants.get(enchant));
-		}
 	}
 	
 	//control

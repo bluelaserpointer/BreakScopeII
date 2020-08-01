@@ -1,6 +1,7 @@
 package buff;
 
 import core.GHQ;
+import damage.DamageComposition;
 import damage.DamageMaterial;
 import paint.ImageFrame;
 import paint.rect.RectPaint;
@@ -17,7 +18,7 @@ public class PoisonBuff extends NABuff {
 	@Override
 	public void idle() {
 		if(GHQ.getSPF()*GHQ.passedFrame(super.INITIAL_FRAME) >= 1.0) {
-			owner.damage(DamageMaterial.Poi.makeDamage(nowDamage, false));
+			owner.damage(DamageMaterial.Poi.makeDamage(nowDamage, DamageComposition.INSIDE));
 			removeFromOwner();
 		}
 	}

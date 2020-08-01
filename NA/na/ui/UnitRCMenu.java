@@ -1,7 +1,7 @@
 package ui;
 
 import gui.ClickMenu;
-import item.ItemData;
+import preset.item.ItemData;
 
 public class UnitRCMenu extends ClickMenu<ItemData> {
 	public UnitRCMenu() {

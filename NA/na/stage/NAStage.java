@@ -7,14 +7,18 @@ import core.GHQ;
 import core.GHQObject;
 import core.GHQObjectType;
 import engine.NAGame;
-import item.ItemData;
 import liquid.Liquid;
 import liquid.NALiquidState;
 import liquid.LiquidTag;
 import liquid.MixedLiquid;
 import physics.Point;
+import physics.stage.GHQStage;
+import physics.stage.GridArrayList;
+import physics.stage.GridBitSet;
+import physics.stage.GridPainter;
+import preset.item.ItemData;
+import preset.unit.Unit;
 import unit.NAUnit;
-import unit.Unit;
 
 public class NAStage extends GHQStage {
 	
@@ -113,7 +117,7 @@ public class NAStage extends GHQStage {
 						if(isRedMarked && isGrayMarked)
 							seenMark.fillGrid(GHQ.getG2D(combinedColor), xPos, yPos);
 						else if(isRedMarked && !isGrayMarked) //fill transparent red area that in an enemy's sight
-							seenMark.fillGrid(GHQ.getG2D(enemySeenColor), xPos, yPos);
+							;//seenMark.fillGrid(GHQ.getG2D(enemySeenColor), xPos, yPos);
 						else if(!isRedMarked && isGrayMarked) //fill transparent gray area that in the player's sight
 							seenMark.fillGrid(GHQ.getG2D(playerNotSeenColor), xPos, yPos);
 					} else { //fill black area that never seen before
@@ -130,9 +134,10 @@ public class NAStage extends GHQStage {
 			final int xEnd = xStart + seenMark.gridsToFillScreenWidth(), yEnd = yStart + seenMark.gridsToFillScreenHeight();
 			//controlling unit
 			NAUnit player = NAGame.controllingUnit();
+			seenMark.clear();
 			playerSightMark.clear();
-			for(int xPos = xStart; xPos < xEnd; ++xPos) {
-				for(int yPos = yStart; yPos < yEnd; ++yPos) {
+			for(int xPos = 0; xPos < seenMark.xGrids(); ++xPos) {
+				for(int yPos = 0; yPos < seenMark.yGrids(); ++yPos) {
 					if(player.isVisible(seenMark.getPosPoint(xPos, yPos))) {
 						seenMark.set_cellPos(xPos, yPos);
 						playerSightMark.set_cellPos(xPos, yPos);
@@ -144,8 +149,8 @@ public class NAStage extends GHQStage {
 			for(Unit ver : GHQ.stage().units) {
 				final NAUnit unit = (NAUnit)ver;
 				if(unit.isHostileToControllingUnit() && player.isVisible(unit)) { //hostile unit
-					for(int xPos = xStart; xPos < xEnd; ++xPos) {
-						for(int yPos = yStart; yPos < yEnd; ++yPos) {
+					for(int xPos = 0; xPos < seenMark.xGrids(); ++xPos) {
+						for(int yPos = 0; yPos < seenMark.yGrids(); ++yPos) {
 							if(seenMark.get_cellPos(xPos, yPos, false) && unit.isVisible(seenMark.getPosPoint(xPos, yPos))) {
 								enemySightMark.set_cellPos(xPos, yPos);
 							}

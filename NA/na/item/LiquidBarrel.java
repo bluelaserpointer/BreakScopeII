@@ -4,6 +4,7 @@ import damage.NADamage;
 import liquid.HasLiquid;
 import liquid.Liquid;
 import paint.ImageFrame;
+import preset.item.ItemData;
 
 public class LiquidBarrel extends NACollisionableItem implements HasLiquid {
 	Liquid liquid;

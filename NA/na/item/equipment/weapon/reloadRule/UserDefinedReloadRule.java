@@ -55,13 +55,13 @@ public class UserDefinedReloadRule extends ReloadRule {
 		return posAmmoBag.get(pos);
 	}
 	@Override
-	public int reloadAmmo(NAFirearms firearm) {
+	public int reloadAmmo(NAFirearms firearm, int amount) {
 		int pos;
 		final int magazineSize = firearm.magazineSize();
 		final int startPos = magazineSize - 1 - firearm.magazineFilledAmount();
 		for(pos = startPos; pos >= 0; --pos) {
 			final AmmoBag bag = posAmmoBag.get(pos);
-			if(bag.consume(1) > 0)
+			if(bag.consumeWithAutoRemoveIfEmpty(1) > 0)
 				firearm.pushAmmoToMagazine(bag.enchants());
 			else //reload failed
 				break;

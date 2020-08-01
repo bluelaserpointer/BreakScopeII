@@ -6,6 +6,7 @@ import core.GHQ;
 import engine.NAGame;
 import object.HasWeight;
 import paint.dot.DotPaint;
+import preset.item.ItemData;
 import stage.NAStage;
 import storage.StorageWithSpace;
 import unit.NAUnit;

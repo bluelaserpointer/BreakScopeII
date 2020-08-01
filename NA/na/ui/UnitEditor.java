@@ -8,9 +8,9 @@ import gui.ClickMenu;
 import gui.InputOptionList;
 import gui.TitledLabel;
 import paint.ColorFraming;
+import preset.unit.Unit;
 import unit.HumanGuard2;
 import unit.HumanGuard;
-import unit.Unit;
 
 public class UnitEditor extends ClickMenu<Unit>{
 	

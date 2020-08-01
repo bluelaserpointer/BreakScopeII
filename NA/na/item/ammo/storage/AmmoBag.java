@@ -77,12 +77,14 @@ public class AmmoBag implements HasDotPaint {
 	public void add(int amount) {
 		ammo.add(amount);
 	}
-	public int consume(int amount) {
-		final int consumed = ammo.consume(amount);
-		if(ammo.isEmpty()) {
+	public int consumeWithAutoRemoveIfEmpty(int amount) {
+		final int consumed = consume(amount);
+		if(ammo.isEmpty())
 			originList.remove(this);
-		}
 		return consumed;
+	}
+	public int consume(int amount) {
+		return ammo.consume(amount);
 	}
 	
 	//information
