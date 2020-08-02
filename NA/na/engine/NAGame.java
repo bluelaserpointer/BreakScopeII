@@ -17,7 +17,9 @@ import java.util.Random;
 
 import action.ActionSource;
 import buff.Buff;
+import core.Camera;
 import core.CornerNavigation;
+import core.FixChaseSmoothPeekCamera;
 import core.GHQ;
 import core.Game;
 import gui.GUIParts;
@@ -46,7 +48,7 @@ import liquid.Oil;
 import liquid.PoisonusWater;
 import liquid.Water;
 import paint.ImageFrame;
-import physics.Route;
+import physics.Point;
 import physics.stage.GHQStage;
 import preset.item.ItemData;
 import preset.unit.GameInput;
@@ -81,6 +83,14 @@ public class NAGame extends Game implements ActionSource {
 	private static NAUnit controllingUnit;
 	private static boolean lockControllingUnitAction;
 	private static final CornerNavigation cornerNavi = new CornerNavigation(100);
+	public static final FixChaseSmoothPeekCamera playerCamera = new FixChaseSmoothPeekCamera(null, 10.0);
+	public static final Camera peekCamera = new Camera(new Point.DoublePoint());
+	public static boolean peekCameraMode;
+	
+	@Override
+	public Camera starterCamera() {
+		return playerCamera;
+	}
 	
 	public String getVersion() {
 		return "alpha1.0.0";
@@ -163,7 +173,7 @@ public class NAGame extends Game implements ActionSource {
 	private final static GHQStage initialTestStage = new NAStage(STAGE_W, STAGE_H);
 	private final static GHQStage[] stages = new NAStage[15];
 	private static int nowStage;
-	private ImageFrame[] tileIFs = new ImageFrame[5];
+	private ImageFrame[] tileIFs_special = new ImageFrame[5];
 	private ImageFrame[] tileIFs_normal = new ImageFrame[2];
 	
 	//GUIParts
@@ -202,7 +212,7 @@ public class NAGame extends Game implements ActionSource {
 	}
 	@Override
 	public final void loadResource() {
-		tileIFs = new ImageFrame[] {
+		tileIFs_special = new ImageFrame[] {
 				ImageFrame.create("picture/map/Tile_40_percent.png"),
 				ImageFrame.create("picture/map/Tile_30_percent.png"),
 				ImageFrame.create("picture/map/Tile_20_percent.png"),
@@ -220,7 +230,7 @@ public class NAGame extends Game implements ActionSource {
 		//units
 		/////////////////////////////////
 		//friend
-		GHQ.stage().addUnit(Unit.initialSpawn(controllingUnit = new Player(), GHQ.screenW()/2, GHQ.screenH() - 100));
+		GHQ.stage().addUnit(Unit.initialSpawn(setControllingUnit(new Player()), GHQ.screenW()/2, GHQ.screenH() - 100));
 		//utility
 		new ArmyBox().drop(500, 200);
 		new LiquidBarrel(stage().makeLiquid(Water.FIXED_WATER_TAG, NALiquidState.WATER_SOLUABLE, 300)).drop(500, 500);
@@ -341,12 +351,17 @@ public class NAGame extends Game implements ActionSource {
 			@Override
 			public void idle() {
 				super.idle();
+				if(NAGame.peekCameraMode) {
+					final int x = (GHQ.mouseScreenX() - (GHQ.screenW() - 200))*GHQ.stage().width()/200;
+					final int y = GHQ.mouseScreenY()*GHQ.stage().height()/200;
+					NAGame.peekCamera.dstPoint().setXY(x, y);
+				}
 				hud.rectPaint(0, 0, GHQ.screenW(), GHQ.screenH());
 			}
 			@Override
 			public boolean clicked(MouseEvent e) {
 				if(e.getButton() == MouseEvent.BUTTON3) {
-					Unit unit = GHQ.stage().units.forMouseOver();
+					final Unit unit = GHQ.stage().units.forMouseOver();
 					if(unit != null) {
 						//TODO: open enemy right click menu
 						//return true;
@@ -356,12 +371,28 @@ public class NAGame extends Game implements ActionSource {
 						itemRCMenu.tryOpen(item);
 						return true;
 					}
+				} else if(e.getButton() == MouseEvent.BUTTON1) {
+					if(!NAGame.controllingUnit().isBattleStance() && GHQ.mouseScreenX() > GHQ.screenW() - 200 && GHQ.mouseScreenY() < 200) { //minimap
+						final int x = (GHQ.mouseScreenX() - (GHQ.screenW() - 200))*GHQ.stage().width()/200;
+						final int y = GHQ.mouseScreenY()*GHQ.stage().height()/200;
+						NAGame.peekCamera.dstPoint().setXY(x, y);
+						if(!NAGame.peekCameraMode) {
+							NAGame.peekCameraMode = true;
+							GHQ.setCamera(peekCamera);
+						}
+						return true;
+					}
 				}
 				NAUnit.gameInputs().mousePressed(e);
 				return true;
 			}
 			@Override
 			public void released(MouseEvent e) {
+				if(NAGame.peekCameraMode) {
+					NAGame.peekCameraMode = false;
+					GHQ.setCamera(playerCamera);
+					return;
+				}
 				NAUnit.gameInputs().mouseReleased(e);
 			}
 			//stage field always does not invoke swap operation.
@@ -388,6 +419,8 @@ public class NAGame extends Game implements ActionSource {
 		/////////////////////////////////
 		//liquids
 		/////////////////////////////////
+		//camera
+		GHQ.setCamera(playerCamera);
 	}
 	//idle
 	@Override
@@ -492,13 +525,6 @@ public class NAGame extends Game implements ActionSource {
 		///////////////
 		//scroll
 		///////////////
-		if(stopEventKind == GHQ.NONE || editor.isEnabled()) {
-			//scroll by mouse
-			if(doScrollView) {
-				GHQ.viewTargetTo((MOUSE_X + controllingUnit.point().intX())/2, (MOUSE_Y + controllingUnit.point().intY())/2);
-				GHQ.viewApproach_rate(10);
-			}
-		}
 		//////////////////////////
 		//test
 		//////////////////////////
@@ -553,6 +579,11 @@ public class NAGame extends Game implements ActionSource {
 	//////////////
 	//control
 	//////////////
+	public static NAUnit setControllingUnit(NAUnit unit) {
+		NAGame.controllingUnit = unit;
+		playerCamera.setChaseTarget(unit);
+		return unit;
+	}
 	public static void openInventoryInvester(TableStorage<ItemData> storage) {
 		inventoryInvester.enable();
 		inventoryInvester.setLeftInventory(controllingUnit);

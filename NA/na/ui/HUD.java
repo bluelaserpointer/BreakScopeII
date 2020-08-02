@@ -54,17 +54,19 @@ public class HUD extends RectPaint {
 	private void miniMapFillRect(HasPoint object, int sizePixels) {
 		GHQ.getG2D().fillRect(MINIMAP_X + (int)(object.point().intX()*MINIMAP_RATE), MINIMAP_Y + (int)(object.point().intY()*MINIMAP_RATE), sizePixels, sizePixels);
 	}
+	private static final int MINIMAP_ALPHA = 128;
 	@Override
 	public void rectPaint(int x, int y, int w, int h) {
 		final Graphics2D g2 = GHQ.getG2D();
 		final NAUnit player = NAGame.controllingUnit();
+		final int alpha = NAGame.controllingUnit().isBattleStance() ? MINIMAP_ALPHA : 255;
 		//Minimap
 		GHQ.setClip(MINIMAP_X, MINIMAP_Y, MINIMAP_SIZE, MINIMAP_SIZE);
 		//Minimap-background
-		g2.setColor(Color.DARK_GRAY);
+		g2.setColor(new Color(Color.DARK_GRAY.getRed(), Color.DARK_GRAY.getGreen(), Color.DARK_GRAY.getBlue(), alpha));
 		g2.fillRect(MINIMAP_X, MINIMAP_Y, MINIMAP_SIZE, MINIMAP_SIZE);
 		//Minimap-seenMark
-		g2.setColor(Color.GRAY);
+		g2.setColor(new Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), alpha));
 		GridBitSet seenMark = ((NAStage)GHQ.stage()).seenMark();
 		for(int i = 0; i < seenMark.xGrids(); ++i) {
 			for(int j = 0; j < seenMark.yGrids(); ++j) {
@@ -74,14 +76,14 @@ public class HUD extends RectPaint {
 			}
 		}
 		//Minimap-structure
-		g2.setColor(Color.WHITE);
+		g2.setColor(new Color(255, 255, 255, alpha));
 		for(Structure structure : GHQ.stage().structures) {
 			if(structure instanceof Tile) {
 				miniMapFillRect(structure);
 			}
 		}
 		//Minimap-camera
-		g2.setColor(Color.CYAN);
+		g2.setColor(new Color(Color.CYAN.getRed(), Color.CYAN.getGreen(), Color.CYAN.getBlue(), alpha));
 		g2.setStroke(GHQ.stroke1);
 		miniMapDrawRect(GHQ.getScreenLeftX_stageCod(), GHQ.getScreenTopY_stageCod(), GHQ.getScreenW_stageCod(), GHQ.getScreenH_stageCod());
 		//Minimap-player
