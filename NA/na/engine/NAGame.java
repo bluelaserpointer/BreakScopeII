@@ -66,6 +66,7 @@ import ui.ItemRCMenu_ground;
 import ui.DoubleInventoryViewer;
 import ui.QuickSlotViewer;
 import ui.UnitEditor;
+import ui.UnitInfo;
 import ui.ZoomSliderBar;
 import unit.HumanGuard2;
 import unit.NAUnit;
@@ -343,7 +344,7 @@ public class NAGame extends Game implements ActionSource {
 		///////////////
 		hud = new HUD();
 		GHQ.addGUIParts(stageFieldGUI = new GUIParts() {
-			private ItemRCMenu_ground  itemRCMenu = new ItemRCMenu_ground();
+			private ItemRCMenu_ground itemRCMenu = new ItemRCMenu_ground();
 			{
 				setName("stageFieldGUI");
 				super.addLast(itemRCMenu).disable(); //TODO: find out why this menu cannot automatically close when click on it
@@ -358,13 +359,20 @@ public class NAGame extends Game implements ActionSource {
 				}
 				hud.rectPaint(0, 0, GHQ.screenW(), GHQ.screenH());
 			}
+			final UnitInfo unitInfo = new UnitInfo();
+			{
+				this.addLast(unitInfo).disable();
+			}
 			@Override
 			public boolean clicked(MouseEvent e) {
 				if(e.getButton() == MouseEvent.BUTTON3) {
-					final Unit unit = GHQ.stage().units.forMouseOver();
+					final NAUnit unit = (NAUnit)GHQ.stage().units.forMouseOver();
 					if(unit != null) {
 						//TODO: open enemy right click menu
 						//return true;
+						unitInfo.setTargetUnit(unit);
+						unitInfo.enable();
+						return true;
 					}
 					ItemData item = GHQ.stage().items.forMouseOver();
 					if(item != null) {
@@ -384,7 +392,7 @@ public class NAGame extends Game implements ActionSource {
 					}
 				}
 				NAUnit.gameInputs().mousePressed(e);
-				return true;
+				return super.clicked(e);
 			}
 			@Override
 			public void released(MouseEvent e) {
@@ -427,7 +435,6 @@ public class NAGame extends Game implements ActionSource {
 	public final void idle(Graphics2D g2, int stopEventKind) {
 		if(controllingUnit == null || stageFieldGUI == null)
 			return;
-		final int MOUSE_X = GHQ.mouseX(), MOUSE_Y = GHQ.mouseY();
 		//////////////////////////
 		//idle
 		//////////////////////////
@@ -522,14 +529,10 @@ public class NAGame extends Game implements ActionSource {
 				closeInventoryInvester();
 			}
 		}
-		///////////////
-		//scroll
-		///////////////
 		//////////////////////////
 		//test
 		//////////////////////////
 		cornerNavi.debugPreview();
-		Game.viewScrollFromStack();
 	}
 	//drag
 	@Override

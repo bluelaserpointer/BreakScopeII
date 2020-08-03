@@ -1,7 +1,6 @@
 package unit.action;
 
 import core.GHQ;
-import engine.NAGame;
 import physics.Point;
 import physics.direction.Direction8;
 import preset.unit.Body;
@@ -21,7 +20,6 @@ public abstract class Walk extends NAAction {
 			final double RATE = moveSpeed/owner().point().distance(targetPoint);
 			final double X = owner().point().doubleDX(targetPoint)*RATE, Y = owner().point().doubleDY(targetPoint)*RATE;
 			owner().point().addXY(X, Y);
-			NAGame.addViewStack(X, Y);
 			if(owner().point().distance(targetPoint) < 0.5)
 				body().stopAction(this);
 		}
@@ -42,13 +40,10 @@ public abstract class Walk extends NAAction {
 			final double X = direction.x()*moveSpeed, Y = direction.y()*moveSpeed;
 			if(!GHQ.stage().hitObstacle_atNewPoint(owner(), X, Y)) {
 				owner().point().addXY(X, Y);
-				NAGame.addViewStack(X, Y);
 			} else if(!GHQ.stage().hitObstacle_atNewPoint(owner(), X, 0)) {
 				owner().point().addXY(X, 0);
-				NAGame.addViewStack(X, 0);
 			} else if(!GHQ.stage().hitObstacle_atNewPoint(owner(), 0, Y)) {
 				owner().point().addXY(0, Y);
-				NAGame.addViewStack(0, Y);
 			}
 		}
 		public void setDirection(Direction8 direction, double moveSpeed) {

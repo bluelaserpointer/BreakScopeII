@@ -19,8 +19,7 @@ public class ItemRCMenu_ground extends ClickMenu<ItemData> {
 			@Override
 			public boolean clicked(MouseEvent e) {
 				super.clicked(e);
-				get().pickup(NAGame.controllingUnit());
-				NAGame.controllingUnit().addItemToStorage(get());
+				NAGame.controllingUnit().addItemToStorage(ItemRCMenu_ground.this.get());
 				disableMenu();
 				return true;
 			}
@@ -33,6 +32,11 @@ public class ItemRCMenu_ground extends ClickMenu<ItemData> {
 		if(get().point().distance(NAGame.controllingUnit()) > NAGame.controllingUnit().width()*2) {
 			disableMenu();
 		}
+	}
+	@Override
+	public boolean tryOpen(ItemData item) {
+		super.tryOpen(item);
+		return true;
 	}
 	private void disableMenu() {
 		super.disable();

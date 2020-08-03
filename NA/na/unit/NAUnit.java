@@ -307,7 +307,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 							}
 						}
 						if(item != null) {
-							addItemToStorage(item, true);
+							((NAItem)item).interact(NAUnit.this);
 							interactHappened = false;
 							break interact;
 						}

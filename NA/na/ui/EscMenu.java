@@ -3,13 +3,10 @@ package ui;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 
 import core.GHQ;
 import engine.NAGame;
-import gui.ArrangedButtons;
 import gui.AutoResizeMenu;
-import gui.BasicButton;
 import gui.GHQTextArea;
 import gui.GUIParts;
 import gui.GUIPartsSwitcher;
@@ -18,11 +15,8 @@ import gui.ScrollBar;
 import gui.TableStorageViewer;
 import gui.TextButton;
 import item.ammo.AmmoType;
-import item.ammo.enchant.AmmoEnchant;
 import item.ammo.storage.AmmoBag;
 import math.SquareCellArranger;
-import paint.ColorFilling;
-import paint.ColorFraming;
 import paint.ImageFrame;
 import paint.dot.HasDotPaint;
 import paint.rect.RectPaint;
@@ -70,76 +64,13 @@ public class EscMenu extends GUIPartsSwitcher {
 			final ImageFrame humanBodyIF = ImageFrame.create("picture/humanbody/FullBody.png");
 			AmmoType openedAmmoType = null;
 			TableStorageViewer<AmmoBag> ammoStorageViewer;
-			AutoResizeMenu ammoEnchantsMenu;
 			{
 				setName("INVENTORY");
 				//item storage
 				addLast(new ItemStorageViewer().setRCMenu(new ItemRCMenu_inventory()).setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory).setCellPaint(defaultSlotPaint).setCellSize(70))
 				.point().setXY(145, 185);
 				//ammo storage
-				addLast(new ArrangedButtons<AmmoType>(530, 200, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)) {
-					{
-						final AmmoType types[] = AmmoType.values();
-						for(int i = 0; i < types.length; ++i) {
-							super.appendButton(types[i], defaultSlotPaint, 0, types.length - 1 - i);
-						}
-					}
-					@Override
-					protected void buttonClicked(AmmoType buttonValue) { //TODO: open UI info about the ammoBagList
-						if(openedAmmoType != buttonValue) {
-							openedAmmoType = buttonValue;
-							ammoStorageViewer.setTableStorage(new TableStorage<AmmoBag>(NAGame.controllingUnit().ammoStorage.ammoBagList(buttonValue), 5, AmmoBag.EMPTY_BAG));
-							ammoStorageViewer.enable();
-						} else {
-							ammoStorageViewer.disable();
-						}
-					}
-					@Override
-					protected void buttonExtendPaint(AmmoType buttonValue, BasicButton button) {
-						buttonValue.paint.dotPaint(button.point().intX(), button.point().intY());
-						GHQ.getG2D(Color.GRAY);
-						GHQ.drawStringGHQ(String.valueOf(NAGame.controllingUnit().ammoStorage.countByType(buttonValue)), button.point().intX() + 20, button.point().intY() + 40);
-					}
-				});
-				addLast(ammoStorageViewer = new TableStorageViewer<AmmoBag>() {
-					{
-						point().setXY(500, 100);
-						this.backGroundPaint = new ColorFilling(Color.WHITE);
-						this.cellPaint = new ColorFraming(Color.GRAY, GHQ.stroke1);
-						addLast(ammoEnchantsMenu = new AutoResizeMenu(300, 20)).disable();
-					}
-					@Override
-					public void mouseOver() {
-						final AmmoBag ammoBag = this.getMouseHoveredElement();
-						if(ammoBag != null) {
-							ammoEnchantsMenu.enable();
-							ammoEnchantsMenu.removeAll();
-							final HashMap<AmmoEnchant, Integer> enchantLv = ammoBag.enchants().enchants();
-							for(AmmoEnchant enchant : enchantLv.keySet()) {
-								ammoEnchantsMenu.addNewLine(new GUIParts() {
-									@Override
-									public void paint() {
-										super.paint();
-										GHQ.getG2D(Color.GRAY);
-										GHQ.drawStringGHQ(enchant.name, point().intX(), point().intY());
-									}
-								}).setBGColor(Color.LIGHT_GRAY);
-							}
-						}
-					}
-					@Override
-					public void mouseOut() {
-						super.mouseOut();
-						ammoEnchantsMenu.disable();
-					}
-					@Override
-					public AmmoBag objectToT(Object object) {
-						if(object instanceof AmmoBag)
-							return (AmmoBag)object;
-						return null;
-					}
-					
-				}).disable();
+				addLast(new AmmoStorageViewer(530, 200, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)).setTargetUnit(NAGame.controllingUnit()));
 				//equipments
 				//left 5 slot (main, sub, melee, shield, exoskeleton)
 				addLast(new EquipmentSlot() {

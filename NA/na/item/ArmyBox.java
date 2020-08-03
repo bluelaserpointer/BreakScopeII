@@ -2,21 +2,22 @@ package item;
 
 import core.GHQ;
 import damage.NADamage;
+import engine.NAGame;
 import paint.ImageFrame;
 import paint.dot.DotPaintResizer;
 import preset.item.ItemData;
 import storage.TableStorage;
+import unit.NAUnit;
 
 public class ArmyBox extends NACollisionableItem {
 	public ArmyBox() {
 		super(new DotPaintResizer(ImageFrame.create("picture/map/ArmyBox1.png"), 0.5), 100);
 	}
 	public final TableStorage<ItemData> inventory = new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM);
-//	@Override
-//	public boolean interact(NAUnit unit) {
-//		NAGame.openInventoryInvester(inventory);
-//		return true;
-//	}
+	@Override
+	public void interact(NAUnit unit) {
+		NAGame.openInventoryInvester(inventory);
+	}
 	@Override
 	public void killed() {
 		for(int i = inventory.nextNonspaceIndex(); i != -1; i = inventory.nextNonspaceIndex(i)) {

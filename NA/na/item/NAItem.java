@@ -45,7 +45,7 @@ public abstract class NAItem extends ItemData implements NAUsable, HasWeight {
 		}
 	}
 	public void interact(NAUnit unit) {
-		
+		unit.addItemToStorage(this, true);
 	}
 	public void reset() {}
 	public final void removeFromUnit() {
