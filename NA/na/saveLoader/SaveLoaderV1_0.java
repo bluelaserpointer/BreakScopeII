@@ -13,6 +13,7 @@ import preset.structure.Tile;
 import preset.unit.Unit;
 import preset.vegetation.Vegetation;
 import structure.NATile;
+import structure.NATileEnum;
 import unit.Boss_1;
 import unit.HumanGuard;
 import unit.HumanGuard2;
@@ -106,7 +107,7 @@ public class SaveLoaderV1_0 extends SaveLoader {
 		for(int i = 0;i < structureSize; ++i) {
 			final String name = br.readLine();
 			if(nameMatch(name, Tile.class)) {
-				stage.addStructure(new NATile(readIntLine(br), readIntLine(br), readIntLine(br), readIntLine(br)));
+				stage.addStructure(new NATile(NATileEnum.WOOD, readIntLine(br), readIntLine(br), readIntLine(br), readIntLine(br)));
 			}else if(nameMatch(name, Terrain.class)) {
 				//TODO: terrain load process
 			}

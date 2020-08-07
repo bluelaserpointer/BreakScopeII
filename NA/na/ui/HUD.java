@@ -18,8 +18,10 @@ import physics.HasPoint;
 import physics.stage.GridBitSet;
 import preset.structure.Structure;
 import preset.structure.Tile;
+import preset.structure.Tile.TileHitShape;
 import preset.unit.Unit;
 import stage.NAStage;
+import structure.NATile;
 import unit.NAUnit;
 import weapon.Weapon;
 
@@ -28,6 +30,10 @@ public class HUD extends RectPaint {
 	private final ImageFrame focusIF;
 	private final ImageFrame knifeFocusIF;
 	private final ImageFrame bulletHeadIF;
+	public static NATile installTargetTile;
+	public static int installTargetTilePos;
+	public static int installTargetX;
+	public static int installTargetY;
 	public HUD() {
 		cilinderIF = ImageFrame.create("picture/hud/cilinder.png");
 		focusIF = ImageFrame.create("picture/hud/Focus.png");
@@ -85,7 +91,7 @@ public class HUD extends RectPaint {
 		//Minimap-camera
 		g2.setColor(new Color(Color.CYAN.getRed(), Color.CYAN.getGreen(), Color.CYAN.getBlue(), alpha));
 		g2.setStroke(GHQ.stroke1);
-		miniMapDrawRect(GHQ.getScreenLeftX_stageCod(), GHQ.getScreenTopY_stageCod(), GHQ.getScreenW_stageCod(), GHQ.getScreenH_stageCod());
+		miniMapDrawRect(GHQ.fieldScreenLeft(), GHQ.fieldScreenTop(), GHQ.fieldScreenW(), GHQ.fieldScreenH());
 		//Minimap-player
 		g2.setColor(Color.RED);
 		for(Unit unit : GHQ.stage().units) {
@@ -171,6 +177,23 @@ public class HUD extends RectPaint {
 			final Equipment equipment = player.currentEquipment();
 			final Weapon weapon = player.currentWeapon();
 			final int mouseX = GHQ.mouseX(), mouseY = GHQ.mouseY();
+			//block install focus
+			GHQ.translateForGUI(false);
+			final double rate = 50.0/player.point().distance(mouseX, mouseY);
+			GHQ.getG2D(Color.RED).fillOval(player.cx() + (int)(player.point().intDX(mouseX)*rate) - 2, player.cy() + (int)(player.point().intDY(mouseY)*rate) - 2, 4, 4);
+			NAGame.stage().seenMark().drawGrid_fieldCod(GHQ.getG2D(Color.ORANGE, GHQ.stroke3), mouseX, mouseY);
+			//for must installed to ground
+			installTargetX = mouseX / Tile.TILE_SIZE * Tile.TILE_SIZE + Tile.TILE_SIZE/2;
+			installTargetY = mouseY / Tile.TILE_SIZE * Tile.TILE_SIZE + Tile.TILE_SIZE/2;
+			//for must installed to wall
+			Structure targetStructure = GHQ.stage().structures.forMouseOver();
+			if(targetStructure instanceof NATile) {
+				installTargetTile = (NATile)targetStructure;
+				if(installTargetTile != null)
+					installTargetTilePos = ((TileHitShape)installTargetTile.hitShape()).tilePos(mouseX, mouseY);
+			}
+			GHQ.translateForGUI(true);
+			//weapon focus
 			if(equipment instanceof NAFirearms) {
 				//focus
 				final NAFirearms firearm = (NAFirearms)equipment;

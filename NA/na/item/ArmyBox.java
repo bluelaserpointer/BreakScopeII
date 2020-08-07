@@ -4,14 +4,13 @@ import core.GHQ;
 import damage.NADamage;
 import engine.NAGame;
 import paint.ImageFrame;
-import paint.dot.DotPaintResizer;
 import preset.item.ItemData;
 import storage.TableStorage;
 import unit.NAUnit;
 
 public class ArmyBox extends NACollisionableItem {
 	public ArmyBox() {
-		super(new DotPaintResizer(ImageFrame.create("picture/map/ArmyBox1.png"), 0.5), 100);
+		super(ImageFrame.create("picture/map/ArmyBox1.png"), 100);
 	}
 	public final TableStorage<ItemData> inventory = new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM);
 	@Override

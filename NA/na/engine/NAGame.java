@@ -36,6 +36,8 @@ import item.ammo.AmmoType;
 import item.ammo.enchant.Penetration;
 import item.ammo.enchant.Poison;
 import item.ammo.enchant.Scatter;
+import item.defenceKit.AmmoBox;
+import item.defenceKit.Turret;
 import item.equipment.weapon.ElectronShield;
 import item.equipment.weapon.Knife;
 import item.equipment.weapon.LiquidGun;
@@ -59,6 +61,7 @@ import saveLoader.SaveLoaderV1_0;
 import stage.NAStage;
 import storage.TableStorage;
 import structure.NATile;
+import structure.NATileEnum;
 import ui.Dialog;
 import ui.EscMenu;
 import ui.HUD;
@@ -254,12 +257,15 @@ public class NAGame extends Game implements ActionSource {
 		AmmoType._9mm.generate(10).drop(822, 886);
 		AmmoType._45acp.generate(10).drop(862, 896);
 		AmmoType._7d62.generate(100).drop(812, 896);
-		AmmoType._7d62.generate(1).addEnchant(new Scatter(), 1).addEnchant(new Penetration(1), 1).drop(812, 796);
+		AmmoType._7d62.generate(100).addEnchant(new Scatter(), 1).addEnchant(new Penetration(1), 1).drop(812, 796);
 		AmmoType._7d62.generate(29).addEnchant(new Poison(), 1).drop(852, 796);
-		GHQ.stage().addStructure(new NATile(0, 0, 1, 10));
-		GHQ.stage().addStructure(new NATile(25, 0, 9, 1));
-		GHQ.stage().addStructure(new NATile(25, 250, 9, 1));
-		GHQ.stage().addStructure(new NATile(250, 25, 1, 9));
+		GHQ.stage().addStructure(new NATile(NATileEnum.WOOD, 100, 100, 1, 10));
+		GHQ.stage().addStructure(new NATile(NATileEnum.WOOD, 125, 100, 9, 1));
+		GHQ.stage().addStructure(new NATile(NATileEnum.WOOD, 125, 350, 9, 1));
+		GHQ.stage().addStructure(new NATile(NATileEnum.WOOD, 350, 125, 1, 9));
+		GHQ.stage().addItem(new Turret()).installToWall((NATile)stage().structures.get(2), 1);
+		new Turret().drop(400, 400);
+		new AmmoBox().drop(400, 450);
 		new ShieldCharger(1000).drop(600, 800);
 		new Type56().drop(702, 796);
 		new LiquidGun().drop(652, 796);
@@ -318,7 +324,7 @@ public class NAGame extends Game implements ActionSource {
 				super.paint();
 				GHQ.getG2D(Color.WHITE);
 				GHQ.drawStringGHQ(GHQ.DF0_00.format(sliderValue*1.5 + 0.5), point().intX(), point().intY());
-				GHQ.setStageZoomRate(sliderValue*1.5 + 0.5);
+				playerCamera.zoom = sliderValue*1.5 + 0.5;
 			}
 		}).setBounds(GHQ.screenW() - 100, 200, 200, 20);
 		GHQ.addGUIParts(inventoryInvester = new DoubleInventoryViewer()).disable();
@@ -441,10 +447,10 @@ public class NAGame extends Game implements ActionSource {
 		//
 		//background
 		final int TILE_SIZE = 25;
-		final int startX = Math.max(GHQ.getScreenLeftX_stageCod()/TILE_SIZE - 2, 0);
-		final int startY = Math.max(GHQ.getScreenTopY_stageCod()/TILE_SIZE - 2, 0);
-		final int endX = startX + GHQ.getScreenW_stageCod()/TILE_SIZE + 4;
-		final int endY = startY + GHQ.getScreenH_stageCod()/TILE_SIZE + 4;
+		final int startX = Math.max(GHQ.fieldScreenLeft()/TILE_SIZE - 2, 0);
+		final int startY = Math.max(GHQ.fieldScreenTop()/TILE_SIZE - 2, 0);
+		final int endX = startX + GHQ.fieldScreenW()/TILE_SIZE + 4;
+		final int endY = startY + GHQ.fieldScreenH()/TILE_SIZE + 4;
 		Random random = new Random();
 		final int rate = GHQ.stage().width()/TILE_SIZE;
 		for(int xi = startX;xi < endX;xi++) {
@@ -477,10 +483,10 @@ public class NAGame extends Game implements ActionSource {
 			//changeZoomRate
 			if(s_keyL.hasEvent(VK_COMMA)) {
 				zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() - 0.015);
-				GHQ.setStageZoomRate(zoomSliderBar.sliderValue()*1.5 + 0.5);
+				playerCamera.zoom = zoomSliderBar.sliderValue()*1.5 + 0.5;
 			}else if(s_keyL.hasEvent(VK_PERIOD)) {
 				zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() + 0.015);
-				GHQ.setStageZoomRate(zoomSliderBar.sliderValue()*1.5 + 0.5);
+				playerCamera.zoom = zoomSliderBar.sliderValue()*1.5 + 0.5;
 			}
 			//changeStage
 			if(s_keyL.hasEvent(VK_O)) {

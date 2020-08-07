@@ -13,6 +13,7 @@ import physics.hitShape.Circle;
 import preset.bullet.Bullet;
 import preset.unit.Unit;
 import preset.unit.UnitAction;
+import structure.NATile;
 import unit.NAUnit;
 import weapon.Weapon;
 
@@ -30,6 +31,9 @@ public abstract class BulletLibrary extends Bullet {
 	@Override
 	public void hitObject(GHQObject object) {
 		enchants.applyHitObjectEffect(this, object);
+		if(object instanceof NATile) {
+			((NATile)object).attackedLastHitTile((NADamage)this.damage());
+		}
 	}
 	@Override
 	public boolean hitObjectDeleteCheck(GHQObject object) {
@@ -102,7 +106,7 @@ public abstract class BulletLibrary extends Bullet {
 //				} else {
 //					paint();
 //				}
-				if(point().inRangeXY(NAGame.controllingUnit().point(), GHQ.getScreenW_stageCod(), GHQ.getScreenH_stageCod())) {
+				if(point().inRangeXY(NAGame.controllingUnit().point(), GHQ.fieldScreenW(), GHQ.fieldScreenH())) {
 					final int passedLoops = LOOP_AMOUNT - loops;
 					if(passedLoops % 25 == 0 || !alive) {
 						GHQ.stage().addEffect(new BulletLineEF(this, passedLoops/25, xTmp, yTmp, point().intX(), point().intY()));

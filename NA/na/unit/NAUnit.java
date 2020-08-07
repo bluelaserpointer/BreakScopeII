@@ -688,8 +688,10 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 	public final void removeItem(ItemData item) {
 		if(item instanceof Ammo) {
 			ammoStorage.removeStackable((Ammo)item);
-		} else
+		} else {
 			inventory.remove(item);
+			System.out.println("removed: " + item.getClass().getName());
+		}
 		removedItem(item);
 	}
 	@Override

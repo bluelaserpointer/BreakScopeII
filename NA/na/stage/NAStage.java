@@ -2,11 +2,13 @@ package stage;
 
 import java.awt.Color;
 import java.util.LinkedList;
+import java.util.function.Predicate;
 
 import core.GHQ;
 import core.GHQObject;
 import core.GHQObjectType;
 import engine.NAGame;
+import item.defenceKit.DefenceKit;
 import liquid.Liquid;
 import liquid.NALiquidState;
 import liquid.LiquidTag;
@@ -52,6 +54,8 @@ public class NAStage extends GHQStage {
 	}
 	
 	//main role
+	private static final Predicate<GHQObject> judgeIsDefenceKit = (object) -> object instanceof DefenceKit;
+	private static final Predicate<GHQObject> judgeIsNotDefenceKit = judgeIsDefenceKit.negate();
 	@Override
 	public void idle() {
 		GHQObject.removeDeletedFromList(bulletCollisionGroup);
@@ -74,8 +78,10 @@ public class NAStage extends GHQStage {
 		////////////
 		GHQ.stage().idle(GHQObjectType.VEGETATION);
 		GHQ.stage().idle(GHQObjectType.ITEM);
+		GHQ.stage().items.defaultTraverse(judgeIsNotDefenceKit);
 		GHQ.stage().idle(GHQObjectType.STRUCTURE);
 		GHQ.stage().idle(GHQObjectType.UNIT);
+		GHQ.stage().items.defaultTraverse(judgeIsDefenceKit);
 		GHQ.stage().idle(GHQObjectType.BULLET);
 		//affects
 		for(Unit unit : units)
