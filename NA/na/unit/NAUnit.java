@@ -219,9 +219,9 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 				if(gameInputs().consume("ROLL") && GREEN_BAR.doubleValue() > 25) {
 					body.rolling.setRolling(ROLL_STR, direction);
 				}else if(gameInputs().hasEvent("SPRINT") && !GREEN_BAR.isMin()) {
-					body.directionDash.setDirection(direction, 2*GHQ.mulSPF(SPEED.doubleValue()));
+					body.directionDash.setDirection(direction, 2*GHQ.getSPF()*SPEED.doubleValue());
 				}else
-					body.directionWalk.setDirection(direction, GHQ.mulSPF(SPEED.doubleValue()));
+					body.directionWalk.setDirection(direction, GHQ.getSPF()*SPEED.doubleValue());
 				//reduce green bar when rolling
 				if(didLolling) {
 					//GREEN_BAR.consume(25.0);
