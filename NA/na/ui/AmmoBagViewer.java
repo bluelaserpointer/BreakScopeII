@@ -19,6 +19,9 @@ public class AmmoBagViewer extends TableStorageViewer<AmmoBag> {
 		this.cellPaint = new ColorFraming(Color.GRAY, GHQ.stroke1);
 		addLast(ammoEnchantsMenu = new AutoResizeMenu(300, 20)).disable();
 	}
+	public AmmoBagViewer() {
+		super(AmmoBag.class);
+	}
 	@Override
 	public void mouseOver() {
 		final AmmoBag ammoBag = this.getMouseHoveredElement();
@@ -42,11 +45,5 @@ public class AmmoBagViewer extends TableStorageViewer<AmmoBag> {
 	public void mouseOut() {
 		super.mouseOut();
 		ammoEnchantsMenu.disable();
-	}
-	@Override
-	public AmmoBag objectToT(Object object) {
-		if(object instanceof AmmoBag)
-			return (AmmoBag)object;
-		return null;
 	}
 }

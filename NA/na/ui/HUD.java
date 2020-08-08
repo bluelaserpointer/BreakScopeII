@@ -132,41 +132,41 @@ public class HUD extends RectPaint {
 				g2.setColor(Color.RED);
 				g2.drawLine(35, 15, 35 + barLength, 15);
 			}
-			g2.setColor(Color.BLACK);
-			g2.drawString("HP: " + GHQ.DF0_0.format(player.RED_BAR.doubleValue()), 181, 21);
-			g2.setColor(Color.RED);
-			g2.drawString("HP: " + GHQ.DF0_0.format(player.RED_BAR.doubleValue()), 180, 20);
 		}
+		g2.setColor(Color.BLACK);
+		g2.drawString("HP: " + GHQ.DF0_0.format(player.RED_BAR.doubleValue()), 181, 21);
+		g2.setColor(Color.RED);
+		g2.drawString("HP: " + GHQ.DF0_0.format(player.RED_BAR.doubleValue()), 180, 20);
 		cilinderIF.dotPaint(90, 15);
 		barLength = (int)(120*player.BLUE_BAR.getRate());
 		if(barLength > 0) {
 			g2.setColor(Color.CYAN);
 			g2.drawLine(35, 30, 35 + barLength, 30);
-			g2.setColor(Color.BLACK);
-			g2.drawString("MP: " + GHQ.DF0_0.format(player.BLUE_BAR.doubleValue()), 181, 36);
-			g2.setColor(Color.CYAN);
-			g2.drawString("MP: " + GHQ.DF0_0.format(player.BLUE_BAR.doubleValue()), 180, 35);
 		}
+		g2.setColor(Color.BLACK);
+		g2.drawString("MP: " + GHQ.DF0_0.format(player.BLUE_BAR.doubleValue()), 181, 36);
+		g2.setColor(Color.CYAN);
+		g2.drawString("MP: " + GHQ.DF0_0.format(player.BLUE_BAR.doubleValue()), 180, 35);
 		cilinderIF.dotPaint(90, 30);
 		barLength = (int)(120*player.GREEN_BAR.getRate());
 		if(barLength > 0) {
 			g2.setColor(Color.GREEN);
 			g2.drawLine(35, 45, 35 + barLength, 45);
-			g2.setColor(Color.BLACK);
-			g2.drawString("ST: " + GHQ.DF0_0.format(player.GREEN_BAR.doubleValue()), 181, 51);
-			g2.setColor(Color.GREEN);
-			g2.drawString("ST: " + GHQ.DF0_0.format(player.GREEN_BAR.doubleValue()), 180, 50);
 		}
+		g2.setColor(Color.BLACK);
+		g2.drawString("ST: " + GHQ.DF0_0.format(player.GREEN_BAR.doubleValue()), 181, 51);
+		g2.setColor(Color.GREEN);
+		g2.drawString("ST: " + GHQ.DF0_0.format(player.GREEN_BAR.doubleValue()), 180, 50);
 		cilinderIF.dotPaint(90, 45);
 		barLength = (int)(120*player.WHITE_BAR.getRate());
 		if(barLength > 0) {
 			g2.setColor(Color.WHITE);
 			g2.drawLine(35, 60, 35 + barLength, 60);
-			g2.setColor(Color.BLACK);
-			g2.drawString("FO: " + GHQ.DF0_0.format(player.WHITE_BAR.doubleValue()), 181, 66);
-			g2.setColor(Color.WHITE);
-			g2.drawString("FO: " + GHQ.DF0_0.format(player.WHITE_BAR.doubleValue()), 180, 65);
 		}
+		g2.setColor(Color.BLACK);
+		g2.drawString("FO: " + GHQ.DF0_0.format(player.WHITE_BAR.doubleValue()), 181, 66);
+		g2.setColor(Color.WHITE);
+		g2.drawString("FO: " + GHQ.DF0_0.format(player.WHITE_BAR.doubleValue()), 180, 65);
 		cilinderIF.dotPaint(90, 60);
 		//playerIcon
 		int pos = 1;

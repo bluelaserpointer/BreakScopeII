@@ -356,9 +356,9 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 	//talent
 	protected LinkedList<Talent> talents = new LinkedList<Talent>();
 	//inventory
-	public final TableStorage<NAUsable> quickSlot = new TableStorage<NAUsable>(10, 1, NAUsable.NULL_NA_USABLE);
-	public final TableStorage<ItemData> inventory = new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM);
-	public final AmmoStorage ammoStorage = new AmmoStorage(AmmoType.values());
+	public TableStorage<NAUsable> quickSlot = new TableStorage<NAUsable>(10, 1, NAUsable.NULL_NA_USABLE);
+	public TableStorage<ItemData> inventory = new TableStorage<ItemData>(5, 3, ItemData.BLANK_ITEM);
+	public AmmoStorage ammoStorage = new AmmoStorage(AmmoType.values());
 	
 	public NAUnit(int charaSize) {
 		physics().setPoint(new Dynam());
@@ -396,7 +396,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			if(GHQ.checkSpan_dynamicSeconds(30.0))
 				WHITE_BAR.consume(1);
 		}else if(GHQ.checkSpan_dynamicSeconds(30.0)) { //reduce hp
-			RED_BAR.consume(1);
+			this.damage(DamageMaterial.Rea.makeDamage(1));
 		}
 		//toughness regeneration
 		if(GHQ.isExpired_dynamicSeconds(TOUGHNESS.lastDecreasedFrame(), 1.0))

@@ -17,9 +17,9 @@ import java.util.Random;
 
 import action.ActionSource;
 import buff.Buff;
-import core.Camera;
+import camera.Camera;
+import camera.FixChaseSmoothPeekCamera;
 import core.CornerNavigation;
-import core.FixChaseSmoothPeekCamera;
 import core.GHQ;
 import core.Game;
 import gui.GUIParts;

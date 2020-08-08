@@ -34,20 +34,24 @@ public abstract class NAFirearms extends NAMainWeapon {
 	@Override
 	public void use() {
 		if(owner != null) {
-			final List<Bullet> firedBullets = weapon.trigger(owner);
-			if(firedBullets != null) {
-				for(Bullet bullet : firedBullets) {
-					final AmmoEnchants enchants = popAmmoFromMagazine().clone();
-					if(enchants != null) {
-						((BulletLibrary)bullet).setEnchants(enchants);
-						enchants.applyFireEffect(bullet);
+			if(weapon.magazineReady()) {
+				final List<Bullet> firedBullets = weapon.trigger(owner);
+				if(firedBullets != null) {
+					for(Bullet bullet : firedBullets) {
+						final AmmoEnchants enchants = popAmmoFromMagazine().clone();
+						if(enchants != null) {
+							((BulletLibrary)bullet).setEnchants(enchants);
+							enchants.applyFireEffect(bullet);
+						}
 					}
+					final double scatterRange = Math.toRadians(10.0);
+					for(int i = 0; i < 100; ++i) {
+						GHQ.stage().addEffect(new EffectLibrary.FireEF(owner, Math.random()*scatterRange - scatterRange/2, Math.random()*45));
+					}
+					lastFiredFrame = GHQ.nowFrame();
 				}
-				final double scatterRange = Math.toRadians(10.0);
-				for(int i = 0; i < 100; ++i) {
-					GHQ.stage().addEffect(new EffectLibrary.FireEF(owner, Math.random()*scatterRange - scatterRange/2, Math.random()*45));
-				}
-				lastFiredFrame = GHQ.nowFrame();
+			} else {
+				this.reloadWeapon();
 			}
 		}
 	}

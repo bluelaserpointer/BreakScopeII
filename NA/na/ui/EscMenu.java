@@ -15,7 +15,6 @@ import gui.ScrollBar;
 import gui.TableStorageViewer;
 import gui.TextButton;
 import item.ammo.AmmoType;
-import item.ammo.storage.AmmoBag;
 import math.SquareCellArranger;
 import paint.ImageFrame;
 import paint.dot.HasDotPaint;
@@ -62,8 +61,6 @@ public class EscMenu extends GUIPartsSwitcher {
 		//INVENTORY
 		set(INVENTORY, new GUIParts() {
 			final ImageFrame humanBodyIF = ImageFrame.create("picture/humanbody/FullBody.png");
-			AmmoType openedAmmoType = null;
-			TableStorageViewer<AmmoBag> ammoStorageViewer;
 			{
 				setName("INVENTORY");
 				//item storage
@@ -164,18 +161,12 @@ public class EscMenu extends GUIPartsSwitcher {
 				setName("TALENT_SCREEN");
 				addLast(new ScrollBar(talentDescriptionTextArea).setScrollSpd(10))
 					.setBGColor(Color.WHITE);
-				talentList = new TableStorageViewer<Talent>() {
+				talentList = new TableStorageViewer<Talent>(Talent.class) {
 					{
 						point().setXY(40, 90);
 						setCellSize(50);
 						setTableStorage(new TableStorage<Talent>(8, 15, Talent.NULL_TALENT));
 						setName("TalentCells");
-					}
-					@Override
-					public Talent objectToT(Object object) {
-						if(object instanceof Talent)
-							return (Talent)object;
-						return null;
 					}
 					@Override
 					protected void paintOfCell(int id, HasDotPaint object, int x, int y) {

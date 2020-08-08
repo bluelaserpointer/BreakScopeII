@@ -16,6 +16,9 @@ public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 		setName("QuickSlot");
 		setBGColor(Color.WHITE);
 	}
+	public QuickSlotViewer() {
+		super(NAUsable.class);
+	}
 	@Override
 	protected void paintOfCell(int id, HasDotPaint object, int x, int y) {
 		ICON_BG.rectPaint(x, y, this.cellSize);
@@ -38,11 +41,5 @@ public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 			return false;
 		else
 			return super.checkDragIn(sourceUI, dropObject);
-	}
-	@Override
-	public NAUsable objectToT(Object object) {
-		if(object instanceof NAUsable)
-			return (NAUsable)object;
-		return null;
 	}
 }

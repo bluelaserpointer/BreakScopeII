@@ -29,8 +29,12 @@ public abstract class NAWeaponEquipment extends Equipment {
 	//control
 	@Override
 	public void use() {
-		if(owner != null)
-			weapon.trigger(owner);
+		if(owner != null) {
+			if(weapon.magazineReady())
+				weapon.trigger(owner);
+			else
+				this.reloadWeapon();
+		}
 	}
 	@Override
 	public void reset() {
