@@ -513,7 +513,7 @@ public class NAGame extends Game implements ActionSource {
 		//editor
 		////////////
 		if(s_keyL.pullEvent(VK_F6)) {
-			editor.flit();
+			editor.flip();
 			if(editor.isEnabled())
 				escMenu.disable();
 		}
