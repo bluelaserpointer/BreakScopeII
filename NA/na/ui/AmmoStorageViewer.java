@@ -3,48 +3,70 @@ package ui;
 import java.awt.Color;
 
 import core.GHQ;
-import gui.ArrangedButtons;
-import gui.BasicButton;
+import gui.AutoResizeMenu;
+import gui.GUIParts;
 import gui.TableStorageViewer;
 import item.ammo.AmmoType;
 import item.ammo.storage.AmmoBag;
-import math.CellArranger;
-import paint.ImageFrame;
+import item.ammo.storage.AmmoStorage;
+import paint.ColorFilling;
+import paint.ColorFraming;
 import storage.TableStorage;
-import unit.NAUnit;
 
-public class AmmoStorageViewer extends ArrangedButtons<AmmoType> {
-	protected AmmoType openedAmmoType = null;
-	public TableStorageViewer<AmmoBag> ammoStorageViewer;
-	protected NAUnit targetUnit;
-	public AmmoStorageViewer(int x, int y, CellArranger arranger) {
-		super(x, y, arranger);
-	}
+public class AmmoStorageViewer extends TableStorageViewer<AmmoBag> {
+	protected AutoResizeMenu ammoEnchantsMenu;
 	{
-		final AmmoType types[] = AmmoType.values();
-		for(int i = 0; i < types.length; ++i) {
-			super.appendButton(types[i], ImageFrame.create("picture/gui/Bag_item.png"), 0, types.length - 1 - i);
-		}
-		addLast(ammoStorageViewer = new AmmoBagViewer()).disable().point().setXY(500, 100);
+		this.backGroundPaint = new ColorFilling(Color.WHITE);
+		this.cellPaint = new ColorFraming(Color.GRAY, GHQ.stroke1);
+		//addLast(ammoEnchantsMenu = new AutoResizeMenu(300, 20)).disable();
 	}
-	@Override
-	protected void buttonClicked(AmmoType buttonValue) { //TODO: open UI info about the ammoBagList
-		if(openedAmmoType != buttonValue) {
-			openedAmmoType = buttonValue;
-			ammoStorageViewer.setTableStorage(new TableStorage<AmmoBag>(targetUnit.ammoStorage.ammoBagList(buttonValue), 5, AmmoBag.EMPTY_BAG));
-			ammoStorageViewer.enable();
-		} else {
-			ammoStorageViewer.disable();
-		}
+	private AmmoStorage ammoStorage;
+	private AmmoType ammoType;
+	
+	//init
+	public AmmoStorageViewer() {
+		super(AmmoBag.class);
+		super.setTableStorage(new TableStorage<AmmoBag>(5, 3, null));
 	}
-	@Override
-	protected void buttonExtendPaint(AmmoType buttonValue, BasicButton button) {
-		buttonValue.paint.dotPaint(button.point().intX(), button.point().intY());
-		GHQ.getG2D(Color.GRAY);
-		GHQ.drawStringGHQ(String.valueOf(targetUnit.ammoStorage.countByType(buttonValue)), button.point().intX() + 20, button.point().intY() + 40);
-	}
-	protected AmmoStorageViewer setTargetUnit(NAUnit unit) {
-		this.targetUnit = unit;
+	public AmmoStorageViewer setAmmoStorage(AmmoStorage ammoStorage) {
+		this.ammoStorage = ammoStorage;
 		return this;
+	}
+	public AmmoStorageViewer setAmmoType(AmmoType ammoType) {
+		this.ammoType = ammoType;
+		super.storage.clear();
+		super.storage.addAll(ammoStorage().ammoBagList(ammoType));
+		return this;
+	}
+	
+	//event
+	@Override
+	public void mouseOver() {
+		final AmmoBag ammoBag = this.getMouseHoveredElement();
+		if(ammoBag != null) {
+//			ammoEnchantsMenu.enable();
+//			ammoEnchantsMenu.removeAll();
+//			final HashMap<AmmoEnchant, Integer> enchantLv = ammoBag.enchants().enchants();
+//			for(AmmoEnchant enchant : enchantLv.keySet()) {
+//				ammoEnchantsMenu.addNewLine(new GUIParts() {
+//					@Override
+//					public void paint() {
+//						super.paint();
+//						GHQ.getG2D(Color.GRAY);
+//						GHQ.drawStringGHQ(enchant.name, point().intX(), point().intY());
+//					}
+//				}).setBGColor(Color.LIGHT_GRAY);
+//			}
+		}
+	}
+	@Override
+	public void mouseOut() {
+		super.mouseOut();
+//		ammoEnchantsMenu.disable();
+	}
+	
+	//info
+	public AmmoStorage ammoStorage() {
+		return ammoStorage;
 	}
 }

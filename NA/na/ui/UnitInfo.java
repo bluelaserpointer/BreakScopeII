@@ -85,7 +85,7 @@ public class UnitInfo extends GUIParts {
 		//icon with name, status
 		addLast(itemStorageViewer = new ItemStorageViewer().setRCMenu(new ItemRCMenu_inventory()).setCellPaint(ImageFrame.create("picture/gui/Bag_item.png")).setCellSize(70))
 		.point().setXY(20, 320);
-		addLast(ammoStorageViewer = new AmmoStorageViewer(460, 320, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)));
+//		addLast(ammoStorageViewer = new AmmoStorageViewer(460, 320, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)));
 
 	}
 	@Override
@@ -97,6 +97,6 @@ public class UnitInfo extends GUIParts {
 	public void setTargetUnit(NAUnit unit) {
 		this.targetUnit = unit;
 		itemStorageViewer.setTableStorage((TableStorage<ItemData>)targetUnit.inventory);
-		ammoStorageViewer.setTargetUnit(unit);
+//		ammoStorageViewer.setTargetUnit(unit);
 	}
 }

@@ -15,6 +15,7 @@ import gui.ScrollBar;
 import gui.TableStorageViewer;
 import gui.TextButton;
 import item.ammo.AmmoType;
+import item.ammo.storage.AmmoStorage;
 import math.SquareCellArranger;
 import paint.ImageFrame;
 import paint.dot.HasDotPaint;
@@ -60,14 +61,49 @@ public class EscMenu extends GUIPartsSwitcher {
 		});
 		//INVENTORY
 		set(INVENTORY, new GUIParts() {
+			GUIPartsSwitcher inventorySwitcher;
+			AmmoStorageViewer ammoStorageViewer;
+			final int ITEM_INVENTORY = 0, AMMO_INVENTORY = 1;
 			final ImageFrame humanBodyIF = ImageFrame.create("picture/humanbody/FullBody.png");
 			{
 				setName("INVENTORY");
 				//item storage
-				addLast(new ItemStorageViewer().setRCMenu(new ItemRCMenu_inventory()).setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory).setCellPaint(defaultSlotPaint).setCellSize(70))
-				.point().setXY(145, 185);
-				//ammo storage
-				addLast(new AmmoStorageViewer(530, 200, new SquareCellArranger(1, 50, 50*AmmoType.TYPE_AMOUNT, 1, AmmoType.TYPE_AMOUNT)).setTargetUnit(NAGame.controllingUnit()));
+				addLast(inventorySwitcher = new GUIPartsSwitcher(2, ITEM_INVENTORY)).setBounds(145, 185, 250, 150);
+				inventorySwitcher
+					.set(ITEM_INVENTORY,
+						new ItemStorageViewer()
+							.setRCMenu(new ItemRCMenu_inventory())
+							.setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory)
+							.setCellPaint(defaultSlotPaint).setCellSize(70))
+							.setXY(145, 185);
+				inventorySwitcher
+					.set(AMMO_INVENTORY,
+						ammoStorageViewer = new AmmoStorageViewer() {
+							@Override
+							public AmmoStorage ammoStorage() {
+								return NAGame.controllingUnit().ammoStorage;
+							}
+						}).setAmmoType(AmmoType._7d62).setXY(145, 185);
+				//item storage tab
+				addLast(inventorySwitcher.getSwitcherButton(ITEM_INVENTORY))
+					.setBGColor(Color.GRAY)
+					.setBounds(inventorySwitcher.left(), inventorySwitcher.top() - 30, inventorySwitcher.width()/5, 30);
+				cloneRight(new THHButton(e -> {
+					inventorySwitcher.switchTo(AMMO_INVENTORY);
+					ammoStorageViewer.setAmmoType(AmmoType._7d62);
+				})).setBGPaint(AmmoType._7d62.paint);
+				cloneRight(new THHButton(e -> {
+					inventorySwitcher.switchTo(AMMO_INVENTORY);
+					ammoStorageViewer.setAmmoType(AmmoType._12Gauge);
+				})).setBGPaint(AmmoType._12Gauge.paint);
+				cloneRight(new THHButton(e -> {
+					inventorySwitcher.switchTo(AMMO_INVENTORY);
+					ammoStorageViewer.setAmmoType(AmmoType._45acp);
+				})).setBGPaint(AmmoType._45acp.paint);
+				cloneRight(new THHButton(e -> {
+					inventorySwitcher.switchTo(AMMO_INVENTORY);
+					ammoStorageViewer.setAmmoType(AmmoType._9mm);
+				})).setBGPaint(AmmoType._9mm.paint);
 				//equipments
 				//left 5 slot (main, sub, melee, shield, exoskeleton)
 				addLast(new EquipmentSlot() {

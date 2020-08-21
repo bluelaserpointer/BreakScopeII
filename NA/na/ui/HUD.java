@@ -12,6 +12,7 @@ import core.GHQ;
 import engine.NAGame;
 import gui.GUIParts;
 import item.ammo.enchant.AmmoEnchants;
+import item.ammo.storage.AmmoBag;
 import item.equipment.Equipment;
 import item.equipment.weapon.NASubWeapon;
 import item.equipment.weapon.reloadRule.ReloadRuleSelecter;
@@ -359,11 +360,18 @@ public class HUD extends GUIParts {
 	public void dragIn(GUIParts sourceUI, Object dropObject) {
 		final Point playerPoint = NAGame.controllingUnit().point();
 		final double ANGLE = playerPoint.angleToMouse();
-		((ItemData)dropObject).drop((int)(playerPoint.doubleX() + 50*Math.cos(ANGLE)), (int)(playerPoint.doubleY() + 50*Math.sin(ANGLE)));
+		final int x = (int)(playerPoint.doubleX() + 50*Math.cos(ANGLE));
+		final int y = (int)(playerPoint.doubleY() + 50*Math.sin(ANGLE));
+		if(dropObject instanceof AmmoBag) {
+			((AmmoBag)dropObject).ammo().drop(x, y);
+			((AmmoBag)dropObject).removeFromOrigin();
+		}
+		if(dropObject instanceof ItemData)
+			((ItemData)dropObject).drop(x, y);
 	}
 	@Override
 	public boolean checkDragIn(GUIParts sourceUI, Object dropObject) { //item throw
 		//only check this is a item.
-		return dropObject instanceof ItemData;
+		return dropObject instanceof ItemData || dropObject instanceof AmmoBag;
 	}
 }

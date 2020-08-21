@@ -80,11 +80,14 @@ public class AmmoBag implements HasDotPaint {
 	public int consumeWithAutoRemoveIfEmpty(int amount) {
 		final int consumed = consume(amount);
 		if(ammo.isEmpty())
-			originList.remove(this);
+			removeFromOrigin();
 		return consumed;
 	}
 	public int consume(int amount) {
 		return ammo.consume(amount);
+	}
+	public void removeFromOrigin() {
+		originList.remove(this);
 	}
 	
 	//information

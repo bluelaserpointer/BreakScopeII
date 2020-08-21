@@ -72,6 +72,7 @@ import ui.UnitEditor;
 import unit.HumanGuard2;
 import unit.NAUnit;
 import unit.Player;
+import vegetation.AmmoArea;
 import vegetation.DownStair;
 import vegetation.EnemyGate;
 
@@ -229,6 +230,7 @@ public class NAGame extends Game implements ActionSource {
 		//vegetation
 		/////////////////////////////////
 		GHQ.stage().addVegetation(towerDefence.protectTarget = new DownStair()).point().setXY(700, 700);
+		GHQ.stage().addVegetation(new AmmoArea(400, 700));
 		AmmoType._9mm.generate(10).drop(822, 886);
 		AmmoType._45acp.generate(10).drop(862, 896);
 		AmmoType._7d62.generate(100).drop(812, 896);
