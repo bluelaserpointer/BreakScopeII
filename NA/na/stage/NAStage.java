@@ -2,6 +2,7 @@ package stage;
 
 import java.awt.Color;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.function.Predicate;
 
 import core.GHQ;
@@ -11,13 +12,14 @@ import engine.NAGame;
 import item.defenceKit.DefenceKit;
 import liquid.Liquid;
 import liquid.NALiquidState;
+import paint.ImageFrame;
 import liquid.LiquidTag;
 import liquid.MixedLiquid;
 import physics.Point;
 import physics.stage.GHQStage;
 import physics.stage.GridArrayList;
 import physics.stage.GridBitSet;
-import physics.stage.GridPainter;
+import physics.stage.Grids;
 import preset.item.ItemData;
 import preset.unit.Unit;
 import unit.NAUnit;
@@ -30,6 +32,19 @@ public class NAStage extends GHQStage {
 	private final GridBitSet playerSightMark;
 	private final GridArrayList<Liquid> liquidGrids;
 	private final GridArrayList<Liquid> gasGrids;
+	
+
+	private final ImageFrame[] tileIFs_normal = new ImageFrame[] {
+			ImageFrame.create("picture/map/Tile_empty.png"),
+			ImageFrame.create("picture/map/Tile_empty_dark.png"),
+		};
+	private final ImageFrame[] tileIFs_special = new ImageFrame[] {
+			ImageFrame.create("picture/map/Tile_40_percent.png"),
+			ImageFrame.create("picture/map/Tile_30_percent.png"),
+			ImageFrame.create("picture/map/Tile_20_percent.png"),
+			ImageFrame.create("picture/map/Tile_minor_10_percent.png"),
+			ImageFrame.create("picture/map/Tile_a_percent.png"),
+		};
 	public class LiquidInfo {
 		public Liquid fluid;
 		public int xPos, yPos;
@@ -56,8 +71,36 @@ public class NAStage extends GHQStage {
 	//main role
 	private static final Predicate<GHQObject> judgeIsDefenceKit = (object) -> object instanceof DefenceKit;
 	private static final Predicate<GHQObject> judgeIsNotDefenceKit = judgeIsDefenceKit.negate();
+	public static boolean gameOver;
 	@Override
 	public void idle() {
+		//background
+		final int TILE_SIZE = 25;
+		final int startX = Math.max(GHQ.fieldScreenLeft()/TILE_SIZE - 2, 0);
+		final int startY = Math.max(GHQ.fieldScreenTop()/TILE_SIZE - 2, 0);
+		final int endX = startX + GHQ.fieldScreenW()/TILE_SIZE + 4;
+		final int endY = startY + GHQ.fieldScreenH()/TILE_SIZE + 4;
+		Random random = new Random();
+		final int rate = GHQ.stage().width()/TILE_SIZE;
+		for(int xi = startX;xi < endX;xi++) {
+			for(int yi = startY;yi < endY;yi++) {
+				random.setSeed(xi*rate + yi);
+				random.nextDouble();
+				//final double value = random.nextDouble();
+				tileIFs_normal[(xi + yi) % 2].dotPaint_capSize(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, TILE_SIZE);
+//						final double angle = random.nextInt(tileIFs.length)*Math.PI/2;
+//						if(value < 0.4)
+//							tileIFs[0].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//						else if(value < 0.7)
+//							tileIFs[1].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//						else if(value < 0.9)
+//							tileIFs[2].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//						else if(value < 0.95)
+//							tileIFs[3].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+//						else
+//							tileIFs[4].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
+			}
+		}
 		GHQObject.removeDeletedFromList(bulletCollisionGroup);
 		////////////
 		//Fluid
@@ -165,6 +208,10 @@ public class NAStage extends GHQStage {
 				}
 			}
 		}
+		if(gameOver) {
+			GHQ.getG2D(Color.RED);
+			GHQ.drawStringGHQ("GAME_OVER", GHQ.screenW()/2, GHQ.screenH() - 15);
+		}
 	}
 	
 	//information
@@ -194,7 +241,7 @@ public class NAStage extends GHQStage {
 		}
 		return currentVisibility;
 	}
-	public GridPainter gridPainter() {
+	public Grids gridPainter() {
 		return seenMark;
 	}
 	public GridBitSet seenMark() {

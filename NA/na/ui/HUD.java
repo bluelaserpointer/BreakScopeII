@@ -1,21 +1,27 @@
 package ui;
 
+import static java.awt.event.KeyEvent.VK_COMMA;
+import static java.awt.event.KeyEvent.VK_PERIOD;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 
 import core.GHQ;
 import engine.NAGame;
+import gui.GUIParts;
 import item.ammo.enchant.AmmoEnchants;
 import item.equipment.Equipment;
 import item.equipment.weapon.NASubWeapon;
 import item.equipment.weapon.reloadRule.ReloadRuleSelecter;
 import item.equipment.weapon.NAFirearms;
 import paint.ImageFrame;
-import paint.rect.RectPaint;
 import physics.HasBoundingBox;
 import physics.HasPoint;
+import physics.Point;
 import physics.stage.GridBitSet;
+import preset.item.ItemData;
 import preset.structure.Structure;
 import preset.structure.Tile;
 import preset.structure.Tile.TileHitShape;
@@ -25,20 +31,58 @@ import structure.NATile;
 import unit.NAUnit;
 import weapon.Weapon;
 
-public class HUD extends RectPaint {
+public class HUD extends GUIParts {
+	//images
 	private final ImageFrame cilinderIF;
 	private final ImageFrame focusIF;
 	private final ImageFrame knifeFocusIF;
 	private final ImageFrame bulletHeadIF;
+	
+	//data
 	public static NATile installTargetTile;
 	public static int installTargetTilePos;
 	public static int installTargetX;
 	public static int installTargetY;
+	
+	//fixed ui
+	private final ZoomSliderBar zoomSliderBar;
+	
+	//non fixed ui
+	private final ItemRCMenu_ground itemRCMenu;
+	private final UnitInfo unitInfo;
+	
 	public HUD() {
+		//non fixed ui
+		addLast(itemRCMenu = new ItemRCMenu_ground()).disable(); //TODO: find out why this menu cannot automatically close when click on it
+		addLast(unitInfo = new UnitInfo()).disable();
+		//fixed ui
 		cilinderIF = ImageFrame.create("picture/hud/cilinder.png");
 		focusIF = ImageFrame.create("picture/hud/Focus.png");
 		knifeFocusIF = ImageFrame.create("picture/hud/KnifeFocus.png");
 		bulletHeadIF = ImageFrame.create("picture/hud/BulletHead.png");
+		addLast(zoomSliderBar = new ZoomSliderBar()).setBounds(GHQ.screenW() - 200, 200, 200, 20);
+		cloneDown(new GUIParts() {
+			@Override
+			public boolean clicked(MouseEvent e) {
+				final boolean consumed = super.clicked(e);
+				if(NAGame.towerDefence.phasePrepareMode)
+					NAGame.towerDefence.nextPhase();
+				return consumed;
+			}
+			@Override
+			public void paint() {
+				super.paint();
+				if(NAGame.towerDefence.phasePrepareMode) {
+					GHQ.getG2D(Color.WHITE).fillRect(left(), top(), width(), height());
+					GHQ.getG2D(Color.BLACK);
+					GHQ.drawStringGHQ("Next>", cx(), cy());
+				} else {
+					GHQ.getG2D(Color.GRAY).fillRect(left(), top(), width(), height());
+					GHQ.getG2D(Color.BLACK);
+					GHQ.drawStringGHQ("Next>", cx(), cy());
+				}
+			}
+		});
 	}
 	private static final int MINIMAP_X = GHQ.screenW() - 200, MINIMAP_Y = 0, MINIMAP_SIZE = 200;
 	private static final double MINIMAP_RATE = 2.0/25.0;
@@ -62,7 +106,26 @@ public class HUD extends RectPaint {
 	}
 	private static final int MINIMAP_ALPHA = 128;
 	@Override
-	public void rectPaint(int x, int y, int w, int h) {
+	public void idle() {
+		super.idle();
+		//peek camera update
+		if(NAGame.peekCameraMode) {
+			final int x = (GHQ.mouseScreenX() - (GHQ.screenW() - 200))*GHQ.stage().width()/200;
+			final int y = GHQ.mouseScreenY()*GHQ.stage().height()/200;
+			NAGame.peekCamera.dstPoint().setXY(x, y);
+		}
+		//changeZoomRate
+		if(NAGame.s_keyL.hasEvent(VK_COMMA)) {
+			zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() - 0.015);
+			NAGame.playerCamera.zoom = zoomSliderBar.sliderValue()*1.5 + 0.5;
+		}else if(NAGame.s_keyL.hasEvent(VK_PERIOD)) {
+			zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() + 0.015);
+			NAGame.playerCamera.zoom = zoomSliderBar.sliderValue()*1.5 + 0.5;
+		}
+	}
+	@Override
+	public void paint() {
+		super.paint();
 		final Graphics2D g2 = GHQ.getG2D();
 		final NAUnit player = NAGame.controllingUnit();
 		final int alpha = NAGame.controllingUnit().isBattleStance() ? MINIMAP_ALPHA : 255;
@@ -207,7 +270,7 @@ public class HUD extends RectPaint {
 					focusIF.dotPaint_turn(mouseX, mouseY, GHQ.nowFrame()/10);
 				GHQ.translateForGUI(true);
 				//magazine preview
-				final int infoX = w - 240, infoY = h - 100, infoW = 230, infoH = 100;
+				final int infoX = width() - 240, infoY = height() - 100, infoW = 230, infoH = 100;
 				g2.setColor(Color.GRAY);
 				g2.fillRect(infoX, infoY, infoW, infoH);
 				final int magazineSize = weapon.magazineSize();
@@ -248,5 +311,59 @@ public class HUD extends RectPaint {
 				knifeFocusIF.dotPaint_turn(GHQ.mouseScreenX(), GHQ.mouseScreenY(), player.point().angleTo(mouseX, mouseY));
 			}
 		}
+	}
+	@Override
+	public boolean clicked(MouseEvent e) {
+		final boolean consumed = super.clicked(e);
+
+		if(e.getButton() == MouseEvent.BUTTON3) {
+			final NAUnit unit = (NAUnit)GHQ.stage().units.forMouseOver();
+			if(unit != null) {
+				//TODO: open enemy right click menu
+				//return true;
+				unitInfo.setTargetUnit(unit);
+				unitInfo.enable();
+				return true;
+			}
+			ItemData item = GHQ.stage().items.forMouseOver();
+			if(item != null) {
+				itemRCMenu.tryOpen(item);
+				return true;
+			}
+		} else if(e.getButton() == MouseEvent.BUTTON1) {
+			if(!NAGame.controllingUnit().isBattleStance() && GHQ.mouseScreenX() > GHQ.screenW() - 200 && GHQ.mouseScreenY() < 200) { //minimap
+				final int x = (GHQ.mouseScreenX() - (GHQ.screenW() - 200))*GHQ.stage().width()/200;
+				final int y = GHQ.mouseScreenY()*GHQ.stage().height()/200;
+				NAGame.peekCamera.dstPoint().setXY(x, y);
+				if(!NAGame.peekCameraMode) {
+					NAGame.peekCameraMode = true;
+					GHQ.setCamera(NAGame.peekCamera);
+				}
+				return true;
+			}
+		}
+		NAUnit.gameInputs().mousePressed(e);
+		return consumed;
+	}
+	@Override
+	public void released(MouseEvent e) {
+		if(NAGame.peekCameraMode) {
+			NAGame.peekCameraMode = false;
+			GHQ.setCamera(NAGame.playerCamera);
+			return;
+		}
+		NAUnit.gameInputs().mouseReleased(e);
+	}
+	//stage field always does not invoke swap operation.
+	@Override
+	public void dragIn(GUIParts sourceUI, Object dropObject) {
+		final Point playerPoint = NAGame.controllingUnit().point();
+		final double ANGLE = playerPoint.angleToMouse();
+		((ItemData)dropObject).drop((int)(playerPoint.doubleX() + 50*Math.cos(ANGLE)), (int)(playerPoint.doubleY() + 50*Math.sin(ANGLE)));
+	}
+	@Override
+	public boolean checkDragIn(GUIParts sourceUI, Object dropObject) { //item throw
+		//only check this is a item.
+		return dropObject instanceof ItemData;
 	}
 }

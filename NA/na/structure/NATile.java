@@ -5,6 +5,7 @@ import java.util.Arrays;
 import damage.DamageComposition;
 import damage.DamageMaterial;
 import damage.NADamage;
+import engine.NAGame;
 import paint.ImageFrame;
 import preset.structure.Tile;
 

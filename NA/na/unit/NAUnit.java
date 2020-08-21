@@ -284,19 +284,19 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 				//itemPick & talk
 				boolean interactHappened = gameInputs().consume("INTERACT");
 				final ItemData item = GHQ.stage().items.forShapeIntersects(UNIT);
-				for(Vegetation structure : GHQ.stage().vegetations) {
-					if(structure instanceof DownStair) {
-						if(point().inRangeXY(structure.point(), (width() + structure.width())/2, (height() + structure.height())/2)) {
-							GHQ.getG2D(Color.WHITE);
-							GHQ.drawStringGHQ("\"E:\" go down", structure.point().intX(), structure.point().intY() - 20);
-							if(interactHappened) {
-								NAGame.downFloor();
-								interactHappened = false;
-							}
-							break;
-						}
-					}
-				}
+//				for(Vegetation structure : GHQ.stage().vegetations) {
+//					if(structure instanceof DownStair) {
+//						if(point().inRangeXY(structure.point(), (width() + structure.width())/2, (height() + structure.height())/2)) {
+//							GHQ.getG2D(Color.WHITE);
+//							GHQ.drawStringGHQ("\"E:\" go down", structure.point().intX(), structure.point().intY() - 20);
+//							if(interactHappened) {
+//								NAGame.downFloor();
+//								interactHappened = false;
+//							}
+//							break;
+//						}
+//					}
+//				}
 				if(interactHappened) {
 					interact: {
 						final NAUnit npc = (NAUnit)GHQ.stage().units.getClosestVisible(UNIT);
@@ -493,8 +493,12 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			if(NAGame.controllingUnit().isVisible(this)) {
 				lastDetectedFrame = GHQ.nowFrame();
 				body.paint();
-				GHQ.paintHPArc(point(), 20, RED_BAR.intValue(), RED_BAR.defaultValue().intValue());
-			}else {
+				if(this.getShield() > 0) {
+					GHQ.getG2D(Color.CYAN, GHQ.stroke5).drawLine(cx() - 25, cy() + 25, cx() - 25 + 50*(getShield()/getShieldSize()), cy() + 25);
+				} else {
+					GHQ.getG2D(Color.RED, GHQ.stroke5).drawLine(cx() - 25, cy() + 25, cx() - 25 + (int)(50*RED_BAR.getRate()), cy() + 25);
+				}
+			} else {
 				final double passedTime = GHQ.passedFrame(lastDetectedFrame)*GHQ.getSPF();
 				final double KEEP_TIME = 3.0;
 				if(passedTime < KEEP_TIME) {
@@ -505,18 +509,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			}
 		}else {
 			body.paint();
-		}
-		////////////
-		//show mark
-		////////////
-		if(isControllingUnit() || NAGame.controllingUnit().isVisible(this)) {
-			if(isBattleStance) {
-				if(!isControllingUnit() && targetUnit != null && this.isVisible(targetUnit)) {
-					battleStanceWhenVisibleIF.dotPaint(point().intX(), point().intY() - height());
-				}else {
-					battleStanceIF.dotPaint(point().intX(), point().intY() - height());
-				}
-			}
+			GHQ.getG2D(Color.CYAN, GHQ.stroke5).drawLine(cx() - 25, cy() + 25, cx() + 25, cy() + 25);
 		}
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
@@ -552,7 +545,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			body().rearm();
 			//say something
 			this.setMiniTalking("I found you.");
-		}else {
+		} else {
 			if(targetUnit != null && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*5)))
 				targetUnit = null;
 			if(isBattleStance && GHQ.isExpired_frame(targetFoundFrame, (int)(GHQ.getFPS()*15))) {

@@ -78,7 +78,7 @@ public abstract class BulletLibrary extends Bullet {
 			this.setEnchants(sample.enchants.clone());
 		}
 		private void init() {
-			physics().setHitShape(new Circle(this, 3));
+			physics().setHitShape(new Circle(this, 12));
 			point().setSpeed(2);
 			point().setMoveAngle(point().moveAngle() - 0.05 + Math.random()*0.1);
 			name = "ACCAR";

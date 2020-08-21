@@ -65,17 +65,15 @@ import structure.NATileEnum;
 import ui.Dialog;
 import ui.EscMenu;
 import ui.HUD;
-import ui.ItemRCMenu_ground;
 import ui.DoubleInventoryViewer;
 import ui.QuickSlotViewer;
+import ui.StageViewer;
 import ui.UnitEditor;
-import ui.UnitInfo;
-import ui.ZoomSliderBar;
 import unit.HumanGuard2;
 import unit.NAUnit;
 import unit.Player;
-import unit.Boss_1;
 import vegetation.DownStair;
+import vegetation.EnemyGate;
 
 /**
  * The core class for game "NA"
@@ -86,7 +84,7 @@ import vegetation.DownStair;
 public class NAGame extends Game implements ActionSource {
 	private static NAUnit controllingUnit;
 	private static boolean lockControllingUnitAction;
-	private static final CornerNavigation cornerNavi = new CornerNavigation(100);
+	public static final CornerNavigation cornerNavi = new CornerNavigation(25);
 	public static final FixChaseSmoothPeekCamera playerCamera = new FixChaseSmoothPeekCamera(null, 10.0);
 	public static final Camera peekCamera = new Camera(new Point.DoublePoint());
 	public static boolean peekCameraMode;
@@ -177,19 +175,17 @@ public class NAGame extends Game implements ActionSource {
 	private final static GHQStage initialTestStage = new NAStage(STAGE_W, STAGE_H);
 	private final static GHQStage[] stages = new NAStage[15];
 	private static int nowStage;
-	private ImageFrame[] tileIFs_special = new ImageFrame[5];
-	private ImageFrame[] tileIFs_normal = new ImageFrame[2];
 	
 	//GUIParts
 	private static DefaultStageEditor editor;
-	private static GUIParts stageFieldGUI;
 	private static GUIParts escMenu;
 	private static DoubleInventoryViewer inventoryInvester;
 	private static UnitEditor unitEditor;
 	private static Dialog dialog;
 	private static QuickSlotViewer quickSlotViewer;
-	private static ZoomSliderBar zoomSliderBar;
-	private static HUD hud;
+	
+	//stage
+	public static final TowerDefence towerDefence = new TowerDefence();
 	
 	//initialization
 	@Override
@@ -216,20 +212,6 @@ public class NAGame extends Game implements ActionSource {
 	}
 	@Override
 	public final void loadResource() {
-		tileIFs_special = new ImageFrame[] {
-				ImageFrame.create("picture/map/Tile_40_percent.png"),
-				ImageFrame.create("picture/map/Tile_30_percent.png"),
-				ImageFrame.create("picture/map/Tile_20_percent.png"),
-				ImageFrame.create("picture/map/Tile_minor_10_percent.png"),
-				ImageFrame.create("picture/map/Tile_a_percent.png"),
-				};
-		tileIFs_normal = new ImageFrame[] {
-				ImageFrame.create("picture/map/Tile_empty.png"),
-				ImageFrame.create("picture/map/Tile_empty_dark.png"),
-		};
-		/////////////////////////////////
-		//items
-		/////////////////////////////////
 		/////////////////////////////////
 		//units
 		/////////////////////////////////
@@ -241,19 +223,12 @@ public class NAGame extends Game implements ActionSource {
 		new LiquidBarrel(stage().makeLiquid(Oil.FIXED_OIL_TAG, NALiquidState.OIL_SOLUABLE, 300)).drop(508, 500);
 		new LiquidBarrel(stage().makeLiquid(new PoisonusWater(5), NALiquidState.WATER_SOLUABLE, 300)).drop(517, 500);
 		//enemy
-		GHQ.stage().addUnit(Unit.initialSpawn(new Boss_1(), 1660, 1240));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1200, 300));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1250, 300));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1300, 300));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1350, 300));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1400, 300));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1450, 300));
-		GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard2(), 1800, 700));
+		GHQ.stage().addVegetation(new EnemyGate(() -> Unit.initialSpawn(new HumanGuard2(), 1200, 300), 1200, 300)).addAmount(1);
 		//GHQ.stage().addUnit(Unit.initialSpawn(new HumanGuard(ENEMY), 400, GHQ.random2(100, 150)));
 		/////////////////////////////////
 		//vegetation
 		/////////////////////////////////
-		GHQ.stage().addVegetation(new DownStair()).point().setXY(100, 100);
+		GHQ.stage().addVegetation(towerDefence.protectTarget = new DownStair()).point().setXY(700, 700);
 		AmmoType._9mm.generate(10).drop(822, 886);
 		AmmoType._45acp.generate(10).drop(862, 896);
 		AmmoType._7d62.generate(100).drop(812, 896);
@@ -318,15 +293,6 @@ public class NAGame extends Game implements ActionSource {
 			}
 		}).setCellSize(50).setTableStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
 		GHQ.addGUIParts(escMenu = new EscMenu()).disable();
-		GHQ.addGUIParts(zoomSliderBar = new ZoomSliderBar() {
-			@Override
-			public void paint() {
-				super.paint();
-				GHQ.getG2D(Color.WHITE);
-				GHQ.drawStringGHQ(GHQ.DF0_00.format(sliderValue*1.5 + 0.5), point().intX(), point().intY());
-				playerCamera.zoom = sliderValue*1.5 + 0.5;
-			}
-		}).setBounds(GHQ.screenW() - 100, 200, 200, 20);
 		GHQ.addGUIParts(inventoryInvester = new DoubleInventoryViewer()).disable();
 		inventoryInvester.setLeftInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));
 		inventoryInvester.setRightInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));
@@ -348,88 +314,10 @@ public class NAGame extends Game implements ActionSource {
 		///////////////
 		//Stage
 		///////////////
-		hud = new HUD();
-		GHQ.addGUIParts(stageFieldGUI = new GUIParts() {
-			private ItemRCMenu_ground itemRCMenu = new ItemRCMenu_ground();
-			{
-				setName("stageFieldGUI");
-				super.addLast(itemRCMenu).disable(); //TODO: find out why this menu cannot automatically close when click on it
-			}
-			@Override
-			public void idle() {
-				super.idle();
-				if(NAGame.peekCameraMode) {
-					final int x = (GHQ.mouseScreenX() - (GHQ.screenW() - 200))*GHQ.stage().width()/200;
-					final int y = GHQ.mouseScreenY()*GHQ.stage().height()/200;
-					NAGame.peekCamera.dstPoint().setXY(x, y);
-				}
-				hud.rectPaint(0, 0, GHQ.screenW(), GHQ.screenH());
-			}
-			final UnitInfo unitInfo = new UnitInfo();
-			{
-				this.addLast(unitInfo).disable();
-			}
-			@Override
-			public boolean clicked(MouseEvent e) {
-				if(e.getButton() == MouseEvent.BUTTON3) {
-					final NAUnit unit = (NAUnit)GHQ.stage().units.forMouseOver();
-					if(unit != null) {
-						//TODO: open enemy right click menu
-						//return true;
-						unitInfo.setTargetUnit(unit);
-						unitInfo.enable();
-						return true;
-					}
-					ItemData item = GHQ.stage().items.forMouseOver();
-					if(item != null) {
-						itemRCMenu.tryOpen(item);
-						return true;
-					}
-				} else if(e.getButton() == MouseEvent.BUTTON1) {
-					if(!NAGame.controllingUnit().isBattleStance() && GHQ.mouseScreenX() > GHQ.screenW() - 200 && GHQ.mouseScreenY() < 200) { //minimap
-						final int x = (GHQ.mouseScreenX() - (GHQ.screenW() - 200))*GHQ.stage().width()/200;
-						final int y = GHQ.mouseScreenY()*GHQ.stage().height()/200;
-						NAGame.peekCamera.dstPoint().setXY(x, y);
-						if(!NAGame.peekCameraMode) {
-							NAGame.peekCameraMode = true;
-							GHQ.setCamera(peekCamera);
-						}
-						return true;
-					}
-				}
-				NAUnit.gameInputs().mousePressed(e);
-				return super.clicked(e);
-			}
-			@Override
-			public void released(MouseEvent e) {
-				if(NAGame.peekCameraMode) {
-					NAGame.peekCameraMode = false;
-					GHQ.setCamera(playerCamera);
-					return;
-				}
-				NAUnit.gameInputs().mouseReleased(e);
-			}
-			//stage field always does not invoke swap operation.
-			@Override
-			public void dragIn(GUIParts sourceUI, Object dropObject) {
-				final double ANGLE = controllingUnit.point().angleToMouse();
-				((ItemData)dropObject).drop((int)(controllingUnit.point().doubleX() + 50*Math.cos(ANGLE)), (int)(controllingUnit.point().doubleY() + 50*Math.sin(ANGLE)));
-			}
-			@Override
-			public boolean checkDragIn(GUIParts sourceUI, Object dropObject) { //item throw
-				//only check this is a item.
-				return dropObject instanceof ItemData;
-			}
-		});
-		/////////////////////////////////
-		//test
-		/////////////////////////////////
-//		cornerNavi.defaultCornerCollect();
-//		cornerNavi.startCornerLink();
-//		cornerNavi.setGoalPoint(controllingUnit);
-//		Route route = cornerNavi.getRoot(testUnit);
-//		if(route != null)
-//			route.setDebugEffect(Color.RED, GHQ.stroke5);
+		//GHQ.addGUIParts(new StageViewer());
+		GHQ.addGUIParts(new HUD());
+		cornerNavi.defaultCornerCollect();
+		cornerNavi.startCornerLink();
 		/////////////////////////////////
 		//liquids
 		/////////////////////////////////
@@ -439,55 +327,17 @@ public class NAGame extends Game implements ActionSource {
 	//idle
 	@Override
 	public final void idle(Graphics2D g2, int stopEventKind) {
-		if(controllingUnit == null || stageFieldGUI == null)
+		if(controllingUnit == null)
 			return;
-		//////////////////////////
-		//idle
-		//////////////////////////
-		//
-		//background
-		final int TILE_SIZE = 25;
-		final int startX = Math.max(GHQ.fieldScreenLeft()/TILE_SIZE - 2, 0);
-		final int startY = Math.max(GHQ.fieldScreenTop()/TILE_SIZE - 2, 0);
-		final int endX = startX + GHQ.fieldScreenW()/TILE_SIZE + 4;
-		final int endY = startY + GHQ.fieldScreenH()/TILE_SIZE + 4;
-		Random random = new Random();
-		final int rate = GHQ.stage().width()/TILE_SIZE;
-		for(int xi = startX;xi < endX;xi++) {
-			for(int yi = startY;yi < endY;yi++) {
-				random.setSeed(xi*rate + yi);
-				random.nextDouble();
-				//final double value = random.nextDouble();
-				tileIFs_normal[(xi + yi) % 2].dotPaint_capSize(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, TILE_SIZE);
-//				final double angle = random.nextInt(tileIFs.length)*Math.PI/2;
-//				if(value < 0.4)
-//					tileIFs[0].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-//				else if(value < 0.7)
-//					tileIFs[1].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-//				else if(value < 0.9)
-//					tileIFs[2].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-//				else if(value < 0.95)
-//					tileIFs[3].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-//				else
-//					tileIFs[4].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);
-			}
-		}
 		////////////
 		//Stage
 		////////////
-		stage().idle();
+		NAGame.stage().idle();
+		towerDefence.idle();
 		///////////////
 		//Key test area
 		///////////////
 		if(stopEventKind == GHQ.NONE) {
-			//changeZoomRate
-			if(s_keyL.hasEvent(VK_COMMA)) {
-				zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() - 0.015);
-				playerCamera.zoom = zoomSliderBar.sliderValue()*1.5 + 0.5;
-			}else if(s_keyL.hasEvent(VK_PERIOD)) {
-				zoomSliderBar.setSliderValue(zoomSliderBar.sliderValue() + 0.015);
-				playerCamera.zoom = zoomSliderBar.sliderValue()*1.5 + 0.5;
-			}
 			//changeStage
 			if(s_keyL.hasEvent(VK_O)) {
 				GHQ.setStage(stages[0]);
@@ -535,6 +385,10 @@ public class NAGame extends Game implements ActionSource {
 				closeInventoryInvester();
 			}
 		}
+		/////////////////////////////////
+		//test
+		/////////////////////////////////
+		cornerNavi.setGoalPoint(towerDefence.protectTarget);
 		//////////////////////////
 		//test
 		//////////////////////////
@@ -658,5 +512,4 @@ public class NAGame extends Game implements ActionSource {
 	public static QuickSlotViewer quickSlotViewer() {
 		return quickSlotViewer;
 	}
-	private boolean doScrollView = true;
 }
