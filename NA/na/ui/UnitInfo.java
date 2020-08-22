@@ -96,7 +96,7 @@ public class UnitInfo extends GUIParts {
 	}
 	public void setTargetUnit(NAUnit unit) {
 		this.targetUnit = unit;
-		itemStorageViewer.setTableStorage((TableStorage<ItemData>)targetUnit.inventory);
+		itemStorageViewer.setStorage((TableStorage<ItemData>)targetUnit.inventory);
 //		ammoStorageViewer.setTargetUnit(unit);
 	}
 }

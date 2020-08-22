@@ -73,7 +73,7 @@ public class EscMenu extends GUIPartsSwitcher {
 					.set(ITEM_INVENTORY,
 						new ItemStorageViewer()
 							.setRCMenu(new ItemRCMenu_inventory())
-							.setTableStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory)
+							.setStorage((TableStorage<ItemData>)NAGame.controllingUnit().inventory)
 							.setCellPaint(defaultSlotPaint).setCellSize(70))
 							.setXY(145, 185);
 				inventorySwitcher
@@ -201,11 +201,11 @@ public class EscMenu extends GUIPartsSwitcher {
 					{
 						point().setXY(40, 90);
 						setCellSize(50);
-						setTableStorage(new TableStorage<Talent>(8, 15, Talent.NULL_TALENT));
+						setStorage(new TableStorage<Talent>(8, 15, Talent.NULL_TALENT));
 						setName("TalentCells");
 					}
 					@Override
-					protected void paintOfCell(int id, HasDotPaint object, int x, int y) {
+					protected void paintOfCell(int id, Talent object, int x, int y) {
 						ICON_BG.rectPaint(x, y, this.cellSize);
 						super.paintOfCell(id, object, x, y);
 						GHQ.getG2D(Color.RED, GHQ.stroke1).drawRect(x, y, cellSize, cellSize);

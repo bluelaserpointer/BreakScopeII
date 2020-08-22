@@ -293,7 +293,7 @@ public class NAGame extends Game implements ActionSource {
 						iterator.remove();
 				}
 			}
-		}).setCellSize(50).setTableStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
+		}).setCellSize(50).setStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
 		GHQ.addGUIParts(escMenu = new EscMenu()).disable();
 		GHQ.addGUIParts(inventoryInvester = new DoubleInventoryViewer()).disable();
 		inventoryInvester.setLeftInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));

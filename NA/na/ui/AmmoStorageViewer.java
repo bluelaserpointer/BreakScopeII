@@ -4,14 +4,12 @@ import java.awt.Color;
 
 import core.GHQ;
 import gui.AutoResizeMenu;
-import gui.GUIParts;
 import gui.TableStorageViewer;
 import item.ammo.AmmoType;
 import item.ammo.storage.AmmoBag;
 import item.ammo.storage.AmmoStorage;
 import paint.ColorFilling;
 import paint.ColorFraming;
-import storage.TableStorage;
 
 public class AmmoStorageViewer extends TableStorageViewer<AmmoBag> {
 	protected AutoResizeMenu ammoEnchantsMenu;
@@ -26,16 +24,10 @@ public class AmmoStorageViewer extends TableStorageViewer<AmmoBag> {
 	//init
 	public AmmoStorageViewer() {
 		super(AmmoBag.class);
-		super.setTableStorage(new TableStorage<AmmoBag>(5, 3, null));
-	}
-	public AmmoStorageViewer setAmmoStorage(AmmoStorage ammoStorage) {
-		this.ammoStorage = ammoStorage;
-		return this;
 	}
 	public AmmoStorageViewer setAmmoType(AmmoType ammoType) {
 		this.ammoType = ammoType;
-		super.storage.clear();
-		super.storage.addAll(ammoStorage().ammoBagList(ammoType));
+		super.setStorage(ammoStorage().ammoBagList(ammoType));
 		return this;
 	}
 	

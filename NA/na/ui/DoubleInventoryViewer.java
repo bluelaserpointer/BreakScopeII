@@ -29,16 +29,16 @@ public class DoubleInventoryViewer extends GUIParts {
 	}
 	//control
 	public void setLeftInventory(NAUnit unit) {
-		leftInventoryViewer.setTableStorage(unit.inventory);
+		leftInventoryViewer.setStorage(unit.inventory);
 	}
 	public void setRightInventory(NAUnit unit) {
-		rightInventoryViewer.setTableStorage(unit.inventory);
+		rightInventoryViewer.setStorage(unit.inventory);
 	}
 	public void setLeftInventory(TableStorage<ItemData> inventory) {
-		leftInventoryViewer.setTableStorage(inventory);
+		leftInventoryViewer.setStorage(inventory);
 	}
 	public void setRightInventory(TableStorage<ItemData> inventory) {
-		rightInventoryViewer.setTableStorage(inventory);
+		rightInventoryViewer.setStorage(inventory);
 	}
 	//information
 }

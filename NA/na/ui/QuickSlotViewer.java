@@ -7,7 +7,6 @@ import gui.GUIParts;
 import gui.TableStorageViewer;
 import item.NAUsable;
 import paint.ImageFrame;
-import paint.dot.HasDotPaint;
 
 public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 	private final ImageFrame ICON_BG = ImageFrame.create("picture/gui/Bag_item.png");
@@ -20,7 +19,7 @@ public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 		super(NAUsable.class);
 	}
 	@Override
-	protected void paintOfCell(int id, HasDotPaint object, int x, int y) {
+	protected void paintOfCell(int id, NAUsable object, int x, int y) {
 		ICON_BG.rectPaint(x, y, this.cellSize);
 		super.paintOfCell(id, object, x, y);
 		GHQ.getG2D(Color.RED, GHQ.stroke1).drawRect(x, y, cellSize, cellSize);
