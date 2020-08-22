@@ -14,7 +14,6 @@ import paint.ColorFraming;
 public class AmmoStorageViewer extends TableStorageViewer<AmmoBag> {
 	protected AutoResizeMenu ammoEnchantsMenu;
 	{
-		this.backGroundPaint = new ColorFilling(Color.WHITE);
 		this.cellPaint = new ColorFraming(Color.GRAY, GHQ.stroke1);
 		//addLast(ammoEnchantsMenu = new AutoResizeMenu(300, 20)).disable();
 	}
