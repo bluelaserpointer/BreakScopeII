@@ -314,7 +314,25 @@ public class HumanBody extends Body {
 		}
 	}
 	public void armLast() {
-		arm(lastWeaponBodyParts);
+		if(currentWeaponBodyParts != lastWeaponBodyParts) {
+			arm(lastWeaponBodyParts);
+			return;
+		}
+		final BodyParts mainEquipSlot = mainEquipSlot();
+		if(hasMainEquip() && currentWeaponBodyParts != mainEquipSlot) {
+			arm(mainEquipSlot);
+			return;
+		}
+		final BodyParts subEquipSlot = subEquipSlot();
+		if(hasSubEquip() && currentWeaponBodyParts != subEquipSlot) {
+			arm(subEquipSlot);
+			return;
+		}
+		final BodyParts melleEquipSlot = melleEquipSlot();
+		if(hasMelleEquip() && currentWeaponBodyParts != melleEquipSlot) {
+			arm(melleEquipSlot);
+			return;
+		}
 	}
 	public void arm(BodyParts itemSlot) {
 		if(currentWeaponBodyParts == itemSlot)

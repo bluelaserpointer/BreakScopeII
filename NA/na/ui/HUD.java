@@ -15,6 +15,7 @@ import item.ammo.enchant.AmmoEnchants;
 import item.ammo.storage.AmmoBag;
 import item.equipment.Equipment;
 import item.equipment.weapon.NASubWeapon;
+import item.equipment.weapon.NAWeaponEquipment;
 import item.equipment.weapon.reloadRule.ReloadRuleSelecter;
 import item.equipment.weapon.NAFirearms;
 import paint.ImageFrame;
@@ -232,6 +233,17 @@ public class HUD extends GUIParts {
 		g2.setColor(Color.WHITE);
 		g2.drawString("FO: " + GHQ.DF0_0.format(player.WHITE_BAR.doubleValue()), 180, 65);
 		cilinderIF.dotPaint(90, 60);
+		//current weapon
+		final NAWeaponEquipment weaponEquipment = NAGame.controllingUnit().currentEquipment();
+		if(weaponEquipment != null) {
+			g2.setColor(new Color(255, 255, 255, 100));
+			g2.fillRect(0, 100, 100, 200);
+			//weapon name
+			g2.setColor(Color.WHITE);
+			GHQ.drawStringGHQ(weaponEquipment.name(), 0, 150);
+			//weapon image
+			weaponEquipment.getDotPaint().dotPaint(100, 200);
+		}
 		//playerIcon
 		int pos = 1;
 		if(player.personalIcon != null)

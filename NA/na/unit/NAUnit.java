@@ -41,13 +41,11 @@ import preset.unit.GameInputList;
 import preset.unit.InputProcesser;
 import preset.unit.Unit;
 import preset.unit.UnitAction;
-import preset.vegetation.Vegetation;
 import status.Status;
 import storage.TableStorage;
 import talent.Talent;
 import unit.action.NAAction;
 import unit.body.HumanBody;
-import vegetation.DownStair;
 import weapon.Weapon;
 
 public abstract class NAUnit extends Unit implements Person, HasWeight {

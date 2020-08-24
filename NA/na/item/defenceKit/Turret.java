@@ -8,9 +8,7 @@ import item.ammo.Ammo;
 import item.ammo.AmmoType;
 import item.ammo.storage.AmmoStorage;
 import item.equipment.weapon.NAFirearms;
-import item.equipment.weapon.NAWeaponEquipment;
 import paint.ImageFrame;
-import physics.Angle;
 import physics.Point;
 import preset.item.ItemData;
 import preset.unit.Unit;
@@ -49,7 +47,7 @@ public class Turret extends DefenceKitOnWall {
 		super.idle();
 		if(!installed())
 			return;
-		final ItemData item = storage.get(0);
+		final ItemData item = getHoldingItem();
 		if(item instanceof NAFirearms) {
 			if(!item.hasOwner()) {
 				System.out.println("controlled a firearm.");
@@ -93,5 +91,20 @@ public class Turret extends DefenceKitOnWall {
 			paintScript.dotPaint_turn(point(), angle().get());
 		else
 			super.paint();
+		//show it is reloading
+		final NAFirearms arm = getFirearmIfHolding();
+		if(arm != null && !arm.weapon().isReloadFinished()) {
+			final int nowFrame = GHQ.nowFrame();
+			GHQ.getG2D(Color.CYAN, GHQ.stroke3).drawArc(cx() - 25, cy() - 25, 50, 50, nowFrame*5, 60);
+		}
+	}
+	
+	//info
+	public ItemData getHoldingItem() {
+		return storage.get(0);
+	}
+	public NAFirearms getFirearmIfHolding() {
+		final ItemData holdingItem = this.getHoldingItem();
+		return holdingItem instanceof NAFirearms ? (NAFirearms)holdingItem : null;
 	}
 }
