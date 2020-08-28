@@ -282,18 +282,8 @@ public class NAGame extends Game implements ActionSource {
 			}
 		});
 		//GHQ.addGUIParts(dialog = new Dialog()).setBounds(50, 375, 900, 100);
-		GHQ.addGUIParts((quickSlotViewer = new QuickSlotViewer() {
-			@Override
-			public void idle() {
-				super.idle();
-				final Iterator<NAUsable> iterator = storage.iterator();
-				while(iterator.hasNext()) {
-					final NAUsable usable = iterator.next();
-					if(usable instanceof ItemData && ((ItemData)usable).owner() != controllingUnit())
-						iterator.remove();
-				}
-			}
-		}).setCellSize(50).setStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
+		GHQ.addGUIParts((quickSlotViewer = new QuickSlotViewer())
+				.setCellSize(50).setStorage(controllingUnit.quickSlot())).enable().point().setXY(250, GHQ.screenH() - 50);
 		GHQ.addGUIParts(escMenu = new EscMenu()).disable();
 		GHQ.addGUIParts(inventoryInvester = new DoubleInventoryViewer()).disable();
 		inventoryInvester.setLeftInventoryViewer((ItemStorageViewer)(new ItemStorageViewer().setCellPaint(ImageFrame.create("picture/gui/Bag_item.png"))));

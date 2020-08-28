@@ -1,12 +1,15 @@
 package ui;
 
 import java.awt.Color;
+import java.util.Iterator;
 
 import core.GHQ;
+import engine.NAGame;
 import gui.GUIParts;
 import gui.TableStorageViewer;
 import item.NAUsable;
 import paint.ImageFrame;
+import preset.item.ItemData;
 
 public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 	private final ImageFrame ICON_BG = ImageFrame.create("picture/gui/Bag_item.png");
@@ -17,6 +20,16 @@ public class QuickSlotViewer extends TableStorageViewer<NAUsable> {
 	}
 	public QuickSlotViewer() {
 		super(NAUsable.class);
+	}
+	@Override
+	public void idle() {
+		super.idle();
+		final Iterator<NAUsable> iterator = storage.iterator();
+		while(iterator.hasNext()) {
+			final NAUsable usable = iterator.next();
+			if(usable instanceof ItemData && ((ItemData)usable).owner() != NAGame.controllingUnit())
+				iterator.remove();
+		}
 	}
 	@Override
 	protected void paintOfCell(int id, NAUsable object, int x, int y) {
