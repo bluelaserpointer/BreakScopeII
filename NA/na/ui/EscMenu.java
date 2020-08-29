@@ -16,10 +16,7 @@ import gui.TableStorageViewer;
 import gui.TextButton;
 import item.ammo.AmmoType;
 import item.ammo.storage.AmmoStorage;
-import math.SquareCellArranger;
 import paint.ImageFrame;
-import paint.dot.HasDotPaint;
-import paint.rect.RectPaint;
 import preset.item.ItemData;
 import preset.unit.BodyParts;
 import storage.TableStorage;
@@ -29,22 +26,11 @@ import unit.body.HumanBody;
 public class EscMenu extends GUIPartsSwitcher {
 	private static final int INVENTORY = 0, STATUS = 1, CRAFT = 2, SYSTEM = 3, MEMO = 4, TALENT = 5;
 	private final ImageFrame defaultSlotPaint, buttonPaint;
-	private final RectPaint bgPaint;
 	public EscMenu() {
 		super(6, INVENTORY);
 		defaultSlotPaint = ImageFrame.create("picture/gui/Bag_item.png");
 		buttonPaint = ImageFrame.create("picture/gui/Button_Mid_up.png");
-		bgPaint = new RectPaint() {
-			private final ImageFrame
-				bg1 = ImageFrame.create("picture/gui/Bag_background_93.png"),
-				bg2 = ImageFrame.create("picture/gui/Bag_decoration.png");
-			@Override
-			public void rectPaint(int x, int y, int w, int h) {
-				bg1.rectPaint(x, y, w, h);
-				bg2.rectPaint(x, y, w, h);
-			}
-		};
-		this.setBGPaint(bgPaint);
+		this.setBGImage("picture/gui/Bag_background_93.png");
 		//top tab
 		this.appendLast(new AutoResizeMenu(0, 0, GHQ.screenW(), 70) {
 			final GUIParts 
@@ -67,6 +53,7 @@ public class EscMenu extends GUIPartsSwitcher {
 			final ImageFrame humanBodyIF = ImageFrame.create("picture/humanbody/FullBody.png");
 			{
 				setName("INVENTORY");
+				setBGImage("picture/gui/Bag_decoration.png");
 				//item storage
 				addLast(inventorySwitcher = new GUIPartsSwitcher(2, ITEM_INVENTORY)).setBounds(145, 185, 250, 150);
 				inventorySwitcher

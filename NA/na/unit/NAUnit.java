@@ -673,6 +673,8 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 				ItemData.addInInventory(inventory, item);
 			else
 				inventory.add(item);
+			if(quickSlot().hasSpace() && item instanceof NAUsable)
+				this.quickSlot().add((NAUsable)item);
 		}
 		return item;
 	}

@@ -12,8 +12,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.Random;
 
 import action.ActionSource;
 import buff.Buff;
@@ -30,7 +28,6 @@ import input.key.SingleNumKeyListener;
 import input.mouse.MouseListenerEx;
 import item.ArmyBox;
 import item.LiquidBarrel;
-import item.NAUsable;
 import item.ShieldCharger;
 import item.ammo.AmmoType;
 import item.ammo.enchant.Penetration;
@@ -241,8 +238,8 @@ public class NAGame extends Game implements ActionSource {
 		GHQ.stage().addStructure(new NATile(NATileEnum.WOOD, 125, 350, 9, 1));
 		GHQ.stage().addStructure(new NATile(NATileEnum.WOOD, 350, 125, 1, 9));
 		GHQ.stage().addItem(new Turret()).installToWall((NATile)stage().structures.get(2), 1);
-		new Turret().drop(400, 400);
-		new AmmoBox().drop(400, 450);
+		new Turret().drop(400, 400).add(1);
+		new AmmoBox().drop(400, 450).add(1);
 		new ShieldCharger(1000).drop(600, 800);
 		new Type56().drop(702, 796);
 		new LiquidGun().drop(652, 796);

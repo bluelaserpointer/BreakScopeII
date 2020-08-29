@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import core.GHQ;
 import engine.NAGame;
 import gui.GUIParts;
+import item.ammo.AmmoType;
 import item.ammo.enchant.AmmoEnchants;
 import item.ammo.storage.AmmoBag;
 import item.equipment.Equipment;
@@ -238,11 +239,19 @@ public class HUD extends GUIParts {
 		if(weaponEquipment != null) {
 			g2.setColor(new Color(255, 255, 255, 100));
 			g2.fillRect(0, 100, 100, 200);
-			//weapon name
+//			g2.fillRect(0, 100, 100, 25);
+//			g2.fillRect(0, 150, 100, 25);
 			g2.setColor(Color.WHITE);
-			GHQ.drawStringGHQ(weaponEquipment.name(), 0, 150);
-			//weapon image
-			weaponEquipment.getDotPaint().dotPaint(100, 200);
+			//weapon name & image
+			GHQ.drawStringGHQ(weaponEquipment.name(), 0, 125);
+			weaponEquipment.getDotPaint().dotPaint_capSize(50, 175, 100);
+			//ammo item image
+			if(weaponEquipment instanceof NAFirearms) {
+				final AmmoType usingAmmoType = ((NAFirearms)weaponEquipment).usingAmmoType();
+				GHQ.drawStringGHQ(usingAmmoType.name(), 0, 250);
+				((NAFirearms)weaponEquipment).currentReloadRule().getDotPaint().dotPaint(50, 300);
+				usingAmmoType.paint.dotPaint(100, 300);
+			}
 		}
 		//playerIcon
 		int pos = 1;

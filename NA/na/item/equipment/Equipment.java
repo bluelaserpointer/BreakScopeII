@@ -14,7 +14,7 @@ public abstract class Equipment extends NAItem {
 	public Equipment(DotPaint paint) {
 		super(paint);
 		amount = 1;
-		super.setStackCap(1); //not stackable
+		super.setNonStackable();
 	}
 	//init
 	@Override
