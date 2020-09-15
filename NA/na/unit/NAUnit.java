@@ -509,8 +509,6 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			body.paint();
 			GHQ.getG2D(Color.CYAN, GHQ.stroke5).drawLine(cx() - 25, cy() + 25, cx() + 25, cy() + 25);
 		}
-
-		super.drawBoundingBox(Color.RED, GHQ.stroke1);
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
 		paintScript.dotPaint_turn(point(), (double)GHQ.nowFrame()/35.0);
