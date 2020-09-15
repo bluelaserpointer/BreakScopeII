@@ -9,7 +9,9 @@ import item.ammo.AmmoType;
 import item.ammo.storage.AmmoStorage;
 import item.equipment.weapon.NAFirearms;
 import paint.ImageFrame;
+import physics.HitGroup;
 import physics.Point;
+import physics.hitShape.HitShape;
 import preset.item.ItemData;
 import preset.unit.Unit;
 import storage.TableStorage;
@@ -26,6 +28,7 @@ public class Turret extends DefenceKitOnWall {
 		final Turret turret;
 		public TurretEntity(Turret turret) {
 			super(0);
+			super.physics().setHitShape(HitShape.NULL_HITSHAPE);
 			this.inventory = AmmoBox.storage;
 			this.ammoStorage = new AmmoStorage(AmmoType.values());
 			this.turret = turret;
@@ -65,7 +68,7 @@ public class Turret extends DefenceKitOnWall {
 					}
 				}
 			}
-			weapon.weapon().idle();
+			weapon.weapon().coolDownOrReload();
 			final Unit rawUnit = GHQ.stage().getNearstVisibleEnemy(lastOwner);
 			if(rawUnit != null) {
 				final NAUnit unit = (NAUnit)rawUnit;

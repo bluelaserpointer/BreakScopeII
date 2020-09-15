@@ -23,7 +23,7 @@ public abstract class NAWeaponEquipment extends Equipment {
 	//main role
 	@Override
 	public void equippedIdle() {
-		weapon.idle();
+		weapon.coolDownOrReload();
 	}
 	
 	//control

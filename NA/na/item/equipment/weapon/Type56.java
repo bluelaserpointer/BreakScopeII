@@ -43,7 +43,7 @@ public class Type56 extends NAFirearms {
 			public LinkedList<Bullet> setBullets(GHQObject shooter, HitGroup standpoint) {
 				final Bullet bullet = GHQ.stage().addBullet(new BulletLibrary.BaseBullet(this, shooter, standpoint));
 				bullet.setDamage(DamageMaterial.Phy.makeDamage(AmmoType._7d62.weight*50*50).setKnockbackRate(0.3));
-				bullet.point().addXY_allowsMoveAngle(0, 25);
+				bullet.point().addXY_allowsMoveAngle(0, 50);
 
 				final LinkedList<Bullet> firedBullets = new LinkedList<>();
 				firedBullets.add(bullet);

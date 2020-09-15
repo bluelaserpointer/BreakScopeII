@@ -33,6 +33,7 @@ import physics.HitGroup;
 import physics.Point;
 import physics.direction.Direction8;
 import physics.hitShape.Circle;
+import physics.hitShape.Square;
 import preset.effect.Effect;
 import preset.item.ItemData;
 import preset.unit.BodyParts;
@@ -360,7 +361,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 	
 	public NAUnit(int charaSize) {
 		physics().setPoint(new Dynam());
-		physics().setHitShape(new Circle(this, charaSize));
+		physics().setHitShape(new Square(this, charaSize));
 		physics().setHitRule(HitGroup.HIT_ALL);
 	}
 	@Override
@@ -509,6 +510,8 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			body.paint();
 			GHQ.getG2D(Color.CYAN, GHQ.stroke5).drawLine(cx() - 25, cy() + 25, cx() + 25, cy() + 25);
 		}
+
+		super.drawBoundingBox(Color.RED, GHQ.stroke1);
 	}
 	protected final void paintMagicCircle(DotPaint paintScript) {
 		paintScript.dotPaint_turn(point(), (double)GHQ.nowFrame()/35.0);

@@ -14,7 +14,7 @@ import talent.AllUp;
 
 public class HumanGuard2 extends NAUnit {
 	public HumanGuard2() {
-		super(1);
+		super(25);
 		POW_FIXED.setMax(15).setToMax();
 		this.addTalent(new AllUp(this));
 		this.addTalent(new AllUp(this));
