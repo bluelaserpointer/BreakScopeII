@@ -64,7 +64,6 @@ import ui.EscMenu;
 import ui.HUD;
 import ui.DoubleInventoryViewer;
 import ui.QuickSlotViewer;
-import ui.StageViewer;
 import ui.UnitEditor;
 import unit.HumanGuard2;
 import unit.NAUnit;
@@ -378,10 +377,8 @@ public class NAGame extends Game implements ActionSource {
 		//test
 		/////////////////////////////////
 		cornerNavi.setGoalPoint(towerDefence.protectTarget);
-		//////////////////////////
-		//test
-		//////////////////////////
-		cornerNavi.debugPreview();
+		if(GHQ.isDebugMode())
+			cornerNavi.debugPreview();
 	}
 	//drag
 	@Override
