@@ -13,9 +13,6 @@ public class Player extends NAUnit {
 	public Player() {
 		super(20);
 		this.addTalent(new AllUp(this));
-		this.addTalent(new AllUp(this));
-		this.addTalent(new AllUp(this));
-		this.addTalent(new AllUp(this));
 	}
 	@Override
 	public final Player respawn(int x, int y) {

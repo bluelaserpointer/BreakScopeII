@@ -86,8 +86,10 @@ public class NAStage extends GHQStage {
 			for(int yi = startY;yi < endY;yi++) {
 				random.setSeed(xi*rate + yi);
 				random.nextDouble();
+				if(seenMark.get_cellPos(xi, yi, false)) {
+					tileIFs_normal[(xi + yi) % 2].dotPaint_capSize(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, TILE_SIZE);
+				}
 				//final double value = random.nextDouble();
-				tileIFs_normal[(xi + yi) % 2].dotPaint_capSize(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, TILE_SIZE);
 //						final double angle = random.nextInt(tileIFs.length)*Math.PI/2;
 //						if(value < 0.4)
 //							tileIFs[0].dotPaint_turn(xi*TILE_SIZE + TILE_SIZE/2, yi*TILE_SIZE + TILE_SIZE/2, angle);

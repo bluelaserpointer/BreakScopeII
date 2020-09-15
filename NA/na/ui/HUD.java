@@ -87,8 +87,8 @@ public class HUD extends GUIParts {
 			}
 		});
 	}
-	private static final int MINIMAP_X = GHQ.screenW() - 200, MINIMAP_Y = 0, MINIMAP_SIZE = 200;
-	private static final double MINIMAP_RATE = 2.0/25.0;
+	private static final int MINIMAP_X = GHQ.screenW() - 200, MINIMAP_Y = 0, MINIMAP_SIZE = 100;
+	private static final double MINIMAP_RATE = 1.0/25.0;
 	private void miniMapDrawRect(int x, int y, int w, int h) {
 		GHQ.getG2D().drawRect(MINIMAP_X + (int)(x*MINIMAP_RATE), MINIMAP_Y + (int)(y*MINIMAP_RATE), (int)(w*MINIMAP_RATE), (int)(h*MINIMAP_RATE));
 	}
@@ -107,7 +107,7 @@ public class HUD extends GUIParts {
 	private void miniMapFillRect(HasPoint object, int sizePixels) {
 		GHQ.getG2D().fillRect(MINIMAP_X + (int)(object.point().intX()*MINIMAP_RATE), MINIMAP_Y + (int)(object.point().intY()*MINIMAP_RATE), sizePixels, sizePixels);
 	}
-	private static final int MINIMAP_ALPHA = 128;
+	private static final int MINIMAP_ALPHA = 180;
 	@Override
 	public void idle() {
 		super.idle();
@@ -140,10 +140,11 @@ public class HUD extends GUIParts {
 		//Minimap-seenMark
 		g2.setColor(new Color(Color.GRAY.getRed(), Color.GRAY.getGreen(), Color.GRAY.getBlue(), alpha));
 		GridBitSet seenMark = ((NAStage)GHQ.stage()).seenMark();
+		final int minimapGridSize = (int)(NATile.TILE_SIZE*MINIMAP_RATE);
 		for(int i = 0; i < seenMark.xGrids(); ++i) {
 			for(int j = 0; j < seenMark.yGrids(); ++j) {
 				if(seenMark.get_cellPos(i, j, false)) {
-					g2.fillRect(MINIMAP_X + i*2, MINIMAP_Y + j*2, 2, 2);
+					g2.fillRect(MINIMAP_X + i*minimapGridSize, MINIMAP_Y + j*minimapGridSize, minimapGridSize, minimapGridSize);
 				}
 			}
 		}

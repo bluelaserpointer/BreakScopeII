@@ -32,7 +32,6 @@ import physics.HasPoint;
 import physics.HitGroup;
 import physics.Point;
 import physics.direction.Direction8;
-import physics.hitShape.Circle;
 import physics.hitShape.Square;
 import preset.effect.Effect;
 import preset.item.ItemData;

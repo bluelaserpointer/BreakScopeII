@@ -3,6 +3,7 @@ package liquid;
 import calculate.Damage;
 import core.GHQ;
 import core.GHQObject;
+import engine.NAGame;
 import objectAffect.ObjectAffect;
 import physics.GridPoint;
 import physics.HasGridPoint;
@@ -78,7 +79,9 @@ public abstract class Liquid implements HasGridPoint, ObjectAffect, HasVisibilit
 		depthChange = 0;
 	}
 	public final void paint() {
-		this.rectPaint(point().intX(), point().intY(), grids.gridSize());
+		if(NAGame.stage().seenMark().get_stageCod(point().intX(), point().intY(), false)) {
+			this.rectPaint(point().intX(), point().intY(), grids.gridSize());
+		}
 	}
 	protected abstract void rectPaint(int x, int y, int size);
 	
