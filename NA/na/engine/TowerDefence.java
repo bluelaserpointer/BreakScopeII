@@ -33,12 +33,12 @@ public class TowerDefence {
 		if(phaseStartedFrame != -1 && phasePassedFrame < 100) {
 			GHQ.getG2D(Color.RED, GHQ.stroke3);
 			GHQ.translateForGUI(true);
-			GHQ.drawStringGHQ("Phase " + nowPhase, GHQ.screenW()/2, GHQ.screenH()/2, 30F);
+			GHQ.drawString_center("Phase " + nowPhase, GHQ.screenW()/2, GHQ.screenH()/2, 30);
 			GHQ.translateForGUI(false);
 		} else if(phaseClearedFrame != -1 && GHQ.passedFrame(phaseClearedFrame) < 100 && nowPhase != 0) {
 			GHQ.getG2D(Color.GREEN, GHQ.stroke3);
 			GHQ.translateForGUI(true);
-			GHQ.drawStringGHQ("Phase " + nowPhase + " Clear", GHQ.screenW()/2, GHQ.screenH()/2, 30F);
+			GHQ.drawString_center("Phase " + nowPhase + " Clear", GHQ.screenW()/2, GHQ.screenH()/2, 30);
 			GHQ.translateForGUI(false);
 		}
 		//game clear check

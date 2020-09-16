@@ -40,7 +40,7 @@ public abstract class NAItem extends ItemData implements NAUsable, HasWeight {
 			super.paint();
 			if(NAGame.controllingUnit().intersects(this)) {
 				GHQ.getG2D(Color.WHITE);
-				GHQ.drawStringGHQ(name(), point().intX(), point().intY() - 20);
+				GHQ.drawString_center(name(), cx(), top(), 10);
 			}
 		}
 	}

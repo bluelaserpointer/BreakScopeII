@@ -36,7 +36,7 @@ public class AmmoArea extends Vegetation {
 			GHQ.getG2D(Color.CYAN);
 			for(AmmoType ammoType : AmmoType.values()) {
 				final int ordinal = ammoType.ordinal();
-				GHQ.drawStringGHQ(ammoType.name() + ": " + dropItemsAmount[ordinal], cx() - 100 + ordinal%2*100, cy() + 100 + ordinal/2*30, 20F);
+				GHQ.drawString_left(ammoType.name() + ": " + dropItemsAmount[ordinal], left() + ordinal%2*100, bottom() + 50 + ordinal/2*30, 20);
 			}
 		}
 	}

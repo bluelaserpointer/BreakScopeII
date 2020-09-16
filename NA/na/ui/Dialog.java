@@ -12,6 +12,7 @@ public class Dialog extends GUIParts {
 	private Person currentSpeaker;
 	private final GHQTextArea textArea = new GHQTextArea();
 	private final ScrollBar scrollBar = new ScrollBar(textArea);
+	
 	{
 		addLast(scrollBar.setScrollSpd(10)).setBGColor(Color.WHITE);
 		inputTalk(Person.ASIDE, "Hello world!");
@@ -19,7 +20,7 @@ public class Dialog extends GUIParts {
 	@Override
 	public void paint() {
 		super.paint();
-		GHQ.drawStringGHQ(currentSpeaker.personalName(), point().intX(), point().intY() + height()/4);
+		GHQ.drawString_center(currentSpeaker.personalName(), this, 10);
 		currentSpeaker.personalIcon().rectPaint(point().intX(), point().intY() + height()/4, height()*3/4, height()*3/4);
 	}
 	

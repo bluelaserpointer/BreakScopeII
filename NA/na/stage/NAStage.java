@@ -212,7 +212,7 @@ public class NAStage extends GHQStage {
 		}
 		if(gameOver) {
 			GHQ.getG2D(Color.RED);
-			GHQ.drawStringGHQ("GAME_OVER", GHQ.screenW()/2, GHQ.screenH() - 15);
+			GHQ.drawString_center("GAME_OVER", GHQ.screenW()/2, GHQ.screenH()/2, 30);
 		}
 	}
 	

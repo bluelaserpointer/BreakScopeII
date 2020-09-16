@@ -78,11 +78,11 @@ public class HUD extends GUIParts {
 				if(NAGame.towerDefence.phasePrepareMode) {
 					GHQ.getG2D(Color.WHITE).fillRect(left(), top(), width(), height());
 					GHQ.getG2D(Color.BLACK);
-					GHQ.drawStringGHQ("Next>", cx(), cy());
+					GHQ.drawString_center("Next>", this);
 				} else {
 					GHQ.getG2D(Color.GRAY).fillRect(left(), top(), width(), height());
 					GHQ.getG2D(Color.BLACK);
-					GHQ.drawStringGHQ("Next>", cx(), cy());
+					GHQ.drawString_center("Next>", this);
 				}
 			}
 		});
@@ -244,12 +244,12 @@ public class HUD extends GUIParts {
 //			g2.fillRect(0, 150, 100, 25);
 			g2.setColor(Color.WHITE);
 			//weapon name & image
-			GHQ.drawStringGHQ(weaponEquipment.name(), 0, 125);
+			GHQ.drawString_left(weaponEquipment.name(), 0, 125, 15);
 			weaponEquipment.getDotPaint().dotPaint_capSize(50, 175, 100);
 			//ammo item image
 			if(weaponEquipment instanceof NAFirearms) {
 				final AmmoType usingAmmoType = ((NAFirearms)weaponEquipment).usingAmmoType();
-				GHQ.drawStringGHQ(usingAmmoType.name(), 0, 250);
+				GHQ.drawString_left(usingAmmoType.name(), 0, 250, 15);
 				((NAFirearms)weaponEquipment).currentReloadRule().getDotPaint().dotPaint(50, 300);
 				usingAmmoType.paint.dotPaint(100, 300);
 			}

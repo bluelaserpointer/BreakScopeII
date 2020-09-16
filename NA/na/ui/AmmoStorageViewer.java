@@ -8,7 +8,6 @@ import gui.TableStorageViewer;
 import item.ammo.AmmoType;
 import item.ammo.storage.AmmoBag;
 import item.ammo.storage.AmmoStorage;
-import paint.ColorFilling;
 import paint.ColorFraming;
 
 public class AmmoStorageViewer extends TableStorageViewer<AmmoBag> {
@@ -18,14 +17,12 @@ public class AmmoStorageViewer extends TableStorageViewer<AmmoBag> {
 		//addLast(ammoEnchantsMenu = new AutoResizeMenu(300, 20)).disable();
 	}
 	private AmmoStorage ammoStorage;
-	private AmmoType ammoType;
 	
 	//init
 	public AmmoStorageViewer() {
 		super(AmmoBag.class);
 	}
 	public AmmoStorageViewer setAmmoType(AmmoType ammoType) {
-		this.ammoType = ammoType;
 		super.setStorage(ammoStorage().ammoBagList(ammoType));
 		return this;
 	}

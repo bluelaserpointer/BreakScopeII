@@ -615,7 +615,7 @@ public abstract class NAUnit extends Unit implements Person, HasWeight {
 			public void paint() {
 				super.paint();
 				GHQ.getG2D(new Color(0, 0, 0, GHQ.getFadingAlpha(initialFrame, limitFrame))).setFont(GHQ.commentFont);
-				GHQ.drawStringGHQ(text, point().intX(), point().intY());
+				GHQ.drawString_left(text, top(), right(), 20);
 			}
 		});
 	}

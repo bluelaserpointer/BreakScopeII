@@ -21,7 +21,7 @@ public class ZoomSliderBar extends GUIParts {
 		sliderBarIF.rectPaint(left(), top(), width(), height());
 		sliderIF.dotPaint_capSize(left() + (int)(sliderValue*width()), point().intY(), (int)(height()*1.5));
 		GHQ.getG2D(Color.WHITE);
-		GHQ.drawStringGHQ(GHQ.DF0_00.format(sliderValue*1.5 + 0.5), point().intX(), point().intY());
+		GHQ.drawString_center(GHQ.DF0_00.format(sliderValue*1.5 + 0.5), this);
 	}
 	//control
 	public void setSliderValue(double value) {
