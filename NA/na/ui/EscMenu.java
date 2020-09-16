@@ -7,13 +7,13 @@ import java.awt.event.MouseEvent;
 import core.GHQ;
 import engine.NAGame;
 import gui.AutoResizeMenu;
+import gui.BasicButton;
 import gui.GHQTextArea;
 import gui.GUIParts;
 import gui.GUIPartsSwitcher;
 import gui.ItemStorageViewer;
 import gui.ScrollBar;
 import gui.TableStorageViewer;
-import gui.TextButton;
 import item.ammo.AmmoType;
 import item.ammo.storage.AmmoStorage;
 import paint.ImageFrame;
@@ -331,11 +331,11 @@ public class EscMenu extends GUIPartsSwitcher {
 		set(MEMO, new GUIParts() {
 			{
 				super.addLast(new AutoResizeMenu(30, 80, 400, 60, 10))
-					.addNewLine(new TextButton("ENEMY CATALOG", Color.WHITE))
-					.addNewLine(new TextButton("EQUIPMENT CATALOG", Color.WHITE))
-					.addNewLine(new TextButton("MATERIAL CATALOG", Color.WHITE))
-					.addNewLine(new TextButton("TALKING RECORD", Color.WHITE))
-					.addNewLine(new TextButton("BLUEPRINT AND RECEIPE", Color.WHITE))
+					.addNewLine(new BasicButton("ENEMY CATALOG"))
+					.addNewLine(new BasicButton("EQUIPMENT CATALOG"))
+					.addNewLine(new BasicButton("MATERIAL CATALOG"))
+					.addNewLine(new BasicButton("TALKING RECORD"))
+					.addNewLine(new BasicButton("BLUEPRINT AND RECEIPE"))
 					;
 			}
 			@Override

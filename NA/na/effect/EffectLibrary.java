@@ -212,7 +212,7 @@ public abstract class EffectLibrary extends Effect{
 		}
 		@Override
 		public DamageNumberEF getOriginal() {
-			return new DamageNumberEF(shooter, ((StringPaint)paintScript).WORDS, ((StringPaint)paintScript).FONT, ((StringPaint)paintScript).COLOR);
+			return new DamageNumberEF(shooter, ((StringPaint)paintScript).words, ((StringPaint)paintScript).font, ((StringPaint)paintScript).color);
 		}
 		@Override
 		public void idle() {

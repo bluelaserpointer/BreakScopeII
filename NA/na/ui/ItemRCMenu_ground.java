@@ -3,19 +3,16 @@ package ui;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 
-import core.GHQ;
 import engine.NAGame;
+import gui.BasicButton;
 import gui.ClickMenu;
-import gui.TextButton;
-import paint.ColorFilling;
-import paint.ColorFraming;
 import preset.item.ItemData;
 
 public class ItemRCMenu_ground extends ClickMenu<ItemData> {
 	public ItemRCMenu_ground() {
 		super(80, 20);
 		super.setBGColor(Color.WHITE);
-		addNewLine(new TextButton("捡起", new ColorFilling(Color.LIGHT_GRAY), new ColorFraming(Color.GRAY, GHQ.stroke1)) {
+		addNewLine(new BasicButton("捡起") {
 			@Override
 			public boolean clicked(MouseEvent e) {
 				super.clicked(e);
@@ -24,7 +21,7 @@ public class ItemRCMenu_ground extends ClickMenu<ItemData> {
 				return true;
 			}
 		});
-		addNewLine(new TextButton("调查", new ColorFilling(Color.GRAY), new ColorFraming(Color.GRAY, GHQ.stroke1)));
+		addNewLine(new BasicButton("调查"));
 	}
 	@Override
 	public void idle() {

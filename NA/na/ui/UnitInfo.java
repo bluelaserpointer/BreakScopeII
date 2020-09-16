@@ -8,8 +8,6 @@ import gui.BasicButton;
 import gui.GUIParts;
 import gui.ItemStorageViewer;
 import gui.TableStorageViewer;
-import item.ammo.AmmoType;
-import math.SquareCellArranger;
 import paint.ImageFrame;
 import paint.text.StringPaint;
 import preset.item.ItemData;
@@ -30,25 +28,27 @@ public class UnitInfo extends GUIParts {
 		this.setBounds(0, 0, GHQ.screenW(), GHQ.screenH());
 		this.setBGColor(new Color(100, 100, 100, 128));
 		//stun attack, talk
-		this.addLast(new BasicButton(new StringPaint("钝击", GHQ.getG2D().getFont().deriveFont(40F), Color.BLACK)) {
+		this.addLast(new BasicButton() {
 			{
+				setText(new StringPaint("钝击", GHQ.getG2D().getFont().deriveFont(40F), Color.BLACK));
 				setBounds(0, 100, GHQ.screenW()/2, 75);
 			}
 			@Override
 			public void paint() {
-				GHQ.getG2D(Color.WHITE).fillRect(cx(), cy(), width(), height());
-				GHQ.getG2D(Color.GRAY, GHQ.stroke3).drawRect(cx(), cy(), width(), height());
+				GHQ.getG2D(Color.WHITE).fillRect(left(), top(), width(), height());
+				GHQ.getG2D(Color.GRAY, GHQ.stroke3).drawRect(left(), top(), width(), height());
 				super.paint();
 			}
 		});
-		this.addLast(new BasicButton(new StringPaint("对话", GHQ.getG2D().getFont().deriveFont(40F), Color.BLACK)) {
+		this.addLast(new BasicButton() {
 			{
+				setText(new StringPaint("对话", GHQ.getG2D().getFont().deriveFont(40F), Color.BLACK));
 				setBounds(GHQ.screenW()/2, 100, GHQ.screenW()/2, 75);
 			}
 			@Override
 			public void paint() {
-				GHQ.getG2D(Color.WHITE).fillRect(cx(), cy(), width(), height());
-				GHQ.getG2D(Color.GRAY, GHQ.stroke3).drawRect(cx(), cy(), width(), height());
+				GHQ.getG2D(Color.WHITE).fillRect(left(), top(), width(), height());
+				GHQ.getG2D(Color.GRAY, GHQ.stroke3).drawRect(left(), top(), width(), height());
 				super.paint();
 			}
 		});
@@ -74,12 +74,12 @@ public class UnitInfo extends GUIParts {
 				if(targetUnit == null)
 					return;
 				final int lineH = 20;
-				int i = 1;
+				int i = 0;
 				GHQ.getG2D(Color.BLACK);
-				GHQ.drawStringGHQ("HP: " + targetUnit.RED_BAR.doubleValue(), cx(), cy() + lineH*i++);
-				GHQ.drawStringGHQ("MP: " + targetUnit.BLUE_BAR.doubleValue(), cx(), cy() + lineH*i++);
-				GHQ.drawStringGHQ("SP: " + targetUnit.GREEN_BAR.doubleValue(), cx(), cy() + lineH*i++);
-				GHQ.drawStringGHQ("WP: " + targetUnit.WHITE_BAR.doubleValue(), cx(), cy() + lineH*i++);
+				GHQ.drawString_left("HP: " + targetUnit.RED_BAR.doubleValue(), left(), top() + lineH*i++, lineH);
+				GHQ.drawString_left("MP: " + targetUnit.BLUE_BAR.doubleValue(), left(), top() + lineH*i++, lineH);
+				GHQ.drawString_left("SP: " + targetUnit.GREEN_BAR.doubleValue(), left(), top() + lineH*i++, lineH);
+				GHQ.drawString_left("WP: " + targetUnit.WHITE_BAR.doubleValue(), left(), top() + lineH*i++, lineH);
 			}
 		});
 		//icon with name, status
